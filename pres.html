@@ -13,7 +13,10 @@
     <body>
 	 
    <script src="./d3.v4.js"></script>
-   <script src="file://c:/Users/Laurent/Documents/MathJax-2.7.0/MathJax-2.7.0/MathJax.js?config=TeX-MML-AM_SVG" ></script>
+   <!--script src="file://c:/Users/Laurent/Documents/MathJax-2.7.0/MathJax-2.7.0/MathJax.js?config=TeX-MML-AM_SVG" ></script-->
+   <!--script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG"-->
+</script>
   <script src="./pres.js"></script>
   <script src="./pres-codex.js"></script>
   <script src="./pres-layout.js"></script>
@@ -22,6 +25,7 @@
   <script src="./pres-camera.js"></script>
   <script src="./pres-frameStyle.js"></script>
   <script src="./pres-transition.js"></script>
+  <script src="./pres-graph.js"></script>
   <script>
      window.addEventListener("load", function(event) {  
 	      
@@ -54,7 +58,7 @@
 		//console.log(
 		fm.append("g", {width:"fill"})
 		  .append("text#1", {width:200})
-		    .print("Items:")
+		    .print("Items :")
 			 .print("\nFirst,"+
 						"\n   with some math $\\sqrt{\\left(x^{2}+y^2\\right)}$..."+
 						"\n$\\alpha = \\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {bullet:1})
@@ -133,194 +137,22 @@
 		fm.goto("lace")// .allNodes()
 		   .set({transition:{duration:2500}})		 
 		fm.nextOverlay();		 
-   	fm.goto("lace")// .allNodes()
+    	fm.goto("lace")// .allNodes()
 		   .set({transition:{duration:2500}})		 
 		//fm.goto("lace").transition(d3.transition().duration(3));
 		//fm.goto("lace").transition(d3.transition().duration(3000));
 		
+		
+        fm.frame("Graph")
+          .append("graph",{}, {nodeType: "simpleNode",seed:0.7259184720682743})
+          .addLinks("1-2;1-4;1-5;1-9;1-10;2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9")
+          .simulation();
+		
+		fm.nextOverlay();
+		fm.localImport="./math.json";
 		fm.run();
 	});
 		 
-	  /*
-		 
-		 //var c0= fm.append("rect").set({x:-15,y:-100,r:20,fill:"green"});
-		 
-		 
-		 
-		 g =fm.append("g",{x:0, y:0})
-		 
-		 l=g.append("vector", {layout:"spread", align:"c", height:300, x:0, y:0})//.decoration({fill:"brown"})
-		 
-		 addDemoCycles(l.append("horizontalVector"));
-		 l.down("#truc").on([1], {fill:"red"});
-		 fm.nextOverlay();
-		 addDemoCycles(l.append("horizontalVector" , {width:200,direction:"h", layout:"spread", align:"t"}));
-		 l.down("#truc").on([2], {fill:"yellow"});
-		 
-		 l.append("text#1").print("Hello world$I^{2^2}$").print("...", {color:"red"})
-		 l.append("horizontalVector", {align:"n", layout:"dense"})
-		    .append("circle")
-			 .then("rect")
-			 .then("circle")
-			 .then("rect")
-			 .then("svgtext", {text:"aa"})
-			 .then("svgtext", {text:"bb"})
-		 
-		 function addDemoCycles(b) {
-				b.append("circle", {strokeWidth:3, margin:2})
-				b.append("circle",{y:18, x:-12, fill:"red"})
-				b.append("circle", {x:23, y:-20, fill:"blue"})
-				  .on(1,{y:30});
-				b.append("circle", {r:15, stroke:"orange", fill:"none"})
-				   .on(1,{fill:"pink"});
-				b.append("circle", {r:3, fill:"none"})
-				   .on([2,4],{fill:"pink"})
-			   	.on([3,5],{show:false});
-				b.append("circle", {fill:"none"})
-			   	.on([4,6],{fill:"pink"});
-				b.append("g")
-				   .append("transform", {angle:32})
-					.append("rect#truc", {w:15,h:6});
-		    //  b.lm.debug=true;	
-		}
-		 function drawVectorExamples(l) {
-			 
-			 
-			 b=l.append("g", {})
-			 .decoration("border");
-			 addDemoCycles(b);
-			 
-			 b=l.append("vector", {direction:"h", layout:"dense" })
-			 .decoration("border");
-			 addDemoCycles(b);
-			 b=l.append("vector", {direction:"h", layout:"dense", align:"n" })
-			 .decoration("border");
-			 addDemoCycles(b);
-			 b=l.append("vector", {direction:"h", layout:"dense", align:"t" })
-			 .decoration("border");
-			 addDemoCycles(b);
-			 b=l.append("vector", {direction:"h", layout:"dense", align:"b" })
-			 .decoration("border");
-			 addDemoCycles(b);	 
-			 
-		 }
-		 
-		 fm.nextOverlay();
-		 
-		 
-		 var a=l.append("array", {x:0, y:0, width:null, height:null}, {cols:"*ll50l20l45%l20l20*", rows:"*m30*t1x*t10*t2x"})
-		        .decoration("background",{fill:"#AAF"})
-				  .print("lm30&l50&l20&l15%-----&l20&l20\\\\t1x&.&.&.&.&.\\\\t1x\\\\t3x")
-		 
-		 for (var c=1; c<=5; c++)
-			 for (var r=1; r<=3; r++)
-				a.cell(c,r)
-				  .decoration("border")
-				  .append("circle", 
-				     {x:Math.random()*20-10, y:Math.random()*10-5, r:3});	
-		 fm.nextOverlay();
-		 a.cell(2,2).append("circle", {r:"fill", fill:"yellow"});
-
-		 //drawVectorExamples(l)
-		 
-		 /*
-		 b=l.append("horizontalLayout", {layout:"spread", width:110, align:"n" })
-		 b.append("circle", {strokeWidth:3, margin:2})
-		 b.append("circle",{y:18, x:-12, fill:"red"})
-		 b.append("circle", {x:23, y:-8, fill:"blue"})
-		 b.append("circle", {r:15, stroke:"orange"})
-		 b.append("circle", {r:3})
-		 b.append("circle", {})
-		 .decoration("border");
-		 
-		 b=l.append("horizontalLayout", {layout:"spread", width:110, align:"t" })
-		 b.append("circle", {strokeWidth:3, margin:2})
-		 b.append("circle",{y:18, x:-12, fill:"red"})
-		 b.append("circle", {x:23, y:-8, fill:"blue"})
-		 b.append("circle", {r:15, stroke:"orange"})
-		 b.append("circle", {r:3})
-		 b.append("circle", {})
-		 .decoration("border");
-		 */
-		 
-		 
-		 //b.decoration({fill:"yellow", stroke:"yellow", padding:0})
-		 
-		 /*
-		 
-		 t=l.append("text", { align:"l", width:150}).decoration("background");
-		 t.printnl("---Line 1---   extra long").freeBox(function(i){i.append("circle");});
-		 t.printnl("--Line 2--");
-		 t.print("-Line $3^{3^3}$").print("-").nl();
-		 
-		 
-		 
-		 
-		 fm.nextOverlay();
-		 fm.nextOverlay();
-		 //b.decoration({ paddingLeft:40});
-		 //g.append("rect", {w:40, fill:"yellow", height:100, alignV:"b"});
-		 
-		 l.append("text").print("hello\nWorld!");
-		 l.append("text").print("hello\nagain");
-		 
-			
-				  
-	/*	for (var c=1; c<=5; c++)
-			for (var r=1; r<=5; r++)
-				a.cell(c,r).append("circle", {x:Math.random()*40-20, y:Math.random()*30-15, r:4})
-				.then("circle", {x:Math.random()*40-20, y:Math.random()*30-15, r:4})
-				.then("circle", {x:Math.random()*40-20, y:Math.random()*30-15, r:4})*/
-				/*
-				.then("rect",{x:Math.random()*40-20, y:Math.random()*30-15, w:5, h:3});		  
-				  */
-		/*  .appendIn("rect",0,0) .decoration("background",{fill:"red"})
-		  .appendIn("circle",0,1,{r:2})
-		  .appendIn("circle",1,0, {r:3, offsetx:10})
-		  .appendIn("rect",1,1, {w:35, h:18}) .decoration("background",{fill:"yellow"})
-		  .appendIn("circle",2,0, {r:3, fill:"red"})
-		  .appendIn("rect",2,1,{r:2})
-		  .appendIn("rect",2,2,{w:20, h:5}) .decoration("background",{fill:"yellow"})
-		  .appendIn("rect",3,3,{w:25,h:4}) .decoration("background",{fill:"yellow"})
-		  
-		  .appendIn("rect",4,4,{w:25,h:4}) .decoration("background",{fill:"orange"})
-		  .appendIn("svgtext",3,1,{text:"Hi!!!"})
-		  .appendIn("circle",4,1,{r:2})
-		  .appendIn("circle",4,2,{r:20})
-		 // .appendIn("circle",5,2,{r:20})
-		  
-		//  .appendIn("rect",6,5).parent
-		  ///.appendIn("rect",2,1,{},{},function(i) {)
-		  ****
-		 fm.nextOverlay();
-		 fm.nextOverlay();
-		 fm.nextOverlay();
-		 fm.nextOverlay();
-		 fm.nextOverlay();
-		 fm.nextOverlay();
-		 
-		// drawItemTree(l);
-		 
-		// fm.localImport="./math.json";
-		 fm.run();
-	
-		// l.logXY();
-	
-       l.goto("#1").logXY("", 4);
-     })
-	  /*
-	  <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
-  <mstyle displaystyle="true" scriptlevel="0">
-    <mrow class="MJX-TeXAtom-ORD">
-      <mi>x</mi>
-      <mo>+</mo>
-      <msup>
-        <mn>5</mn>
-        <mn>2</mn>
-      </msup>
-    </mrow>
-  </mstyle>
-</math>*/
 
   </script>
     </body>

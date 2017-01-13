@@ -65,7 +65,8 @@ function processTransition(i) {
 }
 
 function stopAllTransitions() {
-	for (t of Object.values(transitionShop)) {
+	for (k of Object.keys(transitionShop)) {
+        var t= transitionShop[k];
 		if (t.running) d3.interrupt(t.transObj);
 		t.running=false;
 	}
@@ -76,7 +77,7 @@ function getTransition(style, forward) {
 		t= style.frontTransitionKey || null;
 	else if (forward==-1)
 		t = style.backTransitionKey || null;
-	else console.log("no transition, forward = ",forward);
+	//else console.log("no transition, forward = ",forward);
 	if (t) {
 		console.log("get transition : ", t);
 		//if (transitionShop[t].

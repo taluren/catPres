@@ -11,6 +11,7 @@
  var debugMathJaxParsing = true;
 
 addToCodex("caption", "svgtext", {
+     defaultStyle: {offsety : 4},
 	 onBuild: function(i) {
 		 if (typeof i.datum=="string")
 			 i.style.text=i.datum;

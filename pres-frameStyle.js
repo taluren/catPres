@@ -55,10 +55,10 @@ frameStyleCatalog.beamer = function (fs, style) {
 frameStyleCatalog.cat = function (fs, style) {	    
 		fs	
 		  .append("rect", {w:"fill", h:"fill", stroke:null, fill:"white"})			 
-		  .then("g", {x:160,y:120})
-			  .append("circle", {r:13, x: 5, y:0, fill:"#ECECEC", stroke:null})
-			  .then("circle", {r:5, x: 23, y:-8, fill:"#ECECEC", stroke:null})
-			  .then("circle", {r:5, x: 30, y:0, fill:"#ECECEC", stroke:null})
+		  .then("g", {x:160,y:130, opacity:0.2})
+			  .append("circle", {r:9, x: 12, y:0, fill:"#ECECEC", stroke:null})
+			  .then("circle", {r:5, x: 23, y:-10, fill:"#ECECEC", stroke:null})
+			  .then("circle", {r:5, x: 28, y:0, fill:"#ECECEC", stroke:null})
 			  .then("circle", {r:5, x: 23, y:10, fill:"#ECECEC", stroke:null})
 			  .up()
 		  .then("g#background",{width:"fill", height:"fill"})      	

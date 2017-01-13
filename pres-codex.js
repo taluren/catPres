@@ -77,14 +77,15 @@ var codex = {
 		onBuild:  function(i,s) {i.g.style("-moz-user-select","none")} ,
 				
       onDraw: function (i) {checkTree(i)
-			i.useAttr("offsetx");
-			i.useAttr("offsety");
+			i.useAttr("x", "offsetx");
+			i.useAttr("y", "offsety");
 			i.useStyle("fill","color");	
-				i.useStyle("opacity");
+		    i.useStyle("opacity");
 			i.useAttr("font-size","size");
 			i.useAttr("font-family","font");	
 			i.useAttr("font-weight","weight");	
 			i.useAttr("text-anchor","anchor");	
+            i.useAttr("alignment-baseline","alignmentBaseline");
 //         console.log("svgtext : ", i.style.text);
 			if (i.children.length==0) 
 				i.saveG.html(i.style.text); 
@@ -118,11 +119,12 @@ var codex = {
 		onBuild:  null, //function to be called once, at build time ("append"), parameter: item
 		onLoad: null, 
 		          //function called at drawing time, before children (prefix order), parameter: item
-      onDrawPostOrder: null, // idem, but called after children
+        onDrawPostOrder: null, // idem, but called after children
 		onSave: null,	 //function called at saving time (suffix order), parameters: item, saved style	
 		    
 		onLayout : function(i) {
-			i.g.attr("transform", "translate("+xy(i.style)+")");
+			i.g.attr("transform", "translate("+xy(i.style)+")");            
+            i.useStyle("opacity");
 		}//called after only x and y may have changed
 		
 	}
@@ -132,56 +134,17 @@ addToCodex("g", "", {}); //g = default
 
 
 addToCodex("transform", "g", {
-	onDraw: function (i) {			
-			
+	onDraw: function (i) {			  	
 		},    
   onLayout : function(i) {
 			i.g.attr("transform", 
 			  "translate("+xy(i.style)+")"
 			  + (i.style.scale?"scale("+(typeof i.style.scale == "object" ? xy(i.style.scale) : i.style.scale)+")":"")
 			  + (i.style.angle?"rotate("+i.style.angle+")":"")
-			 );
+			 );      
+            i.useStyle("opacity");      
 		}
 });
-
-//lace takes datum: {nodeType (circle, rect, ...), d (array) or size (then d:=[0,1,...size-1])}
-addToCodex("lace", "g", {
-	defaultStyle:{rx:5,ry:2},
-	onBuild: function(i) {
-		i.datum = i.datum || {};
-		var d=i.datum;
-		importDefault(d, {nodeType:"circle"});		
-		if (d.d) {
-			d.size=d.d.length;			
-		} else {
-			importDefault(d, {size: 10})
-			d.d=d3.range(d.size);
-		}
-		var links= i.append("g");
-		var nodes= i.append("g");
-		var prevn= null;
-		for (var x=0; x<d.size; x++) {
-			var n =nodes.append(d.nodeType, {x:(x-d.size/2)*15, y:0, angle:30}, d.d[x]); 
-			if (prevn) {
-				links.append("link",{},{source:prevn, target:n})
-			}
-			prevn=n;
-		}
-		i.nodes= function() {
-			return nodes.childBag();
-		}
-		i.links = function() {
-			return links.childBag();
-		}
-		
-	}
-});
-
-addToCodex("link", "path", {
-   onSave: function(i,s) {
-		s.d= "M"+xy(i.datum.source.style)+ " L"+xy(i.datum.target.style);		
-	}
-})
 
 addToCodex("custom","", {
 	tag:"g",

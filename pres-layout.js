@@ -1,13 +1,4 @@
-/*function alignX(s, width, childx, childwidth) {
-	if (s.align=="center") return s.x =   - childwidth/2 - childx;
-   if (s.align=="left") return s.x =  -width/2-childx;
-	if (s.align=="right") return s.x = width/2-(childwidth+childx);
-	if (s.align=="auto") return;// keep old value
-	
-	console.log("unknown align value");
-	return 0;
-}
-*/
+
 /*layout :
     auto:
     spread: fill up height with gaps between elements

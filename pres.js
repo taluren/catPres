@@ -22,6 +22,15 @@ function getComputed(key, d) {
 function getter(key) {
 	return function(x) {return x[key]};
 }
+
+function seededRndGenerator(seed) {
+  var gen = {seed: seed};   
+  gen.random = function() {    
+    gen.seed = (gen.seed * 9301 + 49297) % 233280;
+    return  gen.seed / 233280;
+  }
+  return gen;
+}
 //********************************************//
 
 function importDefault(obj, def, def2, def3) {
@@ -370,12 +379,13 @@ function Item(parent, typeAndId, style, d) {
     g:parent.g.append(tag).attr("class",type),//.style("visibility", "hidden"),
 	 style:(style||{}),
 	 defaultStyle:code.defaultStyle || {},
-    children:[],
+     children:[],
 	 history:[],
 	 lastDraw:-2,
 	 bgRect:null,
 	 showBefore:true,
-	 showAfter:true,	 
+	 showAfter:true,	
+     shown:false,
 	 drawingFunction:code.onDraw,
 	 drawingFunctionPostOrder:code.onDrawPostOrder,
 	 loadingFunction:code.onLoad,
@@ -543,7 +553,7 @@ function Item(parent, typeAndId, style, d) {
 		
 		//  marginAndPadding(i.style.bg, "padding");
 		  var bbox=i.getBackgroundBBox();
-		  console.log(i.type, bbox)
+		  //console.log(i.type, bbox)
 		  if (!bbox) return false;
 		  
 		  if (i.type=="text") {console.log("text", bbox, i.style.width);}
@@ -605,6 +615,7 @@ function Item(parent, typeAndId, style, d) {
 	  }
   }
   i.draw=function(regular) {	  
+     i.shown=true;
 	 i.bbox=null;
 	 if (i.lastDraw!=i.nextDraw || !regular) {
 		 i.saveG=i.g;
@@ -1079,6 +1090,9 @@ frameManager = function(style, sozi)  {
 	
 	
 	fm.run=function() {
+       console.log("=========================");       
+       console.log("===  Running !     ======");
+       console.log("=========================");
 	   fm.nextOverlay();
 		if (sozi)
 			sozi.player.on("frameChange",function() {updateFrame(true)});	
@@ -1089,9 +1103,9 @@ frameManager = function(style, sozi)  {
 		}
 			
 		updateFrame(false);
-		if (MathJaxImport) {
+		/*if (MathJaxImport) {
 			MathJaxImport(fm.localImport, function() {updateFrame(false);});
-		}	
+		}*/	
 	}
 	
 	return fm;
