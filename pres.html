@@ -1,0 +1,327 @@
+
+
+
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Pres</title>
+        <style>
+        </style>
+    </head>
+    <body>
+	 
+   <script src="./d3.v4.js"></script>
+   <script src="file://c:/Users/Laurent/Documents/MathJax-2.7.0/MathJax-2.7.0/MathJax.js?config=TeX-MML-AM_SVG" ></script>
+  <script src="./pres.js"></script>
+  <script src="./pres-codex.js"></script>
+  <script src="./pres-layout.js"></script>
+  <script src="./pres-text.js"></script>
+  <script src="./pres-helpLines.js"></script>
+  <script src="./pres-camera.js"></script>
+  <script src="./pres-frameStyle.js"></script>
+  <script src="./pres-transition.js"></script>
+  <script>
+     window.addEventListener("load", function(event) {  
+	      
+			
+		fm=frameManager({screenBackground:"black"});
+		fm.frame("Pres.html", {model:"titleFrame"})
+			.append("text")
+				.print("---")
+			.up("#main")
+			.append("text")
+				.print("---")
+				
+
+		
+		 
+		fm.frame("Array")	
+		 
+		 
+		fm.append("array", {}, {cols:"*l80l50ll25%l20l20*", rows:"*m30*t1x*t1x*b20"})
+		      .decoration("background",{fill:"#AAF"})
+				.print("l80m30&l50&l&l25%&l20&l20\\\\"+
+				"t1x&a&bbbb&c&d&e\\\\"+
+				"t1x&a$x^2$&b&cc\ncc&d&e\\\\"+
+				"b20&a&b&c&d-----&e")
+		
+		
+		
+		fm.frame("Text")
+		
+		//console.log(
+		fm.append("g", {width:"fill"})
+		  .append("text#1", {width:200})
+		    .print("Items:")
+			 .print("\nFirst,"+
+						"\n   with some math $\\sqrt{\\left(x^{2}+y^2\\right)}$..."+
+						"\n$\\alpha = \\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {bullet:1})
+		//    .goto("#1")
+		//	   .down("sweetTextLine").lm.debug=true;
+		//drawItemTree(fm.goto("#1"), {opacity:0.33});
+		fm.nextOverlay();
+		
+		fm.append("text", {align:"right"})
+			 .print("A paragraph, align : \"right\",\n"+
+						"with some math $\\sqrt{\\left(x^{2}+y^2\\right)}$...\n"+
+						"$\\alpha = \\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$\n")
+			 .print("Kerning : AV = A").print("V.");
+		fm.nextOverlay();
+		fm.goto("#1")
+		    .print("\nSmaller items\n yeah!", {bullet:2})
+		fm.append("caption",{color:"darkgreen"},"Here be a caption");   
+		
+		fm.frame("Shapes")
+		   .goto("#foreground")
+				.append("rect", {x:5, y:100})
+				.then("circle", {x:-50})
+				.then("path", {d:"M0,0 l100,23 l34,-45 l-87,0 z"})
+					
+		fm.frame("Overlays")
+		  // .goto("#foreground")
+				.append("array#a", {}, {rows:"m1x", cols:"lc50"})
+				.decoration("border")
+				
+				.print(".on(1, {fill:\"red\"})\\\\"+
+				".on([2,3], {r:2})\\\\"+
+				".on([3], {opacity:0.5})\\\\"+
+				".on([1], {fill:\"yellow\"})\n.on(2, {fill:\"red\"})")
+				.cell(1,0)
+					//.decoration("border")
+					.append("circle")
+					.on(1, {fill:"red"})
+					.up("array")				
+				.cell(1,1)
+					.append("circle")
+					.on([2,3], {r:2})
+					.up("array")				
+				.cell(1,2)
+					.append("circle")
+					.on([3], {opacity:0.5})
+					.up("array")				
+				.cell(1,3)
+					.append("circle")
+					.on([1], {fill:"yellow"})
+					.on(2, {fill:"red"})
+					.up("array")				
+			.then("svgtext", {text:"0"})		
+					.on(1, {text:"1"})
+					.on(2, {text:"2"})
+					.on(3, {text:"3"})
+					.on([4], {text:"4"})
+					
+		fm.nextOverlay();		 
+	//	console.log(fm.topF.hasSchedule())			
+		fm.frame("Frame model: simple", {model:"simple"})
+		  .append("text", {align:"center"})
+			.print("Models:\n", {weight:"bold"})
+			.print("empty\nbase\ntitleFrame\nbeamer");
+		fm.frame("Lace")
+		   .goto("#foreground")
+		   .append("lace",{}, {size:41})
+			    .nodes()
+				 .set(function(i,j) {return {x:(j-20)*9, r:3.5};})
+				 .on([1], function(i,j) {return {y:Math.sin(j/3)*60, fill:"#88"+(j*200/40+16).toString(16)+(255-j*200/40).toString(16)};})		 
+				 .on([2], function(i,j) {return {y:Math.sin(j/3+1.5)*60};})
+				 .on([3], function(i,j) {return {y:Math.sin(j/3+3)*60};})
+		fm.nextOverlay();		 
+		fm.goto("lace").set({transition:{duration:1000}}).log("--", ["transition", ])
+		//.transition(function() {return d3.transition("aaa").duration(3000)});
+		fm.nextOverlay();		 
+		fm.goto("lace")// .allNodes()
+		   .set({transition:{duration:2500}})		 
+		fm.nextOverlay();		 
+   	fm.goto("lace")// .allNodes()
+		   .set({transition:{duration:2500}})		 
+		//fm.goto("lace").transition(d3.transition().duration(3));
+		//fm.goto("lace").transition(d3.transition().duration(3000));
+		
+		fm.run();
+	});
+		 
+	  /*
+		 
+		 //var c0= fm.append("rect").set({x:-15,y:-100,r:20,fill:"green"});
+		 
+		 
+		 
+		 g =fm.append("g",{x:0, y:0})
+		 
+		 l=g.append("vector", {layout:"spread", align:"c", height:300, x:0, y:0})//.decoration({fill:"brown"})
+		 
+		 addDemoCycles(l.append("horizontalVector"));
+		 l.down("#truc").on([1], {fill:"red"});
+		 fm.nextOverlay();
+		 addDemoCycles(l.append("horizontalVector" , {width:200,direction:"h", layout:"spread", align:"t"}));
+		 l.down("#truc").on([2], {fill:"yellow"});
+		 
+		 l.append("text#1").print("Hello world$I^{2^2}$").print("...", {color:"red"})
+		 l.append("horizontalVector", {align:"n", layout:"dense"})
+		    .append("circle")
+			 .then("rect")
+			 .then("circle")
+			 .then("rect")
+			 .then("svgtext", {text:"aa"})
+			 .then("svgtext", {text:"bb"})
+		 
+		 function addDemoCycles(b) {
+				b.append("circle", {strokeWidth:3, margin:2})
+				b.append("circle",{y:18, x:-12, fill:"red"})
+				b.append("circle", {x:23, y:-20, fill:"blue"})
+				  .on(1,{y:30});
+				b.append("circle", {r:15, stroke:"orange", fill:"none"})
+				   .on(1,{fill:"pink"});
+				b.append("circle", {r:3, fill:"none"})
+				   .on([2,4],{fill:"pink"})
+			   	.on([3,5],{show:false});
+				b.append("circle", {fill:"none"})
+			   	.on([4,6],{fill:"pink"});
+				b.append("g")
+				   .append("transform", {angle:32})
+					.append("rect#truc", {w:15,h:6});
+		    //  b.lm.debug=true;	
+		}
+		 function drawVectorExamples(l) {
+			 
+			 
+			 b=l.append("g", {})
+			 .decoration("border");
+			 addDemoCycles(b);
+			 
+			 b=l.append("vector", {direction:"h", layout:"dense" })
+			 .decoration("border");
+			 addDemoCycles(b);
+			 b=l.append("vector", {direction:"h", layout:"dense", align:"n" })
+			 .decoration("border");
+			 addDemoCycles(b);
+			 b=l.append("vector", {direction:"h", layout:"dense", align:"t" })
+			 .decoration("border");
+			 addDemoCycles(b);
+			 b=l.append("vector", {direction:"h", layout:"dense", align:"b" })
+			 .decoration("border");
+			 addDemoCycles(b);	 
+			 
+		 }
+		 
+		 fm.nextOverlay();
+		 
+		 
+		 var a=l.append("array", {x:0, y:0, width:null, height:null}, {cols:"*ll50l20l45%l20l20*", rows:"*m30*t1x*t10*t2x"})
+		        .decoration("background",{fill:"#AAF"})
+				  .print("lm30&l50&l20&l15%-----&l20&l20\\\\t1x&.&.&.&.&.\\\\t1x\\\\t3x")
+		 
+		 for (var c=1; c<=5; c++)
+			 for (var r=1; r<=3; r++)
+				a.cell(c,r)
+				  .decoration("border")
+				  .append("circle", 
+				     {x:Math.random()*20-10, y:Math.random()*10-5, r:3});	
+		 fm.nextOverlay();
+		 a.cell(2,2).append("circle", {r:"fill", fill:"yellow"});
+
+		 //drawVectorExamples(l)
+		 
+		 /*
+		 b=l.append("horizontalLayout", {layout:"spread", width:110, align:"n" })
+		 b.append("circle", {strokeWidth:3, margin:2})
+		 b.append("circle",{y:18, x:-12, fill:"red"})
+		 b.append("circle", {x:23, y:-8, fill:"blue"})
+		 b.append("circle", {r:15, stroke:"orange"})
+		 b.append("circle", {r:3})
+		 b.append("circle", {})
+		 .decoration("border");
+		 
+		 b=l.append("horizontalLayout", {layout:"spread", width:110, align:"t" })
+		 b.append("circle", {strokeWidth:3, margin:2})
+		 b.append("circle",{y:18, x:-12, fill:"red"})
+		 b.append("circle", {x:23, y:-8, fill:"blue"})
+		 b.append("circle", {r:15, stroke:"orange"})
+		 b.append("circle", {r:3})
+		 b.append("circle", {})
+		 .decoration("border");
+		 */
+		 
+		 
+		 //b.decoration({fill:"yellow", stroke:"yellow", padding:0})
+		 
+		 /*
+		 
+		 t=l.append("text", { align:"l", width:150}).decoration("background");
+		 t.printnl("---Line 1---   extra long").freeBox(function(i){i.append("circle");});
+		 t.printnl("--Line 2--");
+		 t.print("-Line $3^{3^3}$").print("-").nl();
+		 
+		 
+		 
+		 
+		 fm.nextOverlay();
+		 fm.nextOverlay();
+		 //b.decoration({ paddingLeft:40});
+		 //g.append("rect", {w:40, fill:"yellow", height:100, alignV:"b"});
+		 
+		 l.append("text").print("hello\nWorld!");
+		 l.append("text").print("hello\nagain");
+		 
+			
+				  
+	/*	for (var c=1; c<=5; c++)
+			for (var r=1; r<=5; r++)
+				a.cell(c,r).append("circle", {x:Math.random()*40-20, y:Math.random()*30-15, r:4})
+				.then("circle", {x:Math.random()*40-20, y:Math.random()*30-15, r:4})
+				.then("circle", {x:Math.random()*40-20, y:Math.random()*30-15, r:4})*/
+				/*
+				.then("rect",{x:Math.random()*40-20, y:Math.random()*30-15, w:5, h:3});		  
+				  */
+		/*  .appendIn("rect",0,0) .decoration("background",{fill:"red"})
+		  .appendIn("circle",0,1,{r:2})
+		  .appendIn("circle",1,0, {r:3, offsetx:10})
+		  .appendIn("rect",1,1, {w:35, h:18}) .decoration("background",{fill:"yellow"})
+		  .appendIn("circle",2,0, {r:3, fill:"red"})
+		  .appendIn("rect",2,1,{r:2})
+		  .appendIn("rect",2,2,{w:20, h:5}) .decoration("background",{fill:"yellow"})
+		  .appendIn("rect",3,3,{w:25,h:4}) .decoration("background",{fill:"yellow"})
+		  
+		  .appendIn("rect",4,4,{w:25,h:4}) .decoration("background",{fill:"orange"})
+		  .appendIn("svgtext",3,1,{text:"Hi!!!"})
+		  .appendIn("circle",4,1,{r:2})
+		  .appendIn("circle",4,2,{r:20})
+		 // .appendIn("circle",5,2,{r:20})
+		  
+		//  .appendIn("rect",6,5).parent
+		  ///.appendIn("rect",2,1,{},{},function(i) {)
+		  ****
+		 fm.nextOverlay();
+		 fm.nextOverlay();
+		 fm.nextOverlay();
+		 fm.nextOverlay();
+		 fm.nextOverlay();
+		 fm.nextOverlay();
+		 
+		// drawItemTree(l);
+		 
+		// fm.localImport="./math.json";
+		 fm.run();
+	
+		// l.logXY();
+	
+       l.goto("#1").logXY("", 4);
+     })
+	  /*
+	  <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mstyle displaystyle="true" scriptlevel="0">
+    <mrow class="MJX-TeXAtom-ORD">
+      <mi>x</mi>
+      <mo>+</mo>
+      <msup>
+        <mn>5</mn>
+        <mn>2</mn>
+      </msup>
+    </mrow>
+  </mstyle>
+</math>*/
+
+  </script>
+    </body>
+</html>
