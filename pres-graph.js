@@ -114,20 +114,7 @@ addToCodex("graph", "g", {
         var nodeIndex = {};
         var linkIndex = {};
         var simulation = null;
-        i.addNode = function(what, x, y) {
-           var id=what;
-          /* if (typeof what=="object") {
-              x=what.x;
-              y=what.y;
-              if ("id" in what)
-                 id = what.id;
-              else 
-                 id = nodes.children.length+"";
-           } else {
-             what={id:id};
-           }*/
-           
-          
+        i.addNode = function(id, x, y) {
            if (typeof x == "undefined") x= generator.random()*150-75;
            if (typeof y == "undefined") y= generator.random()*150-75;
            nodeIndex[id] = nodes.append(d.nodeType + "#" + i.id + "/" +id, {x:x, y:y});
