@@ -26,9 +26,10 @@ var codex = {
 				i.useStyle("opacity");
 			i.useAttr("stroke", "stroke","fill");						
 			i.useStyle("stroke-width","strokeWidth");		
+            i.useStyle("stroke-dasharray", "dash");
 			i.useAttr("cx","offsetx");
 			i.useAttr("cy","offsety");
-			
+			i.useStyle("cursor");
 			
 		//	i.g.style("clip-path", "url(#"+i.id+")");
 		},
@@ -47,6 +48,7 @@ var codex = {
 				i.useStyle("fill");		
 				i.useAttr("stroke", "stroke", "fill");	
 				i.useStyle("stroke-width","strokeWidth");	
+                i.useStyle("stroke-dasharray", "dash");
 				i.useAttr("rx");	
 				i.useAttr("ry");	
 				i.useAttr("x","offsetx");	
@@ -64,8 +66,10 @@ var codex = {
 		onDraw:function(i) { 
 			i.useAttr("d");	
 			i.useAttr("fill");	
-			i.useAttr("stroke");	
-				i.useStyle("opacity");
+			i.useAttr("stroke");	                
+            i.useStyle("stroke-width","strokeWidth");
+			i.useStyle("opacity");
+            i.useStyle("stroke-dasharray", "dash");
 		},
 		onLayout:function(i){
 			i.g.attr("transform", "translate("+xy(i.style)+")");
@@ -73,8 +77,10 @@ var codex = {
 	},
 	svgtext: {
 		tag:"text",
-		defaultStyle: {x:0,y:0, text:""} ,
-		onBuild:  function(i,s) {i.g.style("-moz-user-select","none")} ,
+	    defaultStyle: {x:0,y:0, text:"", select:"none"} ,
+		/*onBuild:  function(i,s) {i.g.style("-moz-user-select","none")
+          
+        } ,*/
 				
       onDraw: function (i) {checkTree(i)
 			i.useAttr("x", "offsetx");
@@ -86,6 +92,13 @@ var codex = {
 			i.useAttr("font-weight","weight");	
 			i.useAttr("text-anchor","anchor");	
             i.useAttr("alignment-baseline","alignmentBaseline");
+            i.useStyle("cursor");
+            i.useStyle("-webkit-user-select","select");
+            i.useStyle("-moz-user-select","select");
+            i.useStyle("-ms-user-select","select");
+            i.useStyle("user-select","select");
+            
+            
 //         console.log("svgtext : ", i.style.text);
 			if (i.children.length==0) 
 				i.saveG.html(i.style.text); 
@@ -121,7 +134,7 @@ var codex = {
 		          //function called at drawing time, before children (prefix order), parameter: item
         onDrawPostOrder: null, // idem, but called after children
 		onSave: null,	 //function called at saving time (suffix order), parameters: item, saved style	
-		    
+		onFirstRun: null, //called once in the whole simulation, at "frameManager.run()" time, before the first drawing.   
 		onLayout : function(i) {
 			i.g.attr("transform", "translate("+xy(i.style)+")");            
             i.useStyle("opacity");

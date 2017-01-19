@@ -75,7 +75,8 @@
 		fm.nextOverlay();
 		fm.goto("#1")
 		    .print("\nSmaller items\n yeah!", {bullet:2})
-		fm.append("caption",{color:"darkgreen"},"Here be a caption");   
+		  .up("#root")
+		    .append("caption",{color:"darkgreen"},"Here be a caption");   
 		
 		fm.frame("Shapes")
 		   .goto("#foreground")
@@ -130,25 +131,94 @@
 				 .on([1], function(i,j) {return {y:Math.sin(j/3)*60, fill:"#88"+(j*200/40+16).toString(16)+(255-j*200/40).toString(16)};})		 
 				 .on([2], function(i,j) {return {y:Math.sin(j/3+1.5)*60};})
 				 .on([3], function(i,j) {return {y:Math.sin(j/3+3)*60};})
-		fm.nextOverlay();		 
-		fm.goto("lace").set({transition:{duration:1000}}).log("--", ["transition", ])
+		fm.nextOverlay()
+		  .goto("lace").set({transition:{duration:1000}}).log("--", ["transition", ])
 		//.transition(function() {return d3.transition("aaa").duration(3000)});
-		fm.nextOverlay();		 
-		fm.goto("lace")// .allNodes()
+		fm.nextOverlay()		 
+		  .goto("lace")// .allNodes()
 		   .set({transition:{duration:2500}})		 
-		fm.nextOverlay();		 
-    	fm.goto("lace")// .allNodes()
+		   
+		fm.nextOverlay()		 
+    	  .goto("lace")// .allNodes()
 		   .set({transition:{duration:2500}})		 
 		//fm.goto("lace").transition(d3.transition().duration(3));
 		//fm.goto("lace").transition(d3.transition().duration(3000));
 		
 		
         fm.frame("Graph")
-          .append("graph",{}, {nodeType: "simpleNode",seed:0.7259184720682743})
-          .addLinks("1-2;1-4;1-5;1-9;1-10;2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9")
-          .simulation();
-		
-		fm.nextOverlay();
+          .append("graph",{},{simulation:true,seed:0.7259184720682743})
+          .setNodeStyle({stroke:"blue"})
+          .addLinks("1-2;1-4;1-5;1-9;1-10")
+          .setNodeStyle({stroke:null})          
+          .addLinks("2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9")
+          ;
+        fm.nextOverlay()
+		  .goto("graph")
+            .setLinkStyle({stroke:"red", dash:5})
+            .addLinks("9-11;3-11;4-11");
+           ; 
+        fm.nextOverlay()
+          .goto("graph")
+            .getNode("2")
+              .hide()
+          .goto("graph")
+            .getLinks("4-11;1-9")
+              .hide()
+           ;
+
+        
+        fm.frame("Graph-2")
+          .append("text#def")//.decoration("background",{fill:"#AAF"})
+            .print("Vertex Cover:",{weight:"bold"})
+            
+        fm.append("horizontalVector#hv")
+           .append("box#boxg1")
+            .append("graph",{},{simulation:true, seed:0.2856390579108874})
+            .setNodeStyle({fill:"#eef", color:"#008"})
+            .setLinkStyle({stroke:"#66A"})
+            .addLinks("1-2;1-4;1-5;1-9;1-10;2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9;3-11;3-12;1-11")   
+        
+        function selectNodeForVC(graph, id) {
+          graph.getNode(id)
+           .set({stroke:"black", fill:"#ccc", color: "black"})
+          graph. getNeighborLinks(id)
+            .set({stroke:"black", strokeWidth:2});
+        }
+        
+        fm.nextOverlay()
+           .goto("#def")
+            .print(" set of vertices covering all edges")
+        selectNodeForVC(fm.goto("graph"), "1");
+        fm.nextOverlay()
+        selectNodeForVC(fm.goto("graph"), "2");
+        fm.nextOverlay()
+        selectNodeForVC(fm.goto("graph"), "3");
+        fm.nextOverlay()
+           .goto("#def")
+            .print("\nKernel: ",{weight:"bold"})
+            .print(" smaller instance (size f(k)) equivalent to the original")
+            .print("\n(same spirit as sketches, in an exact setting)", {align:"center",color:"#888"})
+           .goto("#hv")
+            .append("text").print("==>")
+           .goto("#hv")
+            .append("box")
+              .append("graph#kernel",{},{simulation:true, seed:0.2856390579108874})
+              .setNodeStyle({fill:"#eef", color:"#008"})
+              .setLinkStyle({stroke:"#66A"})
+              .addLinks("1-2;1-5;1-9;2-5;2-7;2-8;2-9")   
+             .then("caption",{text:"k=2", y:90})  
+           .goto("#boxg1")  
+             .append("caption",{text:"k=3", y:90})  
+        fm.nextOverlay()
+        
+		fm.frame("Generalities")
+		  .append("text")
+		    .print("call order on new frame:")
+              .print("\n  onLoad (prefix)",{bullet:1})
+              .print("\n onDraw (prefix)",{bullet:1})
+              .print("\n  onDrawPostOrder (suffix)",{bullet:1})            
+              .print("\n onLayout (suffix)",{bullet:1})
+		   ;
 		fm.localImport="./math.json";
 		fm.run();
 	});

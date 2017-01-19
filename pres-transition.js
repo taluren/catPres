@@ -19,7 +19,7 @@ function transitionMaker(t) {
 		                 .delay(t.delay)
 		                 .duration(t.duration)
 							  .ease(t.ease)
-							  .on("start", function() {console.log("transition start", t.key, t.duration);})
+							//  .on("start", function() {console.log("transition start", t.key, t.duration);})
 							  //.on("end", function() {console.log("transition end", t.key, t.transObj.nodes()); t.running=false;})
 				 //  t.running=true;	
 				 }				 
@@ -79,7 +79,7 @@ function getTransition(style, forward) {
 		t = style.backTransitionKey || null;
 	//else console.log("no transition, forward = ",forward);
 	if (t) {
-		console.log("get transition : ", t);
+//		console.log("get transition : ", t);
 		//if (transitionShop[t].
 		//transitionShop[t].make();
 	}
