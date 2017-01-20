@@ -613,6 +613,46 @@ function layoutManager(str, horizontal) {
 		l.computePositions();		
 		if (l.debug) console.log("Apply layout manager ", l.arrange, " : complete.");
 	}
+	
+	var color= {vector:"red", 
+	            horizontalVector:"blue", 
+					text:"green",
+					sweetTextLine:"yellow",
+					array:"purple"}
+	l.drawHelpLines=function (g) {
+		g.selectAll(".lmHelpLines"+l.kx).remove();
+		l.bag.each(function(child, col) {
+			//console.log(g, g.datum());
+			g.append("rect")
+			  .attr("x",-3-col/2)
+			  .attr("y",-3-col/2)
+			  .attr("width",6+col)
+			  .attr("height",6+col)
+			  .style("opacity",0.5)
+			  .style("stroke","black")
+			  .attr("class", "lmHelpLines"+l.kx)
+			  .style("fill", color[g.datum().type] ||"gray")
+			  .attr(l.kx, child.style[l.kx]-child.style[l.kwidth]/2)
+			  .attr(l.kwidth, child.style[l.kwidth])				
+		});		
+	}
 	return l;
 	
 }
+var needHelpLines = [];
+function addHelpLines(i) {
+	needHelpLines.push(i);
+}
+function drawRecursiveHelpLines(i) {
+		if (i.vl) i.vl.drawHelpLines(i.g);
+		if (i.hl) i.hl.drawHelpLines(i.g);
+		if (i.lm) i.lm.drawHelpLines(i.g);
+		//console.log(i);
+		i.children.forEach(drawRecursiveHelpLines);			
+}
+	
+function drawHelpLines() {
+	
+	needHelpLines.forEach(drawRecursiveHelpLines);
+}
+

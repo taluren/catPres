@@ -52,6 +52,7 @@
 				"b20&a&b&c&d-----&e")
 		
 		
+		addHelpLines(fm.goto("#root"));		
 		
 		fm.frame("Text")
 		
@@ -110,13 +111,15 @@
 					.append("circle")
 					.on([1], {fill:"yellow"})
 					.on(2, {fill:"red"})
-					.up("array")				
+					.up("array")		
+					
 			.then("svgtext", {text:"0"})		
 					.on(1, {text:"1"})
 					.on(2, {text:"2"})
 					.on(3, {text:"3"})
 					.on([4], {text:"4"})
 					
+		addHelpLines(fm.goto("#a"));			
 		fm.nextOverlay();		 
 	//	console.log(fm.topF.hasSchedule())			
 		fm.frame("Frame model: simple", {model:"simple"})
@@ -170,7 +173,8 @@
         fm.frame("Graph-2")
           .append("text#def")//.decoration("background",{fill:"#AAF"})
             .print("Vertex Cover:",{weight:"bold"})
-            
+      
+		  addHelpLines(fm.goto("#root"));		      
         fm.append("horizontalVector#hv")
            .append("box#boxg1")
             .append("graph",{},{simulation:true, seed:0.2856390579108874})
@@ -211,6 +215,7 @@
              .append("caption",{text:"k=3", y:90})  
         fm.nextOverlay()
         
+		addHelpLines(fm.goto("#hv"));		
 		fm.frame("Generalities")
 		  .append("text")
 		    .print("call order on new frame:")

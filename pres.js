@@ -321,12 +321,13 @@ function FrameBase(frame, holder, transform, style) {
 	  children:[],	  
 	  inheritStyle:{},
 	  defaultStyle:codex.frame.defaultStyle,
-      id:"root",  
+     id:"root",  
 	  index:{},
 	  style:style,
 	  history:[]
   } 
   fb.root=fb;
+  fb.index["root"] = fb;
   fb.title=function(s) {
 		fb.goto("#title")
 		  .set({text:s});
@@ -370,7 +371,7 @@ function Item(parent, typeAndId, style, d) {
   if (type in codex) {
 	  code=codex[type];	  
   } else {
-	  console.log("Warning: type "+type+" unknown.");
+	  console.error("Warning: type "+type+" unknown.");
   }
   var tag=code.tag;
   var id = splitTandId[1] || (type+"-"+(nextId++));
@@ -1132,7 +1133,8 @@ frameManager = function(style, sozi)  {
          delete fm.drawAgain;		
 			var f=fm.currentFrame(); //sozi.player.currentFrameIndex+1;
 			console.log("Frame "+f + (regular?"":" --special--"));			
-			for (i=0;i<fm.frames.length;i++) fm.frames[i].draw(f, regular);		
+			for (i=0;i<fm.frames.length;i++) fm.frames[i].draw(f, regular);
+			drawHelpLines();
 			if (fm.drawAgain) {
 				console.log("draw again!");
 			   regular=fm.drawAgain.regular;					
