@@ -57,7 +57,7 @@ addToCodex("link", "path", {
 })
 
 addToCodex("simpleNode", "g", {
-   defaultStyle:{cursor:"pointer", fill:"#ddd", r:8, stroke:"none"},
+   defaultStyle:{cursor:"pointer", fill:"#ddd", r:8, stroke:"none", wriggle:0},
    onBuild: function(i) {
       i.append("circle");
       i.caption = i.append("caption");      
@@ -93,6 +93,16 @@ addToCodex("simulation", "g", {
            });  
         }
      
+    } 
+    var keepInBox=function(alpha) {
+         var w=i.parent.style.width;
+         var h=i.parent.style.height;         
+         i.simulation.nodes().forEach(function(n) {
+            if (n.x>w/2)  n.vx-=(n.x-w/2)*alpha;                                      
+            if (n.x<-w/2) n.vx-=(n.x+w/2)*alpha;                                      
+            if (n.y>h/2)  n.vy-=(n.y-h/2)*alpha;                                      
+            if (n.y<-h/2) n.vy-=(n.y+h/2)*alpha;                                      
+         });
     }
      var ticked = function() {              
               i.simulation.nodes().forEach(function(n) {
@@ -110,7 +120,8 @@ addToCodex("simulation", "g", {
               .force("charge", d3.forceManyBody().strength(-100))
               .force("center", d3.forceCenter(0,0))
               .force("y", d3.forceY(0))
-              .force("x", d3.forceX(0))     
+              .force("x", d3.forceX(0))    
+              .force("keepInBox", keepInBox)  
               .force("momentum", keepMomentum)         
               .alpha(1)
               .alphaMin(0.05)
@@ -150,6 +161,15 @@ addToCodex("simulation", "g", {
        var nodes = i.datum.nodes || i.parent.nodes().filterShown().items;
        var links = i.datum.links || i.parent.links().filterShown().items;
        console.log("run with ",nodes.length," nodes and ", links.length, " links");
+       nodes.forEach(function(n){
+         if (n.style.fix) {
+           n.fx=n.x;
+           n.fy=n.y;
+         } else {
+           n.fx=null;
+           n.fy=null;
+         }
+       });
        i.simulation.nodes(nodes);
        console.log(links);
        i.simulation.force("link")
@@ -188,12 +208,20 @@ addToCodex("freeGraph", "g", {
         var linkStyle = {};
         
         //links must be before the nodes according to the DOM, but they must be after in the item hierarchy (loading/drawing a link depends on its endpoints)
-        linkBox.g.lower();
+        linkBox.g.lower();        
+        
+        
+        i.nodes= function() {
+            return nodeBox.childBag();
+        }
+        i.links = function() {
+            return linkBox.childBag();
+        }
         
         // mapping from (user's) node id to node item
         var nodeIndex = {};
         var linkIndex = {};
-        
+        var importedCoords={};
         //simulation item
         var simulation = null;
         i.setNodeStyle=function(s) {
@@ -211,6 +239,10 @@ addToCodex("freeGraph", "g", {
         }
         //add node with given id. If x and y are undefined, use random position instead
         i.addNode = function(id, x, y) {
+           if (id in importedCoords) {
+             x=importedCoords[id].x;
+             y=importedCoords[id].y;
+           }
            if (typeof x == "undefined") x= (generator.random()-0.5)*getComputed("width", i);
            if (typeof y == "undefined") y= (generator.random()-0.5)*getComputed("height", i);
            nodeIndex[id] = nodeBox.append(d.nodeType + "#" + i.id + "/" +id, copyWithDefault(nodeStyle, {x:x, y:y}));
@@ -219,6 +251,10 @@ addToCodex("freeGraph", "g", {
            
            nodeIndex[id].set({label:id});
            return nodeIndex[id];           
+        }
+        i.addNodes = function(ids) {           
+           ids.split(/\ *;\ */).map(function(n) {return i.addNode(n)});
+           return i;           
         }
         //return the node with a given id o(creates one if necessary)
         i.getOrAddNode = function(id) {
@@ -260,7 +296,7 @@ addToCodex("freeGraph", "g", {
         }
         //returns a bag of nodes
         i.getNodes = function(ids) {
-           return itemBag(ids.split(/\ *;\ */).map(i.getNodes))           
+           return itemBag(ids.split(/\ *;\ */).map(i.getNode))           
         }
         i.getNeighborLinks = function(id) {
           var n=nodeIndex[id];
@@ -275,7 +311,18 @@ addToCodex("freeGraph", "g", {
           }          
           return simulation;
         }
-        
+        i.export = function() {
+          var out={};
+          for (id in nodeIndex) {
+            var n=nodeIndex[id];
+            out[id]={x:n.x, y:n.y};
+          }
+          console.log(JSON.stringify(out)); 
+        }
+        i.import = function(coords) {
+          importedCoords = coords;
+          return i;
+        }
         if (i.datum.simulation) i.simulation();
            
         //give dragging behavior:
@@ -300,8 +347,10 @@ addToCodex("freeGraph", "g", {
           function dragended(d) {
               if (simulation) {              
                 if (!d3.event.active) simulation.runEnd();
-                d.fx = null;
-                d.fy = null;
+                if (!d.style.fix) {
+                  d.fx = null;
+                  d.fy = null;
+                }
               }
           }  
         //give the behavior to a single node          
@@ -316,12 +365,6 @@ addToCodex("freeGraph", "g", {
         
        
         
-        i.nodes= function() {
-            return nodeBox.childBag();
-        }
-        i.links = function() {
-            return linkBox.childBag();
-        }
         
     },
     onFirstRun : function(i) {

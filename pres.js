@@ -383,7 +383,7 @@ function Item(parent, typeAndId, style, d) {
 	 type:type,
 	 tag:tag,
 	 id:id,
-    g:parent.g.append(tag).attr("class",type),//.style("visibility", "hidden"),
+     g:parent.g.append(tag).attr("class",type),//.style("visibility", "hidden"),
 	 style:(style||{}),
 	 defaultStyle:code.defaultStyle || {},
      children:[],
@@ -538,6 +538,7 @@ function Item(parent, typeAndId, style, d) {
   }
   
 	i.on = function(when, style) {
+        if (i.schedule == null) i.schedule = [];
 		if (typeof when=="number") 
 			i.schedule.push([when,when+1, style])
 		else {
@@ -609,7 +610,7 @@ function Item(parent, typeAndId, style, d) {
       if ("x" in i) i.style.x= i.x;
       if ("y" in i) i.style.y= i.y;
       //run layout function (typically: transform = translate(i.style.x, i.style.y)
-	  if (i.layoutFunction) i.layoutFunction(i);
+	  if (i.layoutFunction && checkNoWriggle(i)) i.layoutFunction(i);
       //recursive call to children if layout over multiple layers is required
 	  if (layers) {
 		 for (var c=0; c<i.children.length; c++) {
@@ -700,7 +701,7 @@ function Item(parent, typeAndId, style, d) {
 		});
 		if (newSchedule.length)
 		  i.schedule = newSchedule;
-	  else 
+	    else 
 		  i.schedule=null;
 		
 	}

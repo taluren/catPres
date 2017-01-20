@@ -14,11 +14,11 @@ var decorationCodex = {
 
 var codex = {
 	frame: {
-		defaultStyle:{fill:"white", stroke:"black", color:"black", size:12, font:"sans-serif",w:10,h:10,r:5, anchor:"middle", align:"center",spaceBefore:0,spaceAfter:0, show:true,dx:0, dy:0,margin:0,x:0,y:0,model:"cat"}					
+		defaultStyle:{fill:"white", stroke:"black", color:"black", size:12, font:"sans-serif",w:10,h:10,r:5, anchor:"middle", align:"center",spaceBefore:0,spaceAfter:0, show:true,dx:0, dy:0,margin:0,x:0,y:0,model:"cat", wriggle:null}					
 		},
 	circle: {
 		tag:"circle",
-		defaultStyle:{x:0,y:0},
+		defaultStyle:{x:0,y:0, wriggle:defaultWriggleThreshold},
 		onBuild:null,
 		onDraw:function (i) {
 			i.useAttr("r");
@@ -40,7 +40,7 @@ var codex = {
 	},
 	rect: {
 		tag:"rect",
-		defaultStyle:  {x:0,y:0} ,
+		defaultStyle:  {x:0,y:0, wriggle:defaultWriggleThreshold} ,
 		onBuild:  null ,
 		onDraw: function (i) {
 				i.useAttr("width","w");
@@ -56,13 +56,17 @@ var codex = {
 				i.useAttr("height","h");	
 			},
 		onLayout: function(i){
-			i.g.attr("x", i.style.x-i.style.w/2);
-			i.g.attr("y", i.style.y-i.style.h/2);
+			
+            i.g.attr("transform", "translate("+ //+xy(i.style)+")");    
+                               (i.style.x-i.style.w/2)+","+(i.style.y-i.style.h/2)+
+                               ")");
+            /*i.g.attr("x", i.style.x-i.style.w/2);
+			i.g.attr("y", i.style.y-i.style.h/2);*/
 		}
 	},
 	path: {
 		tag:"path",
-		defaultStyle: {d: "", x:0, y:0} ,
+		defaultStyle: {d: "", x:0, y:0, wriggle:defaultWriggleThreshold} ,
 		onDraw:function(i) { 
 			i.useAttr("d");	
 			i.useAttr("fill");	
@@ -77,7 +81,7 @@ var codex = {
 	},
 	svgtext: {
 		tag:"text",
-	    defaultStyle: {x:0,y:0, text:"", select:"none"} ,
+	    defaultStyle: {x:0,y:0, text:"", select:"none", wriggle:defaultWriggleThreshold} ,
 		/*onBuild:  function(i,s) {i.g.style("-moz-user-select","none")
           
         } ,*/
@@ -110,7 +114,7 @@ var codex = {
 	},
 	tspan: {
 		tag:"tspan",
-		defaultStyle:{x:null, y:null},
+		defaultStyle:{x:null, y:null,  wriggle:null},
 		onBuild:    function(i,s) {i.g.style("-moz-user-select","none")},
 		onDraw: function (i) {	
       	i.useAttr("dx");
@@ -128,7 +132,7 @@ var codex = {
 	},
 	default: { //codex template:
 		tag:"g",  //tag of the elemnt to add
-		defaultStyle: {x:0, y:0}, //default values for this node and its descendants  
+		defaultStyle: {x:0, y:0, wriggle:defaultWriggleThreshold}, //default values for this node and its descendants  
 		onBuild:  null, //function to be called once, at build time ("append"), parameter: item
 		onLoad: null, 
 		          //function called at drawing time, before children (prefix order), parameter: item

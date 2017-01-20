@@ -644,10 +644,12 @@ function addHelpLines(i) {
 	needHelpLines.push(i);
 }
 function drawRecursiveHelpLines(i) {
-		if (i.vl) i.vl.drawHelpLines(i.g);
+        if (!i) return;
+		/*if (i.vl) i.vl.drawHelpLines(i.g);
 		if (i.hl) i.hl.drawHelpLines(i.g);
-		if (i.lm) i.lm.drawHelpLines(i.g);
+		if (i.lm) i.lm.drawHelpLines(i.g);*/
 		//console.log(i);
+          
 		i.children.forEach(drawRecursiveHelpLines);			
 }
 	
