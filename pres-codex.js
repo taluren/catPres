@@ -137,7 +137,8 @@ var codex = {
 		onLoad: null, 
 		          //function called at drawing time, before children (prefix order), parameter: item
         onDrawPostOrder: null, // idem, but called after children
-		onSave: null,	 //function called at saving time (suffix order), parameters: item, saved style	
+		onSave: null,    //function called at saving time (suffix order), parameters: item, saved style 
+        onSavePrefix: null,    //function called at saving time (prefix order), parameters: item, saved style         
 		onFirstRun: null, //called once in the whole simulation, at "frameManager.run()" time, before the first drawing.   
 		onLayout : function(i) {
 			i.g.attr("transform", "translate("+xy(i.style)+")");            

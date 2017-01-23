@@ -161,10 +161,10 @@ function itemAndFrameFunctions(i) {
 	  if (!silent) console.error("Not found...",i.id, selector[1]);
 	  return null;
   }
-  i.goto = function(selector) {
+  i.goto = function(selector, silent) {
 	  var sel=selector.split("#");
 	  if (sel[1]) return i.root.index[sel[1]];
-	  return i.root.down(sel);
+	  return i.root.down(sel, silent);
   }
   i.up = function(selector) {
 	  if (!i.parent) {
@@ -258,6 +258,8 @@ function itemAndFrameFunctions(i) {
 		  delete i.backtrans;
 	  }*/
 	  
+      if (i.savingFunctionPrefix) i.savingFunctionPrefix(i, s);
+      
 	  for (var c=0; c<i.children.length; c++) {
 		  i.children[c].save(copyExceptKeys(s, ["x", "y", "opacity", "margin","width", "height", "marginTop","marginBottom","marginLeft","marginRight","bg", "align","alignV", "model"]));
 	  }	
@@ -397,6 +399,7 @@ function Item(parent, typeAndId, style, d) {
 	 drawingFunctionPostOrder:code.onDrawPostOrder,
 	 loadingFunction:code.onLoad,
 	 savingFunction:code.onSave,
+     savingFunctionPrefix:code.onSavePrefix,
 	 layoutFunction:code.onLayout,
      firstRunFunction:code.onFirstRun,
 	 datum:d,
@@ -539,15 +542,34 @@ function Item(parent, typeAndId, style, d) {
   
 	i.on = function(when, style) {
         if (i.schedule == null) i.schedule = [];
-		if (typeof when=="number") 
-			i.schedule.push([when,when+1, style])
-		else {
-			if (when.length==1)
-				i.schedule.push([when[0], -1, style])
-			else
-				i.schedule.push([when[0], when[1]+1, style])			
+		if (typeof when=="number") {
+            // .on(frame)
+            if (when ==0) {
+              //apply now, schedule "revert" for next frame              
+              i.schedule.push([1, -1, i.setAndKeep(style)])
+            } else {              
+              //schedule style for "when" and revert for "when+1"			  
+              i.schedule.push([when,when+1, style])
+            }
+        } else {
+			if (when.length==1) {
+                // .on([firstframe])
+                if (when[0]==0) 
+                  //.on([0]): apply style now
+                  i.set(style)
+                else   
+                  //other: schedule style, no revert
+				  i.schedule.push([when[0], -1, style])
+            } else {
+                // .on([firstframe, lastFrame])
+                if (when[0]==0) 
+                  //[0,end]: apply style now and schedule the revert
+                  i.schedule.push([when[1]+1, -1, i.setAndKeep(style)])
+                else 
+                  //other: schedule style and revert
+				  i.schedule.push([when[0], when[1]+1, style])			
+            }
 		}
-//		console.log(i.schedule);
 		return i;
 			
 	}
@@ -1108,7 +1130,13 @@ frameManager = function(style, sozi)  {
 	  return fm.topF.append(type, style, d);
    }
 	fm.goto = function(selector) {
-		return fm.topF.goto(selector);
+        var i=fm.frames.length-1;
+        while (i>=0) {
+          var x = fm.frames[i].goto(selector, true);
+          if (typeof x != "undefined") return x;
+          i--;          
+        }
+       
 	}
 	fm.currentFrame = function() {
 		if (sozi) 

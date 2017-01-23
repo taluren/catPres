@@ -74,6 +74,88 @@ addToCodex("text","verticalVector",  {
 			  i.freeBox=function (content) {
 				  return i.printBag(i.getLast("sweetTextLine").freeBox(content));
 			  }
+			  
+              i.currentIndent = "";
+              var lineIndex=1;
+              i.getLine= function(l) {
+                  return i.down("#"+i.id+"/line"+l);
+              }
+              i.getLines= function(ll) {
+                if (ll=="") return itemBag([]);
+                if (typeof ll=="string") ll=ll.split(/\ *;\ */);             
+                return itemBag(ll.map(i.getLine));
+              }
+              var enumerateCount = [];
+              function processBullet(bullet) {
+                bullet = bullet||i.currentIndent||"";
+                while (enumerateCount.length<bullet.length) 
+                  enumerateCount.push(0);
+                var reset=false;
+                console.log(bullet, enumerateCount);
+                var out=[];
+                for (var p=0;p<bullet.length; p++) {
+                   console.log(bullet[p]=="i");                   
+                   if (reset) 
+                     enumerateCount[p]=0;
+                   
+                   if (bullet[p]=="a") {
+                      out.push("abcdefghijklmnopqrstuvwxyz"[enumerateCount[p]%26]);                      
+                   }else  if (bullet[p]=="A") {
+                      out.push("ABCDEFGHIJKLMNOPQRSTUVWXYZ"[enumerateCount[p]%26]);
+                   }else if (bullet[p]=="1") {
+                      out.push((enumerateCount[p]+1)+"");
+                   }else if (bullet[p]=="i") {
+                      out.push(romanize(enumerateCount[p]+1).toLowerCase());
+                   }else if (bullet[p]=="I") {
+                      out.push(romanize(enumerateCount[p]+1));
+                   }else  out.push(bullet[p]);   
+                   
+                   if (bullet[p]!=" ") {
+                      enumerateCount[p]++;
+                      reset = true;
+                   }
+                }
+                if (reset)
+                  for (var p=bullet.length; p<enumerateCount.length; p++) {
+                      enumerateCount[p]=0;
+                  }
+                console.log(out)
+                return out;
+              }
+              i.nnl=function(bullet) {                
+                  i.append("sweetTextLine#"+i.id+"/line"+(lineIndex++))
+                    .append("bullet",{bullet:processBullet(bullet)}) ;
+                  //if (bullet==null) bullet=i.currentIndent;
+                     
+                  return i; //.printBag();  
+              };
+              i.np = function (s, style, d) {
+                  if (!style) style={};
+                  style=shallowCopy(style);
+                  var bullet="";
+                  if (style.bullet) {
+                     if (typeof style.bullet=="number") { 
+                       bullet=Array(style.bullet).join(" ")+"o";
+                     } else {
+                       bullet=style.bullet;
+                     }                     
+                     delete style["bullet"];                                         
+                  }
+                  console.log(style, bullet);
+                  if (bullet) {
+                    i.nnl(bullet);
+                    i.currentIndent = Array(bullet.length+1).join(" ");
+                  }           
+                  var ss = s.split("\n");
+                  var b=i.printBag();
+                  while (ss.length>1) {
+                      i.getLast("sweetTextLine").print(b, ss.shift(),style,d);          
+                      i.nnl();
+                  }
+                  i.getLast("sweetTextLine").print(b, ss.shift(),style,d);
+                  return   i;                        
+                  
+              }
 		}
 	});
 	
@@ -83,6 +165,9 @@ addToCodex("sweetTextLine", "horizontalVector", {
 		onBuild:   function(i) {
 			  codex.horizontalVector.onBuild(i);
 			  i.firstPrint=true;;
+              i.setBullet = function(bullet) {
+                  i.append("bullet", {bullet:bullet});            
+              }
 			  i.print=function(bag, s, style,d) {
 				   if (i.firstPrint && style && style.bullet) {
 						i.append("bullet", style);											
@@ -134,14 +219,60 @@ addToCodex("textBox", "svgtext", {
 	
 
 addToCodex("bullet","g",  {
-	defaultStyle:{bullet:1},
+	defaultStyle:{bullet:"o"},
 	onBuild: function(i) {	
-		i.style.width =i.width=i.style.bullet*20;
+        if (typeof i.style.bullet== "number") i.style.bullet= Array(i.style.bullet).join(" ")+"o";
+        i.bullet=i.style.bullet;
+		i.style.width =i.width=i.style.bullet.length *20;
 		i.style.height = i.height=12;
 		codex.blackbox.onBuild(i);
 		i.append("rect", {x:0, y:0, opacity:0, w:i.width, h:1});
-		i.append("circle", {x:i.width/2-8, r:max(5-i.style.bullet,2), y:-4, fill:"#008", stroke:null});
-	}
+        for (var p=0; p<i.bullet.length; p++) {
+           var c = i.bullet[p];
+           if (c==' ') continue;           
+           var bid="#"+i.id+"/"+p
+           var pos=i.append("transform"+bid, {x:p*20+12-i.width/2,  y:-4, scale:(1.5/(p+1.5)+0.4)})
+           if (c=='>') {
+               pos.append("path", {d:"M-4.2,0 L4,0 M0.2,3.8 L 4.2,0 0.2,-3.8", strokeWidth:2, fill:"none", stroke:"#008"});
+              continue;
+           } if (c=='-') {
+               pos.append("path", {d:"M-4,0 L4,0", strokeWidth:1.5, fill:"none", stroke:"#008"});
+              continue;
+           } 
+           if (c=='o') {
+             pos.append("circle", {x:0,  y:0, r:4, fill:"#008", stroke:null});           
+             continue;
+           }
+           pos.append("svgtext", {text:c, color:"#008", y:4})
+             
+        }
+	},
+    
+    onSavePrefix: function(i, style) {
+       var keys=["fill","stroke", "r"];
+       for  (var k=0; k<keys.length; k++) {
+          for (var j=0; j<i.bullet.length; j++) {
+             var sk = keys[k]+"Bullet";
+             var s={};
+             if (sk+(j+1) in style) {
+               s[keys[k]] = style[sk+(j+1)]
+             } else if (sk in style) {
+               s[keys[k]] = style[sk]
+             } else {
+               continue;
+             }
+             var b= i.down("#"+i.id+"/"+j, true);
+             if (b) b.set(s);
+             
+          }
+       }
+    }
+	
+	/* TODO : ondraw: 
+     * export style bullet_fill to children
+     *              bulletfill-1 to first level
+     *              etc. 
+     * */
 })	
 addToCodex("mathBox","g", {
 	onBuild:function(i) {
