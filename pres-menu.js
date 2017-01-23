@@ -9,22 +9,18 @@ function makeMenu () {
 		.style("height","auto")
 		.append("table")
 		.style("display","table")
-		.style("width", "600")
+		.attr("width",100)
+		 
 }
 function addMenu(label, f) {
 	if (!menu) makeMenu();
 	var h=15;
-	var g=menu.append("li")
-	    /*.attr("transform","translate(0,"+(menuLength*h)+")")
-   g.append("rect")
-	    .attr("x",0)
-		 .attr("y",0)
-		 */
-		 .style("display","table-cell")
-		 //.style("width",100)
-		 .style("height",h)
+	var g=menu.append("tr").style("height",h)
+		 .append("td")	   
+		  .style("cursor", "pointer")
+        .on("click", f)		  
 		 .style("border","#838")
-		 .style("background","#FAF")
+		 .style("background","#666")
 		 .text(label)
 	menuLength++;		 
 	

@@ -1088,9 +1088,9 @@ frameManager = function(style, sozi)  {
 		fm.drawing=false;
 	}
 	
-	addMenu("bonjour")
-	addMenu("bonjour")
-	addMenu("bonjour")
+	addMenu("bonjour", function() {alert("aa")})
+	addMenu("bonjour", function() {alert("bb")})
+	addMenu("bonjour", function() {console.log("click")})
 	
 	fm.run=function() {
        console.log("=========================");       
