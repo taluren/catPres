@@ -219,12 +219,12 @@
         var missingNode = {fill:"#f3f3f3"};
         var simpleNode = {fill:"#eef", color:"#008"};
         var currentNode = {fill:"orange", color:"#008"};
-        var deletedNode = {fill:"#fef1f1"};
+        var deletedNode = {fill:"#feecec"};
         var strongNode = {fill:"#ddd", stroke:"black", color:"black"};
         
-        var simpleEdge = {stroke:"#66A", opacity:1, strokeWidth:1};
+        var simpleEdge = {stroke:"#449", opacity:1, strokeWidth:1};
         var currentEdge = {stroke:"orange", opacity:1, strokeWidth:1.4};
-        var deletedEdge = {stroke:"red", opacity:0.2, strokeWidth:1};
+        var deletedEdge = {stroke:"#feecec", opacity:1, strokeWidth:1};
         var missingEdge = {stroke:"#6A6", opacity:0.4, strokeWidth:1};
         var strongEdge = {stroke:"blue", opacity:1, strokeWidth:1.8};
         
@@ -359,7 +359,13 @@
              .np("k independent edges", {bullet:2})
              .np("degree k+1", {bullet:2})
              .np("O(k^2)-space kernel", {bullet:" >"})
-             
+          .goto("#g")
+				 .getNeighborLinks("9").hide()
+				 .getNeighborLinks("7").hide()			 
+				 .getNeighborLinks("10").hide()			 
+				 .getLinks("8-9;4-7;1-4;11-2;3-6;11-4;5-8").hide()
+				 .getNodes("7;9;10;14").hide()
+			 
         
         
         

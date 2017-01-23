@@ -253,6 +253,7 @@ addToCodex("freeGraph", "g", {
            return nodeIndex[id];           
         }
         i.addNodes = function(ids) {           
+		     
            ids.split(/\ *;\ */).map(function(n) {return i.addNode(n)});
            return i;           
         }
@@ -288,21 +289,19 @@ addToCodex("freeGraph", "g", {
         }
         //returns a bag of links
         i.getLinks = function(id) {
-           return itemBag(id.split(/\ *;\ */).map(i.getLink))
+           return i.graphBag(id.split(/\ *;\ */).map(i.getLink))
         }
         //returns a node by id
         i.getNode = function(id) {
-           return nodeIndex[id];
+           return nodeIndex[id+""];
         }
         //returns a bag of nodes
         i.getNodes = function(ids) {
-           return itemBag(ids.split(/\ *;\ */).map(i.getNode))           
+           return i.graphBag((ids+"").split(/\ *;\ */).map(i.getNode))           
         }
-        i.getNeighborLinks = function(id) {
-          var n=nodeIndex[id];
-          console.log(n);
-          console.log( i.links().filter(function(l){return l.source==n || l.target==n}))
-          return  i.links().filter(function(l){return l.source==n || l.target==n})
+        i.getNeighborLinks = function(ids) {
+          var ns=i.getNodes(ids).items;
+          return  i.graphBag(i.links().filter(function(l){return ns.indexOf(l.source)>=0 || ns.indexOf(l.target)>=0}))
         }
         //creates (or returns) a force simulation for node placement
         i.simulation=function(d) {          
@@ -363,6 +362,22 @@ addToCodex("freeGraph", "g", {
                   );          
         }
         
+		  i.graphBag = function (set) {
+			  var b=set;
+			  if (b instanceof Array) b = itemBag(set);
+			  
+			  b.addNode = i.addNode;
+			  b.addLink = i.addLink;
+			  b.getNode = i.getNode;
+			  b.getLink = i.getLink;
+			  b.addNodes = i.addNodes;
+			  b.addLinks = i.addLinks;
+			  b.getNodes = i.getNodes;
+			  b.getLinks = i.getLinks;
+			  b.getNeighborLinks = i.getNeighborLinks;
+			  
+			  return b;
+		  }
        
         
         
