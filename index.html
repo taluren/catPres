@@ -13,7 +13,6 @@
     <body>
 	 
    <script src="./d3.v4.js"></script>
-   <!--script src="file://c:/Users/Laurent/Documents/MathJax-2.7.0/MathJax-2.7.0/MathJax.js?config=TeX-MML-AM_SVG" ></script-->
    <!--script type="text/javascript" async
   src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG"-->
 </script>
@@ -32,12 +31,13 @@
 	      
 			
 		fm=frameManager({screenBackground:"black"});
-		fm.frame("Pres.html", {model:"titleFrame"})
+		
+		fm.frame("dotPres", {model:"titleFrame"})
 			.append("text")
-				.print("---")
+				.print("Sample presentation")
 			.up("#main")
 			.append("text")
-				.print("---")
+				.print("Author: Laurent Bulteau\n\nUse arrows to navigate.", {size:10})
 				
 
          
