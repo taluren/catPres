@@ -128,7 +128,7 @@ function getAlignMove(kx, kwidth, align, targetX, targetWidth, element) {
 					move[kx] = targetX                   - ( bbox[kx] + bbox[kwidth]/2 );
 	if (align == "r" || align=="b") 
 					move[kx] = (targetX + targetWidth/2) - ( bbox[kx] + bbox[kwidth] )
-		
+    if (isNaN(move[kx])) stop(move);		
    if (alignDebug) console.log("align "+kx+align, move.x,targetX,targetWidth, bbox[kx], bbox[kwidth]);
 	return move;	
 }
@@ -161,13 +161,16 @@ function itemAndFrameFunctions(i) {
 	  if (!silent) console.error("Not found...",i.id, selector[1]);
 	  return null;
   }
-  i.goto = function(selector) {
+  i.goto = function(selector, silent) {
 	  var sel=selector.split("#");
 	  if (sel[1]) return i.root.index[sel[1]];
-	  return i.root.down(sel);
+	  return i.root.down(sel, silent);
   }
   i.up = function(selector) {
-	  if (!i.parent)   return null;
+	  if (!i.parent) {
+        console.log(".up(\""+selector+ "\") not found");
+        return null;
+      }
 	  if (!selector) return i.parent;
 	  if (i.parent.match(selector)) return i.parent;
 	  return i.parent.up(selector);	  
@@ -208,6 +211,17 @@ function itemAndFrameFunctions(i) {
 			  i.children[c].logXY(prefix+"| ", layers-1);
 		}	  
 		  
+  }
+  
+  i.set=function(s) {
+	  for (var k in s) {
+		  if (s[k]==null) {
+			  delete i.style[k];
+		  }
+		  else 
+			  i.style[k]=s[k];		 		  
+	  } 
+     return i;		 	  
   }
   
   i.hasSchedule = function() {
@@ -255,6 +269,8 @@ function itemAndFrameFunctions(i) {
 		  delete i.backtrans;
 	  }*/
 	  
+      if (i.savingFunctionPrefix) i.savingFunctionPrefix(i, s);
+      
 	  for (var c=0; c<i.children.length; c++) {
 		  i.children[c].save(copyExceptKeys(s, ["x", "y", "opacity", "margin","width", "height", "marginTop","marginBottom","marginLeft","marginRight","bg", "align","alignV", "model"]));
 	  }	
@@ -318,14 +334,21 @@ function FrameBase(frame, holder, transform, style) {
 	  children:[],	  
 	  inheritStyle:{},
 	  defaultStyle:codex.frame.defaultStyle,
+     id:"root",  
 	  index:{},
 	  style:style,
 	  history:[]
   } 
   fb.root=fb;
+  fb.index["root"] = fb;
   fb.title=function(s) {
-		fb.goto("#title")//.children[0]
+		fb.goto("#title")
 		  .set({text:s});
+  }
+  fb.firstRun = function () {    
+      for (var c=0; c<fb.children.length; c++) {
+          fb.children[c].firstRun();
+      }
   }
   fb.draw=function(f, regular) {
 	  
@@ -333,13 +356,10 @@ function FrameBase(frame, holder, transform, style) {
 		  fb.children[c].load(f, regular);
 	  }
 	  checkTree(fb);
-	//  console.log("checked");
-    
-	  //fb.logXY();
 	  for (var c=0; c<fb.children.length; c++) {
 		  fb.children[c].draw(regular);
 	  }	  
-     checkTree(fb);//console.log("checked");
+      checkTree(fb);
   
   } 
   itemAndFrameFunctions(fb);  
@@ -364,7 +384,7 @@ function Item(parent, typeAndId, style, d) {
   if (type in codex) {
 	  code=codex[type];	  
   } else {
-	  console.log("Warning: type "+type+" unknown.");
+	  console.error("Warning: type "+type+" unknown.");
   }
   var tag=code.tag;
   var id = splitTandId[1] || (type+"-"+(nextId++));
@@ -376,7 +396,7 @@ function Item(parent, typeAndId, style, d) {
 	 type:type,
 	 tag:tag,
 	 id:id,
-    g:parent.g.append(tag).attr("class",type),//.style("visibility", "hidden"),
+     g:parent.g.append(tag).attr("class",type),//.style("visibility", "hidden"),
 	 style:(style||{}),
 	 defaultStyle:code.defaultStyle || {},
      children:[],
@@ -390,7 +410,9 @@ function Item(parent, typeAndId, style, d) {
 	 drawingFunctionPostOrder:code.onDrawPostOrder,
 	 loadingFunction:code.onLoad,
 	 savingFunction:code.onSave,
+     savingFunctionPrefix:code.onSavePrefix,
 	 layoutFunction:code.onLayout,
+     firstRunFunction:code.onFirstRun,
 	 datum:d,
 	 schedule:[]
   }
@@ -419,21 +441,12 @@ function Item(parent, typeAndId, style, d) {
   
   i.hide = function () {
 	  i.style.show =false;
+      return i;
   }
   i.show = function () {
 	  i.style.show =true;
+      return i;
   }  
-  i.set=function(s) {
-	  for (var k in s) {
-		  if (s[k]==null) {
-			  delete i.style[k];
-			  console.log ("set ",s, " delete ", k);
-		  }
-		  else 
-			  i.style[k]=s[k];		 		  
-	  } 
-     return i;		 	  
-  }
   i.setAndKeep=function(s) {
 	  var out={};
 	  for (var k in s) {
@@ -467,6 +480,7 @@ function Item(parent, typeAndId, style, d) {
 		  i.children[c].move(move.x, move.y)//.layout();		  
 	 }
 	 //i.layout();
+      return i;
   }
 
   i.decoration=function (codex, style) {
@@ -527,15 +541,35 @@ function Item(parent, typeAndId, style, d) {
   }
   
 	i.on = function(when, style) {
-		if (typeof when=="number") 
-			i.schedule.push([when,when+1, style])
-		else {
-			if (when.length==1)
-				i.schedule.push([when[0], -1, style])
-			else
-				i.schedule.push([when[0], when[1]+1, style])			
+        if (i.schedule == null) i.schedule = [];
+		if (typeof when=="number") {
+            // .on(frame)
+            if (when ==0) {
+              //apply now, schedule "revert" for next frame              
+              i.schedule.push([1, -1, i.setAndKeep(style)])
+            } else {              
+              //schedule style for "when" and revert for "when+1"			  
+              i.schedule.push([when,when+1, style])
+            }
+        } else {
+			if (when.length==1) {
+                // .on([firstframe])
+                if (when[0]==0) 
+                  //.on([0]): apply style now
+                  i.set(style)
+                else   
+                  //other: schedule style, no revert
+				  i.schedule.push([when[0], -1, style])
+            } else {
+                // .on([firstframe, lastFrame])
+                if (when[0]==0) 
+                  //[0,end]: apply style now and schedule the revert
+                  i.schedule.push([when[1]+1, -1, i.setAndKeep(style)])
+                else 
+                  //other: schedule style and revert
+				  i.schedule.push([when[0], when[1]+1, style])			
+            }
 		}
-//		console.log(i.schedule);
 		return i;
 			
 	}
@@ -548,65 +582,58 @@ function Item(parent, typeAndId, style, d) {
   
 	i.setWidthToMin = i.setWidthToActual;
 	
-  i.drawBackground=function(automatic) {
-	  if (i.bgRect && (!automatic || i.bgRect.automatic)) {
-		
-		//  marginAndPadding(i.style.bg, "padding");
-		  var bbox=i.getBackgroundBBox();
-		  //console.log(i.type, bbox)
-		  if (!bbox) return false;
-		  
-		  if (i.type=="text") {console.log("text", bbox, i.style.width);}
-		  i.style.bg.offsetx = bbox.x-(i.style.bg.paddingLeft || 0);
-		  i.style.bg.offsety = bbox.y-(i.style.bg.paddingTop || 0);
-		  i.style.bg.w = bbox.width+(i.style.bg.paddingLeft||0) +(i.style.bg.paddingRight|| 0);
-		  i.style.bg.h = bbox.height+(i.style.bg.paddingTop||0)+(i.style.bg.paddingBottom || 0);
-		  i.bgRect.style=i.style.bg;
-		  codex.rect.onDraw(i.bgRect);
+  
+  /*load: prepare an item for drawing:
+     - copy saved style for required frame to item style
+     - sets an item's display attribute
+     - calls specific loading function
+  */
+  i.firstRun = function () {    
+      if (i.firstRunFunction) i.firstRunFunction(i);
+      for (var c=0; c<i.children.length; c++) {
+          i.children[c].firstRun();
+      }
+  }
+  i.load=function(f, regular) {
+     var ov=f-i.frame;
+     var show=null;
+     if (ov<0) {
+       show =  i.showBefore?1:0;
+       ov=0;
+     }
+     delete i.trans;
+     if (ov>=i.history.length) {
+        show = i.showAfter?1:0;
+        ov=i.history.length-1;
+     }
+     i.nextDraw=ov;    
+     i.differentFrameLoaded = (i.nextDraw != i.lastDraw) 
+     if (i.differentFrameLoaded || !regular) {
+         i.style = shallowCopy(i.history[i.nextDraw]);
+         i.trans = getTransition(i.style, i.nextDraw  - i.lastDraw)              
+     } 
+     
+     if (show==null) show=i.style.show;
+     i.display=show;
+     
+     if (i.loadingFunction) i.loadingFunction(i, show, ov==f-i.frame);
+     
+     i.g.style("display", i.display?null:"none");
+     for (var c=0; c<i.children.length; c++) {
+          i.children[c].load(f, regular);
      }
   }
-  /*i.onDraw=function (f) {
-	  i.drawingFunction =f;	  
-  }*/
   
-  i.load=function(f, regular) {
-	 var ov=f-i.frame;
-    //console.log("draw "+i.type+" for ov "+ov);
-	 var show=null;
-    if (ov<0) {
-	   show =  i.showBefore?1:0;
-		ov=0;
-	 }
-	 delete i.trans;
-	 if (ov>=i.history.length) {
-		show = i.showAfter?1:0;
-		ov=i.history.length-1;
-	 }
-	 i.nextDraw=ov;		 
-	 if (i.nextDraw != i.lastDraw ||!regular) {
-		 i.style = shallowCopy(i.history[i.nextDraw]);
-		 i.trans = getTransition(i.style, i.nextDraw  - i.lastDraw)/* i.transitions[i.nextDraw];
-		 if (i.trans && i.lastDraw!=-2) {
-			 i.trans=i.trans[(i.lastDraw>i.nextDraw?"back":"front")];
-		 } else {
-			 i.trans=i.parent.trans;
-		 }*/
-		 //pick only right direction, and check that last != -2, also inherit.
-		 if (show==null) show=i.style.show;
-		 i.display=show;
-		 //i.g.style("visibility", show?"visible":"hidden");
-		 //i.g.style("opacity", show?"1":"0.5");
-		 i.g.style("display", show?null:"none");
-	 } 
-	 
-	 if (i.loadingFunction) i.loadingFunction(i, show);
-	 for (var c=0; c<i.children.length; c++) {
-		  i.children[c].load(f, regular);
-	 }
-  }
+  
+  //layout: place the item at the correct coordinates 
   i.layout = function(layers) {
 	  i.bbox=null;
-	  if (i.layoutFunction) i.layoutFunction(i);
+      //override style's x and y by root x and y if defined
+      if ("x" in i) i.style.x= i.x;
+      if ("y" in i) i.style.y= i.y;
+      //run layout function (typically: transform = translate(i.style.x, i.style.y)
+	  if (i.layoutFunction && checkNoWriggle(i)) i.layoutFunction(i);
+      //recursive call to children if layout over multiple layers is required
 	  if (layers) {
 		 for (var c=0; c<i.children.length; c++) {
 			  i.children[c].layout(layers-1);
@@ -614,41 +641,72 @@ function Item(parent, typeAndId, style, d) {
 		  
 	  }
   }
+  
+  /*draw: draw an item and all its descendants
+   * applied only if frame is different or "irregular" calls
+   * 
+   */ 
   i.draw=function(regular) {	  
      i.shown=true;
 	 i.bbox=null;
-	 if (i.lastDraw!=i.nextDraw || !regular) {
+	 if (i.differentFrameLoaded || !regular) {
+         //make a "transition-free" copy of the item 
 		 i.saveG=i.g;
+         //add a transition if necessary
 		 if (i.trans && regular) {
-		    //var side=(i.lastDraw>i.nextDraw?"back":"front");
-			 console.log("transition:"+i.type, i.trans);
-			 i.g = i.g.transition(
-			 //i.g = 
-			           transitionShop[i.trans].make().transObj);//.select(i.g.node()); //());
+//			 console.log("transition:"+i.type, i.trans);
+			 i.g = i.g.transition(transitionShop[i.trans].make().transObj);             
 		 }
+		 //compute width and height when defined as "fill" (now that the parent has been drawn)
 		 i.fillUpWidthHeight();
-		 checkTree(i);
+         
+         //call the actual drawing function (set line colors, set text, etc.)
 		 if (i.drawingFunction!=null) {
 	       i.drawingFunction(i, regular); 
 		 }			 
-		 //if (i.parent.parent)
-		 checkTree(i);
-		 for (var c=0; c<i.children.length; c++) {
+		 //recursive call to children
+         for (var c=0; c<i.children.length; c++) {
 			  i.children[c].draw(regular);
 			  checkTree(i);
 		 }	
+		 //suffix order: make adjustments depending to children (e.g. for an array)
 		 if (i.drawingFunctionPostOrder!=null) {
 			 i.drawingFunctionPostOrder(i, regular); 
 		 }
-	    i.drawBackground(true); //automatic drawing, may be disabled
+		 //draw the background rectangle if necessary
+	     i.drawBackground(true); //automatic drawing, may be disabled         
 		 checkTree(i);
+         //place the item at the correct coordinates
 		 i.layout();
+         //drawing is complete, we recover the "transition-free" item
 		 i.g=i.saveG;
+         //clean-up
 		 delete i.saveG;
 		 delete i.trans;
 		 i.lastDraw=i.nextDraw;		 
 	 }
   }
+  
+  
+  
+  i.drawBackground=function(automatic) {
+      if (i.bgRect && (!automatic || i.bgRect.automatic)) {
+        
+        //  marginAndPadding(i.style.bg, "padding");
+          var bbox=i.getBackgroundBBox();
+          //console.log(i.type, bbox)
+          if (!bbox) return false;
+          
+          if (i.type=="text") {console.log("text", bbox, i.style.width);}
+          i.style.bg.offsetx = bbox.x-(i.style.bg.paddingLeft || 0);
+          i.style.bg.offsety = bbox.y-(i.style.bg.paddingTop || 0);
+          i.style.bg.w = bbox.width+(i.style.bg.paddingLeft||0) +(i.style.bg.paddingRight|| 0);
+          i.style.bg.h = bbox.height+(i.style.bg.paddingTop||0)+(i.style.bg.paddingBottom || 0);
+          i.bgRect.style=i.style.bg;
+          codex.rect.onDraw(i.bgRect);
+     }
+  }  
+  
   
 	i.runSchedule = function() {
 		var newSchedule = [];
@@ -665,7 +723,7 @@ function Item(parent, typeAndId, style, d) {
 		});
 		if (newSchedule.length)
 		  i.schedule = newSchedule;
-	  else 
+	    else 
 		  i.schedule=null;
 		
 	}
@@ -707,7 +765,7 @@ function Item(parent, typeAndId, style, d) {
   }
   
   i.useAttr= function (attr, key1,key2,key3) {
-	   useAttr(i,attr,key1, key2, key3);
+	 useAttr(i,attr,key1, key2, key3);
   }
   i.useStyle= function (attr, key1, key2, key3) {
      useStyle(i, attr,key1, key2, key3);	
@@ -735,12 +793,8 @@ function Item(parent, typeAndId, style, d) {
 	  return {x:i.bbox.x + i.style.x, y: i.bbox.y+i.style.y, width: i.bbox.width, height:i.bbox.height};	  	  
 	  
   }
-  i.getInnerBBox= function(evenFloat) {
-	 // if (i.style.float&&!evenFloat) return {x:0,y:0,width:0, height:0};	  
-	  
+  i.getInnerBBox= function(evenFloat) {	        
 	  var b=i.childBag().getParentBBox(evenFloat);	  
-	  
-	  
 	  return b;
 	  
   }
@@ -806,6 +860,18 @@ function itemBag (itemList) {
 		}			
 		return b;
 	}
+	b.hide = function() {
+        for (var x=0;x<b.items.length; x++) {
+            b.items[x].hide();
+        }           
+        return b;
+    }
+    b.show = function() {
+        for (var x=0;x<b.items.length; x++) {
+            b.items[x].show();
+        }           
+        return b;
+    }
 	b.getParentBBox= function(evenFloat) { //assumes that all items have a common parent
 		var bbox={x:Infinity, y:Infinity, xr:-Infinity, yb:-Infinity}
 		for (var x=0;x<b.items.length; x++) {
@@ -881,7 +947,9 @@ function itemBag (itemList) {
 		  }		
 		} else {
 		  for (x=0;x<b.items.length; x++) {
-			  b.items[x].set(s);
+            if (typeof b.items[x] == "undefined") 
+              stop(b);
+			b.items[x].set(s);
 		  }		  
 		}
 		return b;
@@ -908,9 +976,19 @@ function itemBag (itemList) {
 			  b.items[x].layout();
 		}		
 	}
-	b.filter=function(type) {
-		return itemBag(b.items.filter(function(i) {return i.type==type}))
+	b.map = function (f) {
+        return itemBag(b.items.map(f))
+    }
+	b.filter=function(f) {
+        if (typeof f=="string") {
+          var type=f;
+          f=function(i) {return i.type==type};
+        }
+		return itemBag(b.items.filter(f))
 	}
+    b.filterShown=function() {
+        return itemBag(b.items.filter(function(i) {return i.display}))
+    }
 	b.each =function(f) {
 		for (var x=0;x<b.items.length; x++) {
 		//	console.log("b.each : ", x, " out of ", b.items.length);
@@ -1002,7 +1080,8 @@ frameManager = function(style, sozi)  {
 	var fm= {
 		f:1,
 		topF:null,
-		frames:[]
+		frames:[],
+        style:style
 	}
 	if (!sozi) {
 		fm.camera = cameraManager();
@@ -1048,12 +1127,19 @@ frameManager = function(style, sozi)  {
 			console.log("saved for frame "+(fm.f-1));
 			
 		}		
+		return fm;
 	}
 	fm.append = function (type, style, d) {
 	  return fm.topF.append(type, style, d);
    }
 	fm.goto = function(selector) {
-		return fm.topF.goto(selector);
+        var i=fm.frames.length-1;
+        while (i>=0) {
+          var x = fm.frames[i].goto(selector, true);
+          if (typeof x != "undefined") return x;
+          i--;          
+        }
+       
 	}
 	fm.currentFrame = function() {
 		if (sozi) 
@@ -1079,7 +1165,8 @@ frameManager = function(style, sozi)  {
          delete fm.drawAgain;		
 			var f=fm.currentFrame(); //sozi.player.currentFrameIndex+1;
 			console.log("Frame "+f + (regular?"":" --special--"));			
-			for (i=0;i<fm.frames.length;i++) fm.frames[i].draw(f, regular);		
+			for (i=0;i<fm.frames.length;i++) fm.frames[i].draw(f, regular);
+			drawHelpLines();
 			if (fm.drawAgain) {
 				console.log("draw again!");
 			   regular=fm.drawAgain.regular;					
@@ -1104,11 +1191,15 @@ frameManager = function(style, sozi)  {
 			   .onFrameChange(function() {updateFrame(true)})
 			   .run();
 		}
-			
-		updateFrame(false);
-		/*if (MathJaxImport) {
-			MathJaxImport(fm.localImport, function() {updateFrame(false);});
-		}*/	
+		
+	    for (i=0;i<fm.frames.length;i++) 
+           fm.frames[i].firstRun();     
+            
+        updateFrame(false);
+        updateFrame(true);
+        if (fm.style.mathjax || fm.style.math) {
+			MathJaxImport(fm.style.math,fm.style.mathjax, function() {updateFrame(false);});
+		}
 	}
 	
 	return fm;

@@ -12,8 +12,9 @@
     </head>
     <body>
 	 
-   <script src="./d3.v4.min.js"></script>
-   <!--script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG"-->
+   <script src="./d3.v4.js"></script>
+   <script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG">
 </script>
   <script src="./pres.js"></script>
   <script src="./pres-misc.js"></script>
@@ -25,18 +26,18 @@
   <script src="./pres-frameStyle.js"></script>
   <script src="./pres-transition.js"></script>
   <script src="./pres-graph.js"></script>
-  <script src="./pres-menu.js"></script>
   <script>
      window.addEventListener("load", function(event) {  
 	      
 			
-		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
-		fm.frame("Pres.html", {model:"titleFrame"})
+		fm=frameManager({screenBackground:"black"});
+		
+		fm.frame("dotPres", {model:"titleFrame"})
 			.append("text")
-				.print("---")
+				.print("Sample presentation")
 			.up("#main")
 			.append("text")
-				.print("---")
+				.print("Author: Laurent Bulteau\n\nUse arrows to navigate.", {size:10})
 				
 
          
@@ -330,12 +331,10 @@
         function processEdge(src,tgt,lines, afterEdge, afterNode, afterNode2 ) {
           if (!afterNode2) afterNode2=afterNode;
           fm.nextOverlay()         
-              .goto("#g")
-				   .getLinks(src+"-"+tgt).set(currentEdge).on([1], afterEdge)
-               .getNodes(src+"").set(currentNode).on([1], afterNode)
-               .getNodes(tgt+"").set(currentNode).on([1], afterNode2)     
-              .goto("#algo")
-				   .getLines(lines+"").on(0,{fillBullet:"orange"});
+              .goto("#g").getLinks(src+"-"+tgt).set(currentEdge).on([1], afterEdge)
+              .goto("#g").getNodes(src+"").set(currentNode).on([1], afterNode)
+              .goto("#g").getNodes(tgt+"").set(currentNode).on([1], afterNode2)          
+              .goto("#algo").getLines(lines+"").on(0,{fillBullet:"orange"});
         }
         processEdge(8,11,"2;3",strongEdge, simpleNode);
         processEdge(1,5,"2;3",strongEdge, simpleNode);
@@ -406,14 +405,6 @@
            .np("Bullet: >", {bullet:">>>>"})
            .np("Bullet: misc", {bullet:"*$#~"})
            
-        fm.frame("Math alignment test:")
-          .append("text")
-          
-            .np("*|Size 6:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:6})
-            .np("*|Size 10:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:10})
-            .np("*|Size 12:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:12})
-            .np("*|Size 14:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:14})
-            .np("*|Size :x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:20})
         fm.frame("Generalities")
 		  .append("text")
 		    .print("call order on new frame:")

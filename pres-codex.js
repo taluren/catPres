@@ -14,11 +14,11 @@ var decorationCodex = {
 
 var codex = {
 	frame: {
-		defaultStyle:{fill:"white", stroke:"black", color:"black", size:12, font:"sans-serif",w:10,h:10,r:5, anchor:"middle", align:"center",spaceBefore:0,spaceAfter:0, show:true,dx:0, dy:0,margin:0,x:0,y:0,model:"cat"}					
+		defaultStyle:{fill:"white", stroke:"black", color:"black", size:12, font:"sans-serif",w:10,h:10,r:5, anchor:"middle", align:"center",spaceBefore:0,spaceAfter:0, show:true,dx:0, dy:0,margin:0,x:0,y:0,model:"cat", wriggle:null}					
 		},
 	circle: {
 		tag:"circle",
-		defaultStyle:{x:0,y:0},
+		defaultStyle:{x:0,y:0, wriggle:defaultWriggleThreshold},
 		onBuild:null,
 		onDraw:function (i) {
 			i.useAttr("r");
@@ -26,9 +26,10 @@ var codex = {
 				i.useStyle("opacity");
 			i.useAttr("stroke", "stroke","fill");						
 			i.useStyle("stroke-width","strokeWidth");		
+            i.useStyle("stroke-dasharray", "dash");
 			i.useAttr("cx","offsetx");
 			i.useAttr("cy","offsety");
-			
+			i.useStyle("cursor");
 			
 		//	i.g.style("clip-path", "url(#"+i.id+")");
 		},
@@ -39,7 +40,7 @@ var codex = {
 	},
 	rect: {
 		tag:"rect",
-		defaultStyle:  {x:0,y:0} ,
+		defaultStyle:  {x:0,y:0, wriggle:defaultWriggleThreshold} ,
 		onBuild:  null ,
 		onDraw: function (i) {
 				i.useAttr("width","w");
@@ -47,6 +48,7 @@ var codex = {
 				i.useStyle("fill");		
 				i.useAttr("stroke", "stroke", "fill");	
 				i.useStyle("stroke-width","strokeWidth");	
+                i.useStyle("stroke-dasharray", "dash");
 				i.useAttr("rx");	
 				i.useAttr("ry");	
 				i.useAttr("x","offsetx");	
@@ -54,18 +56,24 @@ var codex = {
 				i.useAttr("height","h");	
 			},
 		onLayout: function(i){
-			i.g.attr("x", i.style.x-i.style.w/2);
-			i.g.attr("y", i.style.y-i.style.h/2);
+			
+            i.g.attr("transform", "translate("+ //+xy(i.style)+")");    
+                               (i.style.x-i.style.w/2)+","+(i.style.y-i.style.h/2)+
+                               ")");
+            /*i.g.attr("x", i.style.x-i.style.w/2);
+			i.g.attr("y", i.style.y-i.style.h/2);*/
 		}
 	},
 	path: {
 		tag:"path",
-		defaultStyle: {d: "", x:0, y:0} ,
+		defaultStyle: {d: "", x:0, y:0, wriggle:defaultWriggleThreshold} ,
 		onDraw:function(i) { 
 			i.useAttr("d");	
 			i.useAttr("fill");	
-			i.useAttr("stroke");	
-				i.useStyle("opacity");
+			i.useAttr("stroke");	                
+            i.useStyle("stroke-width","strokeWidth");
+			i.useStyle("opacity");
+            i.useStyle("stroke-dasharray", "dash");
 		},
 		onLayout:function(i){
 			i.g.attr("transform", "translate("+xy(i.style)+")");
@@ -73,8 +81,10 @@ var codex = {
 	},
 	svgtext: {
 		tag:"text",
-		defaultStyle: {x:0,y:0, text:""} ,
-		onBuild:  function(i,s) {i.g.style("-moz-user-select","none")} ,
+	    defaultStyle: {x:0,y:0, text:"", select:"none", wriggle:defaultWriggleThreshold} ,
+		/*onBuild:  function(i,s) {i.g.style("-moz-user-select","none")
+          
+        } ,*/
 				
       onDraw: function (i) {checkTree(i)
 			i.useAttr("x", "offsetx");
@@ -86,6 +96,13 @@ var codex = {
 			i.useAttr("font-weight","weight");	
 			i.useAttr("text-anchor","anchor");	
             i.useAttr("alignment-baseline","alignmentBaseline");
+            i.useStyle("cursor");
+            i.useStyle("-webkit-user-select","select");
+            i.useStyle("-moz-user-select","select");
+            i.useStyle("-ms-user-select","select");
+            i.useStyle("user-select","select");
+            
+            
 //         console.log("svgtext : ", i.style.text);
 			if (i.children.length==0) 
 				i.saveG.html(i.style.text); 
@@ -97,7 +114,7 @@ var codex = {
 	},
 	tspan: {
 		tag:"tspan",
-		defaultStyle:{x:null, y:null},
+		defaultStyle:{x:null, y:null,  wriggle:null},
 		onBuild:    function(i,s) {i.g.style("-moz-user-select","none")},
 		onDraw: function (i) {	
       	i.useAttr("dx");
@@ -115,13 +132,14 @@ var codex = {
 	},
 	default: { //codex template:
 		tag:"g",  //tag of the elemnt to add
-		defaultStyle: {x:0, y:0}, //default values for this node and its descendants  
+		defaultStyle: {x:0, y:0, wriggle:defaultWriggleThreshold}, //default values for this node and its descendants  
 		onBuild:  null, //function to be called once, at build time ("append"), parameter: item
 		onLoad: null, 
 		          //function called at drawing time, before children (prefix order), parameter: item
         onDrawPostOrder: null, // idem, but called after children
-		onSave: null,	 //function called at saving time (suffix order), parameters: item, saved style	
-		    
+		onSave: null,    //function called at saving time (suffix order), parameters: item, saved style 
+        onSavePrefix: null,    //function called at saving time (prefix order), parameters: item, saved style         
+		onFirstRun: null, //called once in the whole simulation, at "frameManager.run()" time, before the first drawing.   
 		onLayout : function(i) {
 			i.g.attr("transform", "translate("+xy(i.style)+")");            
             i.useStyle("opacity");

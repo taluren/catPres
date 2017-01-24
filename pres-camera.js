@@ -10,6 +10,7 @@
    	var hash = window.location.hash.substr(1);		
 		if (hash)  {
 			cm.frame = hash.match(/\d+/)[0]*1;
+            cm.frame = max(1, min(cm.cameraPositions.length, cm.frame));
 		}
 		cm.updateZoom();
 		return cm;

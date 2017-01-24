@@ -53,7 +53,7 @@ frameStyleCatalog.beamer = function (fs, style) {
 	}
 	
 frameStyleCatalog.cat = function (fs, style) {	    
-		fs	
+		fs.set()	
 		  .append("rect", {w:"fill", h:"fill", stroke:null, fill:"white"})			 
 		  .then("g", {x:160,y:130, opacity:0.2})
 			  .append("circle", {r:9, x: 12, y:0, fill:"#ECECEC", stroke:null})
@@ -70,3 +70,47 @@ frameStyleCatalog.cat = function (fs, style) {
 		  .then("g#foreground",{width:"fill", height:"fill"})
 		  
 	}
+
+	
+    
+frameStyleCatalog["2Columns"] = function (fs, style) {      
+  
+        fs  
+          .append("rect", {w:"fill", h:"fill", stroke:null, fill:"white"})           
+          .then("g", {x:160,y:130, opacity:0.2})
+              .append("circle", {r:9, x: 12, y:0, fill:"#ECECEC", stroke:null})
+              .then("circle", {r:5, x: 23, y:-10, fill:"#ECECEC", stroke:null})
+              .then("circle", {r:5, x: 28, y:0, fill:"#ECECEC", stroke:null})
+              .then("circle", {r:5, x: 23, y:10, fill:"#ECECEC", stroke:null})
+              .up()
+          .then("g#background",{width:"fill", height:"fill"})       
+          .then("rect", {w:"fill", y:-133, h: 30, fill:"#DDD", stroke:null})
+          .then("rect", {w:"fill", y:-135, h: 30, fill:"#400060", stroke:null})
+          
+          .then("svgtext#title",{x:-195,y:-130, size:17, color:"#eed", anchor:"left"})
+          .then("vector#main", {layout:"spread", align:"c", width:100, height:260, x:-50, y:15})
+          .then("vector#right", {layout:"spread", align:"c", width:200, height:260, x:50, y:15})
+          .then("g#foreground",{width:"fill", height:"fill"})
+}/*
+frameStyleCatalog["2Columns"] = function (fs, style) {      
+        fs  
+          .append("rect", {w:"fill", h:"fill", stroke:null, fill:"white"})           
+          .then("g", {x:160,y:130, opacity:0.2})
+              .append("circle", {r:9, x: 12, y:0, fill:"#ECECEC", stroke:null})
+              .then("circle", {r:5, x: 23, y:-10, fill:"#ECECEC", stroke:null})
+              .then("circle", {r:5, x: 28, y:0, fill:"#ECECEC", stroke:null})
+              .then("circle", {r:5, x: 23, y:10, fill:"#ECECEC", stroke:null})
+              .up()
+          .append("g#background",{width:"fill", height:"fill"})       
+          .then("rect", {w:"fill", y:-133, h: 30, fill:"#DDD", stroke:null})
+          .then("rect", {w:"fill", y:-135, h: 30, fill:"#400060", stroke:null})          
+          
+          .then("svgtext#title",{x:-195,y:-130, size:17, color:"#eed", anchor:"left"})
+          //.then("array", {width:400, height:270, y:15}, {cols:"c50%c50%"})
+          //   .cell(0,0) 
+          .append("g#main", {layout:"spread", align:"c", width:200, height:270, x:-100, y:15})
+          //   .up().cell(1,0)
+          .append("g#right", {layout:"spread", align:"c", width:200, height:270, x:100, y:15})
+          .then("g#foreground",{width:"fill", height:"fill"})
+          
+    }*/

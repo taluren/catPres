@@ -72,6 +72,7 @@ addToCodex("customBGBox", "g", {
 addToCodex("blackbox", "box", {	
  onBuild: function(i){ 	
 	i.getLayoutBBox= function(kx, kwidth) {	  
+      if (!(kwidth in i)) i[kwidth] = i.style[kwidth];  
 	  return {x:i.style.x-i.width/2, y:i.style.y-i.height/2, width:i.width, height:i.height};	  
    }
 
@@ -255,7 +256,7 @@ addToCodex("verticalVector", "customBGBox", {
 		//if (i.style.height == null) 
 		//	i.style.height=b.setWidthToActual("y", "height").style.height;
 		
-	   i.bgWidth = i.style.width;
+	    i.bgWidth = i.style.width;
 		i.bgHeight = i.style.height;
 		
 		//layout itself and children
@@ -292,24 +293,13 @@ addToCodex("horizontalVector", "customBGBox", {
 			b.setWidthToMin("y","height")
 		   b.align("y","height",i.style.align[0],i.style.y, i.style.height,false);
 		}
-	//   else {
-			//b.setWidthToActual("y", "height");
-			// .moveToBaseLine(
-	//	}
-			
 		
 		//compute self dimensions
 		if (i.style.height == null) 
 			i.style.height=b.style.height;
 		
-	   i.bgWidth = i.style.width;
+        i.bgWidth = i.style.width;
 		i.bgHeight = i.style.height;
-		//if (i.style.width == null) 
-		//	i.style.width=b.setWidthToActual("x", "width").style.width;
-		
-		//layout itself and children
-		
-		// console.log("end of horizontal layout. ", i.bgWidth, i.bgHeight)
 		i.layout(1);
 	}
 })
@@ -442,9 +432,10 @@ function layoutManager(str, horizontal) {
 					l.unknownPercent += a.value;
 				//console.log(width, isNaN(l.totalSize), l.totalSize);
 			}
-         if (l.debug) console.log(width);				
+            if (l.debug) console.log(width);				
 			if (a.ratio == "x") l.sumX += a.value;
-			i.style[l.kwidth] = width;
+			//if (width!=null)  //add this if to keep child dimensions ... TODO
+               i.style[l.kwidth] = width;
 			if (width) l.fixedSize+=width;
 		})
 		
@@ -622,6 +613,48 @@ function layoutManager(str, horizontal) {
 		l.computePositions();		
 		if (l.debug) console.log("Apply layout manager ", l.arrange, " : complete.");
 	}
+	
+	var color= {vector:"red", 
+	            horizontalVector:"blue", 
+					text:"green",
+					sweetTextLine:"yellow",
+					array:"purple"}
+	l.drawHelpLines=function (g) {
+		g.selectAll(".lmHelpLines"+l.kx).remove();
+		l.bag.each(function(child, col) {
+			//console.log(g, g.datum());
+			g.append("rect")
+			  .attr("x",-3-col/2)
+			  .attr("y",-3-col/2)
+			  .attr("width",6+col)
+			  .attr("height",6+col)
+			  .style("opacity",0.5)
+			  .style("stroke","black")
+			  .attr("class", "lmHelpLines"+l.kx)
+			  .style("fill", color[g.datum().type] ||"gray")
+			  .attr(l.kx, child.style[l.kx]-child.style[l.kwidth]/2)
+			  .attr(l.kwidth, child.style[l.kwidth])				
+		});		
+	}
 	return l;
 	
 }
+var needHelpLines = [];
+function addHelpLines(i) {
+	needHelpLines.push(i);
+}
+function drawRecursiveHelpLines(i) {
+        if (!i) return;
+		/*if (i.vl) i.vl.drawHelpLines(i.g);
+		if (i.hl) i.hl.drawHelpLines(i.g);
+		if (i.lm) i.lm.drawHelpLines(i.g);*/
+		//console.log(i);
+          
+		i.children.forEach(drawRecursiveHelpLines);			
+}
+	
+function drawHelpLines() {
+	
+	needHelpLines.forEach(drawRecursiveHelpLines);
+}
+
