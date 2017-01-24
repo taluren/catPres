@@ -331,10 +331,12 @@
         function processEdge(src,tgt,lines, afterEdge, afterNode, afterNode2 ) {
           if (!afterNode2) afterNode2=afterNode;
           fm.nextOverlay()         
-              .goto("#g").getLinks(src+"-"+tgt).set(currentEdge).on([1], afterEdge)
-              .goto("#g").getNodes(src+"").set(currentNode).on([1], afterNode)
-              .goto("#g").getNodes(tgt+"").set(currentNode).on([1], afterNode2)          
-              .goto("#algo").getLines(lines+"").on(0,{fillBullet:"orange"});
+              .goto("#g")
+				   .getLinks(src+"-"+tgt).set(currentEdge).on([1], afterEdge)
+               .getNodes(src+"").set(currentNode).on([1], afterNode)
+               .getNodes(tgt+"").set(currentNode).on([1], afterNode2)     
+              .goto("#algo")
+				   .getLines(lines+"").on(0,{fillBullet:"orange"});
         }
         processEdge(8,11,"2;3",strongEdge, simpleNode);
         processEdge(1,5,"2;3",strongEdge, simpleNode);

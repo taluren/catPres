@@ -213,6 +213,17 @@ function itemAndFrameFunctions(i) {
 		  
   }
   
+  i.set=function(s) {
+	  for (var k in s) {
+		  if (s[k]==null) {
+			  delete i.style[k];
+		  }
+		  else 
+			  i.style[k]=s[k];		 		  
+	  } 
+     return i;		 	  
+  }
+  
   i.hasSchedule = function() {
 	  if (i.schedule) {//console.log (i.schedule); 
 	    return i.schedule.length;}
@@ -436,17 +447,6 @@ function Item(parent, typeAndId, style, d) {
 	  i.style.show =true;
       return i;
   }  
-  i.set=function(s) {
-	  for (var k in s) {
-		  if (s[k]==null) {
-			  delete i.style[k];
-			  console.log ("set ",s, " delete ", k);
-		  }
-		  else 
-			  i.style[k]=s[k];		 		  
-	  } 
-     return i;		 	  
-  }
   i.setAndKeep=function(s) {
 	  var out={};
 	  for (var k in s) {
