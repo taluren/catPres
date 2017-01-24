@@ -383,7 +383,7 @@ function parseMathJaxOutput (i) {
 			 addExportLink();
 }
 MathJaxImport = function(localImport, callBackFunction) {
-	if (typeof MathJax == "undefined") MathJax=null;
+  if (typeof MathJax == "undefined") MathJax=null;
   if (MathJax) {
 	  MathJax.Hub.Config({
 		 tex2jax: {

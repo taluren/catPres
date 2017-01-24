@@ -1191,9 +1191,9 @@ frameManager = function(style, sozi)  {
             
         updateFrame(false);
         updateFrame(true);
-		/*if (MathJaxImport) {
+		if (MathJaxImport) {
 			MathJaxImport(fm.localImport, function() {updateFrame(false);});
-		}*/	
+		}
 	}
 	
 	return fm;
