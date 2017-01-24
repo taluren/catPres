@@ -13,7 +13,8 @@
     <body>
 	 
    <script src="./d3.v4.js"></script>
-   <!--script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG"-->
+   <script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG">
 </script>
   <script src="./pres.js"></script>
   <script src="./pres-misc.js"></script>
@@ -29,195 +30,44 @@
      window.addEventListener("load", function(event) {  
 	      
 			
-		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
-		fm.frame("Pres.html", {model:"titleFrame"})
-			.append("text")
-				.print("---")
-			.up("#main")
-			.append("text")
-				.print("---")
+		fm=frameManager({screenBackground:"black", math:"math.json", mathjax:false});
+		
+		fm.frame("FPT and Streaming", {model:"titleFrame"})
+			.append("text", {align:"center"})
+				.print("RAMBA meeting\nLaurent Bulteau\n2017-01-27", {size:14})
 				
 
-         
-        fm.frame("Array")   
-         
-         
-        fm.append("array", {}, {cols:"lr40r50cl1xl1xc20%", rows:"*m20*"})
-              .decoration("background",{fill:"#edf"})
-                .print("Column&1&2&3&4&5&6\\\\"+
-                "Key:&r40&r50&c&l1x&l1x&c20%\\\\"+
-                "Align:&Right&Right&Center&Left&Left&Center\\\\"+
-                "Width:&40px&50px&tight&width of 4th &= width of 5th.&20% of array")
+		fm.frame("Outline")
+		  .append("text")
+            .np(".|Fixed Parameter Tractability basics")
+            .np(".|Kernelization, with Vertex Cover as an example")
+            .np(".|Kernelization ").np("and",{weight:"bold"}).np(" streaming.")
         
-		
-		 
-		fm.frame("Array-2")	
-		 
-		 
-		fm.append("array", {}, {cols:"*l80l50ll25%l20l20*", rows:"*m30*t1x*t1x*b20"})
-		      .decoration("background",{fill:"#edf"})
-				.print("l80m30&l50&l&l25%&l20&l20\\\\"+
-				"t1x&a&long...&c&d&e\\\\"+
-				"t1x&Math: $x^2$&&multi-\nline&d&e\\\\"+
-				"b20&a&b&c&overflow&")
-		
-		
-		addHelpLines(fm.goto("#root"));		
-		
-		fm.frame("Text")
-		
-		//console.log(
-		fm.append("g", {width:"fill"})
-		  .append("text#1", {width:200})
-		    .print("Items :")
-			 .print("\nFirst,"+
-						"\n   with some math $\\sqrt{\\left(x^{2}+y^2\\right)}$..."+
-						"\n$\\alpha = \\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {bullet:1})
-		//    .goto("#1")
-		//	   .down("sweetTextLine").lm.debug=true;
-		//drawItemTree(fm.goto("#1"), {opacity:0.33});
-		fm.nextOverlay();
-		
-		fm.append("text", {align:"right"})
-			 .print("A paragraph, align : \"right\",\n"+
-						"with some math $\\sqrt{\\left(x^{2}+y^2\\right)}$...\n"+
-						"$\\alpha = \\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$\n")
-			 .print("Kerning : AV = A").print("V.");
-		fm.nextOverlay();
-		fm.goto("#1")
-		    .print("\nSmaller items\n yeah!", {bullet:2})
-		  .up("#root")
-		    .append("caption",{color:"darkgreen"},"Here be a caption");   
-		
-		fm.frame("Shapes")
-		   .goto("#foreground")
-				.append("rect", {x:5, y:100})
-				.then("circle", {x:-50})
-				.then("path", {d:"M0,0 l100,23 l34,-45 l-87,0 z"})
-					
-		fm.frame("Overlays")
-		  // .goto("#foreground")
-				.append("array#a", {}, {rows:"m1x", cols:"lc50"})
-				.decoration("border")
-				
-				.print(".on(1, {fill:\"red\"})\\\\"+
-				".on([2,3], {r:2})\\\\"+
-				".on([3], {opacity:0.5})\\\\"+
-				".on([1], {fill:\"yellow\"})\n.on(2, {fill:\"red\"})")
-				.cell(1,0)
-					//.decoration("border")
-					.append("circle")
-					.on(1, {fill:"red"})
-					.up("array")				
-				.cell(1,1)
-					.append("circle")
-					.on([2,3], {r:2})
-					.up("array")				
-				.cell(1,2)
-					.append("circle")
-					.on([3], {opacity:0.5})
-					.up("array")				
-				.cell(1,3)
-					.append("circle")
-					.on([1], {fill:"yellow"})
-					.on(2, {fill:"red"})
-					.up("array")		
-					
-			.then("svgtext", {text:"0"})		
-					.on(1, {text:"1"})
-					.on(2, {text:"2"})
-					.on(3, {text:"3"})
-					.on([4], {text:"4"})
-					
-		addHelpLines(fm.goto("#a"));			
-		fm.nextOverlay();		 
-	//	console.log(fm.topF.hasSchedule())			
-		fm.frame("Frame model: simple", {model:"simple"})
-		  .append("text", {align:"center"})
-			.print("Models:\n", {weight:"bold"})
-			.print("empty\nbase\ntitleFrame\nbeamer");
-		fm.frame("Lace")
-		   .goto("#foreground")
-		   .append("lace",{}, {size:41})
-			    .nodes()
-				 .set(function(i,j) {return {x:(j-20)*9, r:3.5};})
-				 .on([1], function(i,j) {return {y:Math.sin(j/3)*60, fill:"#88"+(j*200/40+16).toString(16)+(255-j*200/40).toString(16)};})		 
-				 .on([2], function(i,j) {return {y:Math.sin(j/3+1.5)*60};})
-				 .on([3], function(i,j) {return {y:Math.sin(j/3+3)*60};})
-		fm.nextOverlay()
-		  .goto("lace").set({transition:{duration:1000}}).log("--", ["transition", ])
-		//.transition(function() {return d3.transition("aaa").duration(3000)});
-		fm.nextOverlay()		 
-		  .goto("lace")// .allNodes()
-		   .set({transition:{duration:2500}})		 
-		   
-		fm.nextOverlay()		 
-    	  .goto("lace")// .allNodes()
-		   .set({transition:{duration:2500}})		 
-		//fm.goto("lace").transition(d3.transition().duration(3));
-		//fm.goto("lace").transition(d3.transition().duration(3000));
-		
-		fm.frame("Two Columns", {model:"2Columns"})
+        fm.frame("Fixed-Parameter Tractability")
+          .goto("#main").set({align:"left", padding:50, width:360})
           .append("text")
-             .print("--- Left ---")
-          .up("text")
-          .then("circle", {fill:"yellow", r:5})
-          .then("circle", {fill:"orange", r:10})
-          .then("circle", {fill:"red", r:15})
-          .then("circle", {fill:"black", r:20})
+            .np("Idea:")
+             .np("-|Instances of NP-hard problems are not equally hard")
+             .np("-|A problem can become easier if some ").np("parameter",{color:"red"}).np(" is small")
+             .np(" >|Solution size, distance between strings, etc.")
+             
+          .up("#main").append("text")
+            .np("Goal:")
+             .np("-|For input size $n$ and parameter $k$,")
+             .np(" |design an algorithm with running time $f(k).\\mathrm{poly}(n)$")
           
-         .goto("#right")
-          .append("text")
-            .print("--- Right ---")
-          .up("text")
-          .then("circle", {fill:"yellow", r:5})
-          .then("circle", {fill:"orange", r:10})
-          .then("circle", {fill:"red", r:15})
-          
-         .goto("#foreground")
-          .append("circle", {y:-10})
-          .then("caption", {text:"(foreground)", size:8})
-          .then("rect", {y:15})
-           
-         
-        fm.frame("Graph")
-          .append("graph",{},{simulation:true,seed:0.7259184720682743})
-          .setNodeStyle({stroke:"blue"})
-          .addLinks("1-2;1-4;1-5;1-9;1-10")
-          .setNodeStyle({stroke:null})          
-          .addLinks("2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9")
-          ;
-        fm.nextOverlay()
-		  .goto("graph")
-            .setLinkStyle({stroke:"red", dash:5})
-            .addLinks("9-11;3-11;4-11");
-           ; 
-        fm.nextOverlay()
-          .goto("graph")
-            .getNode("2")
-              .hide()
-          .goto("graph")
-            .getLinks("4-11;1-9")
-              .hide()
-           ;
-
-        
-        fm.frame("Graph-2")
-          .append("text#def")//.decoration("background",{fill:"#AAF"})
-            .print("Vertex Cover:",{weight:"bold"})
-      
-		  addHelpLines(fm.goto("#root"));		      
-        fm.append("horizontalVector#hv")
-           .append("box#boxg1")
-            .append("graph",{},{simulation:true, seed:0.2856390579108874})
-            .setNodeStyle({fill:"#eef", color:"#008"})
-            .setLinkStyle({stroke:"#66A"})
-            .addLinks("1-2;1-4;1-5;1-9;1-10;2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9;3-11;3-12;1-11")   
+          .up("#main").append("text")
+            .np("Otherwise:")
+             .np("-|Prove hardness")
+             .np(" |(W[1]-hardness, comparable to NP-hardness)")
+             
+             
+            
         var selectVCStyle = {stroke:"black", fill:"#ccc", color: "black"};
-        var missingNode = {fill:"#f3f3f3"};
-        var simpleNode = {fill:"#eef", color:"#008"};
-        var currentNode = {fill:"orange", color:"#008"};
-        var deletedNode = {fill:"#feecec"};
+        var missingNode = {fill:"#f3f3f3", stroke:null};
+        var simpleNode = {fill:"#eef", color:"#008", stroke:null};
+        var currentNode = {fill:"orange", color:"#008", stroke:null};
+        var deletedNode = {fill:"#feecec", stroke:null};
         var strongNode = {fill:"#ddd", stroke:"black", color:"black"};
         
         var simpleEdge = {stroke:"#449", opacity:1, strokeWidth:1};
@@ -225,29 +75,111 @@
         var deletedEdge = {stroke:"#feecec", opacity:1, strokeWidth:1};
         var missingEdge = {stroke:"#6A6", opacity:0.4, strokeWidth:1};
         var strongEdge = {stroke:"blue", opacity:1, strokeWidth:1.8};
+        var badEdge = {stroke:"red", opacity:1, strokeWidth:1.6};
         
         
+        fm.frame("Vertex Cover Problem")
+          
+          .append("text#def")//.decoration("background",{fill:"#AAF"})
+            .print("Vertex Cover:",{weight:"bold"})
+            .up("#main")
+            
+          .append("graph",{},{simulation:true, seed:0.2856390579108874})
+            .setNodeStyle(simpleNode)
+            .setLinkStyle(simpleEdge)
+            .addLinks("1-2;1-4;1-5;1-9;1-10;2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9;3-11;3-12;1-11")   
         
-        function selectNodeForVC(graph, id) {
-          graph.getNode(id)
-           .set(selectVCStyle)
-          graph. getNeighborLinks(id)
-            .set({stroke:"black", strokeWidth:2});
+        
+        function selectNodeForVC( id) {
+          fm.goto("graph")
+              .getNodes(id).set(selectVCStyle)
+              .getNeighborLinks(id).set(strongEdge);
         }
+        
+        function selectNodesForVC( ids) {
+          fm.goto("graph")
+              .nodes().set(simpleNode)
+              .links().set(simpleEdge)
+              .getNodes(ids).set(selectVCStyle)
+              .getNeighborLinks(ids).set(strongEdge);
+        }
+        
         
         fm.nextOverlay()
            .goto("#def")
             .print(" set of vertices covering all edges")
-        selectNodeForVC(fm.goto("graph"), "1");
+        selectNodesForVC("1");
         fm.nextOverlay()
-        selectNodeForVC(fm.goto("graph"), "2");
+        selectNodesForVC("1;2");
         fm.nextOverlay()
-        selectNodeForVC(fm.goto("graph"), "3");
+        selectNodesForVC("1;2;3");
+        
+        
         fm.nextOverlay()
            .goto("#def")
+            .np(" .|$O(2^n)$ naive algorithm")
+            .np(" .|$O(2^kn)$ FPT algorithm")
+
+            
+        
+        function curEdge(src, tgt) {
+          
+          fm.goto("graph")
+            .getLinks(src<tgt? src+"-"+tgt: tgt+"-"+src).set(currentEdge)
+            .getNodes(src+";"+tgt).set(currentNode)              
+        }
+        fm.nextOverlay()
+        selectNodesForVC("");
+        curEdge(3,7)
+        fm.nextOverlay()
+        selectNodesForVC("3");
+        fm.nextOverlay()
+        curEdge(2,6)
+        fm.nextOverlay()
+        selectNodesForVC("2;3");
+        fm.nextOverlay()
+        curEdge(1,11)
+        fm.nextOverlay()
+        selectNodesForVC("2;3;11");
+        
+        fm.nextOverlay().goto("graph")
+          .getLinks("1-9").set(badEdge)
+        
+        fm.nextOverlay()
+        selectNodesForVC("2;3");
+        curEdge(1,11)
+        
+        fm.nextOverlay()
+        selectNodesForVC("2;3;1");
+        
+        
+           
+           
+           
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        fm.frame("Kernels")
+          .append("text#def")//.decoration("background",{fill:"#AAF"})
+      
+          .then("horizontalVector#hv")
+           .append("box#boxg1")
+            .append("graph",{},{simulation:true, seed:0.2856390579108874})
+            .setNodeStyle(simpleNode)
+            .setLinkStyle(simpleEdge)
+            .addLinks("1-2;1-4;1-5;1-9;1-10;2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9;3-11;3-12;1-11")   
+        
+          .goto("#def")
             .print("\nKernel: ",{weight:"bold"})
             .print(" smaller instance (size f(k)) equivalent to the original")
-            .print("\n(same spirit as sketches, in an exact setting)", {align:"center",color:"#888"})
+            .print("\n(same spirit as sketches, in an exact setting)", {align:"center",color:"#AAA"})
            .goto("#hv")
             .append("text").print("==>")
            .goto("#hv")
@@ -259,6 +191,10 @@
              .then("caption",{text:"k=2", y:90})  
            .goto("#boxg1")  
              .append("caption",{text:"k=3", y:90})  
+          fm.nextOverlay()
+           .goto("#def")
+             .print("\n Easily yields an FPT algorithm")
+        
              
          fm.frame("Kernelization algorithm",{model:"2Columns"})
            .goto("#right")
@@ -299,11 +235,14 @@
         fm.nextOverlay().goto("#g").getNodes("2;10").hide()
         
         fm.nextOverlay()
-           .goto("#algo").print("\n Then: at most $k^2$ edges", {bullet:1});
+           .goto("#algo")
+             .print("\n Then: at most $k^2$ edges", {bullet:1})
+             .print("\n (otherwise: no-instance)", {bullet:" "});
    
         
         fm.frame("Streaming Kernel",{model:"2Columns"})        
-         
+           .goto("#foreground")
+             .append("caption", {text:"[Chitnis et al., SODA'15]", size:11, y:-110, color:"#777"})
            .goto("#right")
             .append("graph#g",{},{simulation:true})//, seed:0.2856390579108874})
             .import({"1":{"x":39.684520520623536,"y":-7.76628311405876},"2":{"x":5.951670676982954,"y":-27.042109517004803},"3":{"x":64.01097336852732,"y":27.75530973767176},"4":{"x":-9.430666029625318,"y":11.261483546132803},"5":{"x":13.432957515988443,"y":32.75993872352939},"6":{"x":41.06551136710176,"y":65.73017786929394},"7":{"x":-8.197737303196092,"y":64.6431767030179},"8":{"x":-47.77074762330303,"y":20.354527135229898},"9":{"x":-49.874570370695814,"y":60.97582518602755},"10":{"x":12.906938461171995,"y":-48.32208909942591},"11":{"x":-33.71255577756046,"y":-29.05555665995763},"12":{"x":-68.03874060049218,"y":-40.25162547979207},"13":{"x":-36.53249588505291,"y":-66.33668903154707},"14":{"x":76.36976143774288,"y":-64.03098495964181}})
@@ -329,12 +268,10 @@
         function processEdge(src,tgt,lines, afterEdge, afterNode, afterNode2 ) {
           if (!afterNode2) afterNode2=afterNode;
           fm.nextOverlay()         
-              .goto("#g")
-				   .getLinks(src+"-"+tgt).set(currentEdge).on([1], afterEdge)
-               .getNodes(src+"").set(currentNode).on([1], afterNode)
-               .getNodes(tgt+"").set(currentNode).on([1], afterNode2)     
-              .goto("#algo")
-				   .getLines(lines+"").on(0,{fillBullet:"orange"});
+              .goto("#g").getLinks(src+"-"+tgt).set(currentEdge).on([1], afterEdge)
+              .goto("#g").getNodes(src+"").set(currentNode).on([1], afterNode)
+              .goto("#g").getNodes(tgt+"").set(currentNode).on([1], afterNode2)          
+              .goto("#algo").getLines(lines+"").on(0,{fillBullet:"orange"});
         }
         processEdge(8,11,"2;3",strongEdge, simpleNode);
         processEdge(1,5,"2;3",strongEdge, simpleNode);
@@ -405,14 +342,6 @@
            .np("Bullet: >", {bullet:">>>>"})
            .np("Bullet: misc", {bullet:"*$#~"})
            
-        fm.frame("Math alignment test:")
-          .append("text")
-          
-            .np("*|Size 6:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:6})
-            .np("*|Size 10:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:10})
-            .np("*|Size 12:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:12})
-            .np("*|Size 14:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:14})
-            .np("*|Size :x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:20})
         fm.frame("Generalities")
 		  .append("text")
 		    .print("call order on new frame:")

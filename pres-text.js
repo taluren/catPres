@@ -132,14 +132,18 @@ addToCodex("text","verticalVector",  {
               i.np = function (s, style, d) {
                   if (!style) style={};
                   style=shallowCopy(style);
-                  var bullet="";
+                  var bullet="";                  
                   if (style.bullet) {
                      if (typeof style.bullet=="number") { 
-                       bullet=Array(style.bullet).join(" ")+"o";
+                       bullet=Array(style.bullet).join(" ")+".";
                      } else {
                        bullet=style.bullet;
                      }                     
                      delete style["bullet"];                                         
+                  } else if (s.indexOf("|")>=0) {
+                    var spl = s.split("|");
+                    bullet = spl.shift();
+                    s=spl.join("|");                    
                   }
                   console.log(style, bullet);
                   if (bullet) {
@@ -219,9 +223,9 @@ addToCodex("textBox", "svgtext", {
 	
 
 addToCodex("bullet","g",  {
-	defaultStyle:{bullet:"o"},
+	defaultStyle:{bullet:"."},
 	onBuild: function(i) {	
-        if (typeof i.style.bullet== "number") i.style.bullet= Array(i.style.bullet).join(" ")+"o";
+        if (typeof i.style.bullet== "number") i.style.bullet= Array(i.style.bullet).join(" ")+".";
         i.bullet=i.style.bullet;
 		i.style.width =i.width=i.style.bullet.length *20;
 		i.style.height = i.height=12;
@@ -239,8 +243,12 @@ addToCodex("bullet","g",  {
                pos.append("path", {d:"M-4,0 L4,0", strokeWidth:1.5, fill:"none", stroke:"#008"});
               continue;
            } 
+           if (c=='.') {
+             pos.append("circle", {x:0,  y:0, r:3.5, fill:"#008", stroke:null});           
+             continue;
+           }
            if (c=='o') {
-             pos.append("circle", {x:0,  y:0, r:4, fill:"#008", stroke:null});           
+             pos.append("circle", {x:0,  y:0, r:3.5, fill:"none", stroke:"#008"});           
              continue;
            }
            pos.append("svgtext", {text:c, color:"#008", y:4})
@@ -339,8 +347,10 @@ function useMathSvg(i, svg) {
 	 
 	 target.g.node().innerHTML = svg.html;
 	 target.ready=true;
-	 target.scale = svg.scale;
-	 target.deltaY = svg.deltaY;
+     target.scale = getComputed("size", i.mathSpan) / 15; 
+	 //target.scale = svg.scale;
+     console.log("scale:: ", svg.scale)
+	 target.deltaY = svg.deltaY*target.scale/(svg.scale||1);
 	 
 	 i.mathSpan.history.forEach(function(s) {
 		if (s) {
@@ -354,51 +364,59 @@ function forceDisplay(i) {
   if (i.parent) forceDisplay(i.parent);
 	
 }
-function parseMathJaxOutput (i) {
-	
-		    console.log("**** parsing", i.type, i.datum.math);
-          var svg = i.g.select("svg");
-			 if (svg.empty()) {console.log("ERROR : no svg found"); return;} 
-			 
-			 //if (debugMathJaxParsing) console.log("found svg : ", svg.node());
-			 
-			 var target = i.mathJaxed; //span.node().parentNode.parentNode.parentNode;
-			 
-			 
-			 svg.attr("color","#000");
-			 target.g.node().appendChild(svg.node());
-			 
-			 target.ready=true;
-			 forceDisplay(target);
-	   	 setTimeout(()=>{	 
-				 target.scale = getComputed("size", i.mathSpan) / 15; 
-				 target.deltaY = -(target.g.node().getBBox().height + svg.style("vertical-align").slice(0,-3)*1 +3 )*target.scale; 
-			 },1);
-			 i.mathSpan.history.forEach(function(s) {
-				if (s) {
-					s.show=false;
-					s.text="";
-				} 
-			 })
-			 addExportLink();
+function parseMathJaxOutput (i) {	
+  console.log("[Math] parsing", i.type, i.datum.math);
+  var svg = i.g.select("svg");
+  if (svg.empty()) {console.log("ERROR : no svg found"); return;} 
+
+  var target = i.mathJaxed; //span.node().parentNode.parentNode.parentNode;
+
+
+  svg.attr("color","#000");
+  target.g.node().appendChild(svg.node());
+  target.ready=true;
+  forceDisplay(target);
+  setTimeout(()=>{	 
+      target.scale = getComputed("size", i.mathSpan) / 15; 
+      target.deltaY = -(target.g.node().getBBox().height + svg.style("vertical-align").slice(0,-3)*1 +3 )*target.scale; 
+  },1);
+  i.mathSpan.history.forEach(function(s) {
+    if (s) {
+        s.show=false;
+        s.text="";
+    } 
+  })
+  addExportLink();
 }
-MathJaxImport = function(localImport, callBackFunction) {
-	if (typeof MathJax == "undefined") MathJax=null;
-  if (MathJax) {
+MathJaxImport = function(knownData, useMathJax, callBackFunction) {
+  if (useMathJax && typeof MathJax == "undefined") {
+     console.error("MathJax is not loaded, disable \"mathjax\" in the top settings");
+     useMathJax=false;     
+  }
+  if (useMathJax) {
 	  MathJax.Hub.Config({
 		 tex2jax: {
-			inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+			inlineMath: [ ['$','$']], //, ["\\(","\\)"] ],
 			processEscapes: true
 		 }
 	  });
   }
-  function callBack() {
-	  setTimeout(()=>{
-		  console.log("mathjax complete"); 
-		  callBackFunction();
-	  }, 1);
+  if (knownData) {
+    if (typeof knownData=="string") {
+      try{
+        d3.json(knownData, runWithData) ; 
+      } catch (e) {
+        runWithData(e, null);
+      }
+    } else {
+      runWithData(false, knownData);
+    }
   }
-  d3.json(localImport, function(error, data) {
+  else 
+    runWithData(true, null);
+  
+  
+ function runWithData(error, data) {
 	  mathToSvg=null;
 	  if (!error) {
 		  mathToSvg = data;
@@ -413,7 +431,7 @@ MathJaxImport = function(localImport, callBackFunction) {
 		  });
 		  if (svg) {
 			  useMathSvg(d, svg);
-		  } else if (MathJax) {
+		  } else if (useMathJax) {
 			  MathJax.Hub.Queue(["Typeset", MathJax.Hub, node]);    
 			  MathJax.Hub.Queue(function() { //when mathjax is done
 	//			  setTimeout(function(){ //wait for complete rendering (=> math bbox is computed)
@@ -426,12 +444,17 @@ MathJaxImport = function(localImport, callBackFunction) {
 	  })
 	  
 	  setTimeout(()=>{
-	  if (MathJax) 
+	  if (useMathJax) 
 		 MathJax.Hub.Queue(function() {callBack();});
 	  else 
 	    callBack();},1) 
-  });
-  
+  }
+  function callBack() {
+      setTimeout(()=>{
+          console.log("Math processing complete"); 
+          callBackFunction();
+      }, 1);
+  }
 };
 
 	

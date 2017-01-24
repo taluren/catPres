@@ -947,7 +947,9 @@ function itemBag (itemList) {
 		  }		
 		} else {
 		  for (x=0;x<b.items.length; x++) {
-			  b.items[x].set(s);
+            if (typeof b.items[x] == "undefined") 
+              stop(b);
+			b.items[x].set(s);
 		  }		  
 		}
 		return b;
@@ -1078,7 +1080,8 @@ frameManager = function(style, sozi)  {
 	var fm= {
 		f:1,
 		topF:null,
-		frames:[]
+		frames:[],
+        style:style
 	}
 	if (!sozi) {
 		fm.camera = cameraManager();
@@ -1191,9 +1194,9 @@ frameManager = function(style, sozi)  {
             
         updateFrame(false);
         updateFrame(true);
-		/*if (MathJaxImport) {
-			MathJaxImport(fm.localImport, function() {updateFrame(false);});
-		}*/	
+        if (fm.style.mathjax || fm.style.math) {
+			MathJaxImport(fm.style.math,fm.style.mathjax, function() {updateFrame(false);});
+		}
 	}
 	
 	return fm;
