@@ -256,7 +256,7 @@ addToCodex("verticalVector", "customBGBox", {
 		//if (i.style.height == null) 
 		//	i.style.height=b.setWidthToActual("y", "height").style.height;
 		
-	   i.bgWidth = i.style.width;
+	    i.bgWidth = i.style.width;
 		i.bgHeight = i.style.height;
 		
 		//layout itself and children

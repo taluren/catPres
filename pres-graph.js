@@ -156,11 +156,9 @@ addToCodex("simulation", "g", {
      }
   },
   onLoad: function(i, show, focus) {
-     console.log(i.style.active , i.differentFrameLoaded, i.display)
      if (i.style.active && i.differentFrameLoaded && i.display) {       
        var nodes = i.datum.nodes || i.parent.nodes().filterShown().items;
        var links = i.datum.links || i.parent.links().filterShown().items;
-       console.log("run with ",nodes.length," nodes and ", links.length, " links");
        nodes.forEach(function(n){
          if (n.style.fix) {
            n.fx=n.x;
@@ -171,7 +169,7 @@ addToCodex("simulation", "g", {
          }
        });
        i.simulation.nodes(nodes);
-       console.log(links);
+     //  console.log(links);
        i.simulation.force("link")
             .links(links);       
        
@@ -212,10 +210,10 @@ addToCodex("freeGraph", "g", {
         
         
         i.nodes= function() {
-            return nodeBox.childBag();
+            return i.graphBag(nodeBox.children);
         }
         i.links = function() {
-            return linkBox.childBag();
+            return i.graphBag(linkBox.children);
         }
         
         // mapping from (user's) node id to node item
@@ -224,6 +222,11 @@ addToCodex("freeGraph", "g", {
         var importedCoords={};
         //simulation item
         var simulation = null;
+        function splitIds(ids) {          
+          if (ids=="") return [];
+          if (ids instanceof Array) return ids;
+          return ids.split(/\ *;\ */);
+        }
         i.setNodeStyle=function(s) {
            nodeStyle = copyWithDefault(s, nodeStyle);
            return i; 
@@ -254,7 +257,7 @@ addToCodex("freeGraph", "g", {
         }
         i.addNodes = function(ids) {           
 		     
-           ids.split(/\ *;\ */).map(function(n) {return i.addNode(n)});
+           splitIds(ids).map(function(n) {return i.addNode(n)});
            return i;           
         }
         //return the node with a given id o(creates one if necessary)
@@ -276,7 +279,7 @@ addToCodex("freeGraph", "g", {
         }
         //add links from a ;-separated list
         i.addLinks=function (links) {
-          var s = links.split(/\ *\;\ */);
+          var s = splitIds(links);
           var x;
           for (x=0; x<s.length;x++) {
             i.addLink(s[x]);
@@ -289,7 +292,7 @@ addToCodex("freeGraph", "g", {
         }
         //returns a bag of links
         i.getLinks = function(id) {
-           return i.graphBag(id.split(/\ *;\ */).map(i.getLink))
+           return i.graphBag(splitIds(id).map(i.getLink))
         }
         //returns a node by id
         i.getNode = function(id) {
@@ -297,7 +300,7 @@ addToCodex("freeGraph", "g", {
         }
         //returns a bag of nodes
         i.getNodes = function(ids) {
-           return i.graphBag((ids+"").split(/\ *;\ */).map(i.getNode))           
+           return i.graphBag(splitIds(ids).map(i.getNode))           
         }
         i.getNeighborLinks = function(ids) {
           var ns=i.getNodes(ids).items;
@@ -366,14 +369,16 @@ addToCodex("freeGraph", "g", {
 			  var b=set;
 			  if (b instanceof Array) b = itemBag(set);
 			  
+              b.nodes = i.nodes;
+              b.links = i.links;
 			  b.addNode = i.addNode;
 			  b.addLink = i.addLink;
 			  b.getNode = i.getNode;
 			  b.getLink = i.getLink;
 			  b.addNodes = i.addNodes;
 			  b.addLinks = i.addLinks;
-			  b.getNodes = i.getNodes;
-			  b.getLinks = i.getLinks;
+              b.getNodes = i.getNodes;
+              b.getLinks = i.getLinks;
 			  b.getNeighborLinks = i.getNeighborLinks;
 			  
 			  return b;
