@@ -32,3 +32,48 @@ function romanize (num) {
         roman = (key[+digits.pop() + (i * 10)] || "") + roman;
     return Array(+digits.join("") + 1).join("M") + roman;
 }
+
+
+function exportSingleHTML() {
+   var done="";
+	var todo="";
+	
+	function save(file) {
+		var url = "data:text/html;charset=utf-8,"+encodeURIComponent(file);
+		d3.select("body").append("a")
+		   .attr("href", url)
+			.attr("download", "OneFile.html")
+			.node().dispatchEvent( new MouseEvent("click"));
+		
+	}
+	function addMathJSON() {
+		//alert(done.length);
+		done=done.replace("importedMathFormulas ="+" null;",
+            		"importedMathFormulas  = "+ getFormulasJSON());		
+      //alert(done.length);
+    	//alert(done.indexOf("importedMathFormulas ="+" null;"));
+	}
+   function readNextScriptFile(script) {
+	   if (script!="") {
+	      done+="\n"+script+"\n"		
+		} 
+		var spl=todo.split(/src\=\"([^\"]*)\">([\s\S]*)/)
+		if (spl.length>=2) {  
+			done+=spl[0]+">\n//import "+spl[1]+"\n";
+			todo = spl[2];
+			//alert(spl[1]+" "+ todo.length);
+			d3.text(spl[1], readNextScriptFile)	
+			return;
+		} 
+		done +=todo;
+		todo="";
+		addMathJSON();		
+		save(done);
+   }
+	d3.text("./pres.html", function(f) {
+		todo=f;
+		readNextScriptFile("");
+	})
+
+	
+}

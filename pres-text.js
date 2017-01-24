@@ -321,7 +321,7 @@ addToCodex("mathJaxed","transform", {
 	}
 });
 
-function addExportLink() {
+function getFormulasJSON() {
 	var formulas = [];
 	d3.selectAll(".mathBox").each(function(d) {
 	  formulas.push(
@@ -334,7 +334,11 @@ function addExportLink() {
   })
   formulas = {svgs: formulas, glyphs:d3.select("#MathJax_SVG_glyphs").node().outerHTML}
   var a =d3.select("body").append("div").style("position","absolute").style("top","0").style("width","10%").style("align","center").append("a").text("Save Formulas Locally");	
-  var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(formulas));
+  return JSON.stringify(formulas);
+	
+}
+function addExportLink() {
+	var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(getFormulasJSON());
   a.attr("href",     dataStr     );
   a.attr("download", "math.json");
 
@@ -388,6 +392,8 @@ function parseMathJaxOutput (i) {
   })
   addExportLink();
 }
+
+
 MathJaxImport = function(knownData, useMathJax, callBackFunction) {
   if (useMathJax && typeof MathJax == "undefined") {
      console.error("MathJax is not loaded, disable \"mathjax\" in the top settings");
@@ -400,6 +406,9 @@ MathJaxImport = function(knownData, useMathJax, callBackFunction) {
 			processEscapes: true
 		 }
 	  });
+  }
+  if (importedMathFormulas) {
+	  knownData = importedMathFormulas;
   }
   if (knownData) {
     if (typeof knownData=="string") {
@@ -457,5 +466,12 @@ MathJaxImport = function(knownData, useMathJax, callBackFunction) {
   }
 };
 
-	
+//do not edit the following line, it is modified when the presentation is exported as a single html file.	
+var importedMathFormulas = null;
+
+
+
+
+
+
 	
