@@ -91,10 +91,8 @@ addToCodex("text","verticalVector",  {
                 while (enumerateCount.length<bullet.length) 
                   enumerateCount.push(0);
                 var reset=false;
-                console.log(bullet, enumerateCount);
                 var out=[];
                 for (var p=0;p<bullet.length; p++) {
-                   console.log(bullet[p]=="i");                   
                    if (reset) 
                      enumerateCount[p]=0;
                    
@@ -119,7 +117,6 @@ addToCodex("text","verticalVector",  {
                   for (var p=bullet.length; p<enumerateCount.length; p++) {
                       enumerateCount[p]=0;
                   }
-                console.log(out)
                 return out;
               }
               i.nnl=function(bullet) {                
@@ -145,7 +142,6 @@ addToCodex("text","verticalVector",  {
                     bullet = spl.shift();
                     s=spl.join("|");                    
                   }
-                  console.log(style, bullet);
                   if (bullet) {
                     i.nnl(bullet);
                     i.currentIndent = Array(bullet.length+1).join(" ");
@@ -333,12 +329,12 @@ function getFormulasJSON() {
 		}});
   })
   formulas = {svgs: formulas, glyphs:d3.select("#MathJax_SVG_glyphs").node().outerHTML}
-  var a =d3.select("body").append("div").style("position","absolute").style("top","0").style("width","10%").style("align","center").append("a").text("Save Formulas Locally");	
   return JSON.stringify(formulas);
 	
 }
 function addExportLink() {
 	var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(getFormulasJSON());
+  var a =d3.select("body").append("div").style("position","absolute").style("top","0").style("width","10%").style("align","center").append("a").text("Save Formulas Locally");	
   a.attr("href",     dataStr     );
   a.attr("download", "math.json");
 
@@ -390,7 +386,7 @@ function parseMathJaxOutput (i) {
         s.text="";
     } 
   })
-  addExportLink();
+  //addExportLink();
 }
 
 

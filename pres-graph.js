@@ -109,7 +109,7 @@ addToCodex("simulation", "g", {
                     n.set({x:n.x, y:n.y})
               });
               if (i.shown) {
-                 console.log("draw");
+                 //console.log("draw");
                  i.parent.reLayout();
               }
             };
@@ -319,7 +319,7 @@ addToCodex("freeGraph", "g", {
             var n=nodeIndex[id];
             out[id]={x:n.x, y:n.y};
           }
-          console.log(JSON.stringify(out)); 
+          return JSON.stringify(out); 
         }
         i.import = function(coords) {
           importedCoords = coords;

@@ -38,14 +38,6 @@ function exportSingleHTML() {
    var done="";
 	var todo="";
 	
-	function save(file) {
-		var url = "data:text/html;charset=utf-8,"+encodeURIComponent(file);
-		d3.select("body").append("a")
-		   .attr("href", url)
-			.attr("download", "OneFile.html")
-			.node().dispatchEvent( new MouseEvent("click"));
-		
-	}
 	function addMathJSON() {
 		//alert(done.length);
 		done=done.replace("importedMathFormulas ="+" null;",
@@ -68,12 +60,37 @@ function exportSingleHTML() {
 		done +=todo;
 		todo="";
 		addMathJSON();		
-		save(done);
+		save(done,"Slides.html", "text/html");
    }
 	d3.text("./pres.html", function(f) {
 		todo=f;
 		readNextScriptFile("");
-	})
+	})	
+}
 
+function save(content, fileName, mime) {
+	var url = "data:"+mime+";charset=utf-8,"+encodeURIComponent(content);
+	d3.select("body").append("a")
+		.attr("href", url)
+		.attr("download", fileName)
+		.node().dispatchEvent( new MouseEvent("click"))
 	
+}
+
+function showGraph(fm, disable) {
+	return function() {
+		fm.frames.forEach(function(f) {
+			f.allNodes("graph").each(function(n) {
+				
+					console.log(n);
+				n.g.on("click", disable? null: function(e) {
+					
+					console.log(n);
+				   save("//insert following code in the presentation to set the graph coordinates:\n  .goto(\"#"+n.id+"\")\n    .import("+n.export()+")", n.id+".json", "text/json")
+					showGraph(fm, true);
+				}  )
+			})			
+		})
+		
+	}
 }

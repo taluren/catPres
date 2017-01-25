@@ -184,6 +184,18 @@ function itemAndFrameFunctions(i) {
 	  return i.match(selector.split("#"));
   }  
   
+  i.allNodes = function(type) {
+	  var b= itemBag([i]);
+	  if (type) b=b.filter(type);
+	  for (var c=i.children.length-1; c>=0; c--) {
+		  b.merge(i.children[c].allNodes(type));
+	  }	
+	  return b;
+  }
+  
+  i.childBag = function() {
+	  return itemBag(i.children);
+  }
   i.log = function(prefix, keys) {
 	  prefix=prefix||"";
 	  var st;
@@ -515,30 +527,8 @@ function Item(parent, typeAndId, style, d) {
   i.get = function(c) {
 	  console.warn("deprecated");
 	  return i.children[c];
-  }
-  /*i.transition = function(t) {
-	  i.fortrans=i.backtrans = t;
-	  return i;
-  }
-  i.forwardTransition = function(t) {
-	  i.fortrans=t;
-	  return i;
-  }
-  i.backwardTransition = function(t) {
-	  i.backtrans=t;
-	  return i;
-  } */ 
-
-  i.allNodes = function() {
-	  var b= itemBag([i]);
-	  for (var c=i.children.length-1; c>=0; c--) {
-		  b.merge(i.children[c].allNodes());
-	  }	
-	  return b;
-  }
-  i.childBag = function() {
-	  return itemBag(i.children);
-  }
+  }  
+  
   
 	i.on = function(when, style) {
         if (i.schedule == null) i.schedule = [];
@@ -1150,7 +1140,7 @@ frameManager = function(style, sozi)  {
 	}
 	fm.drawing=false;
 	var updateFrame = function(regular) {
-		console.log("updateFrame");
+		//console.log("updateFrame");
 		
 		if (fm.drawing) {
 			if (!fm.drawAgain) {
@@ -1164,7 +1154,7 @@ frameManager = function(style, sozi)  {
 		do {			
          delete fm.drawAgain;		
 			var f=fm.currentFrame(); //sozi.player.currentFrameIndex+1;
-			console.log("Frame "+f + (regular?"":" --special--"));			
+			console.log("Frame "+f + (regular?"":" [special]"));			
 			for (i=0;i<fm.frames.length;i++) fm.frames[i].draw(f, regular);
 			drawHelpLines();
 			if (fm.drawAgain) {
@@ -1175,15 +1165,14 @@ frameManager = function(style, sozi)  {
 		fm.drawing=false;
 	}
 	
-	addMenu("bonjour", function() {alert("aa")})
-	addMenu("bonjour", function() {alert("bb")})
-	addMenu("bonjour", function() {console.log("click")})
-	
+	addMenu("Start", function() {fm.camera.goFirst()}, "Go to first frame")
+	addMenu("Export HTML", exportSingleHTML, "Export as a single HTML file without dependencies (including all scripts, images and math formulas).")
+	addMenu("Export graph coordinates", showGraph(fm), "Show coordinates")
 	fm.run=function() {
+	   fm.nextOverlay();
        console.log("=========================");       
        console.log("===  Running !     ======");
        console.log("=========================");
-	   fm.nextOverlay();
 		if (sozi)
 			sozi.player.on("frameChange",function() {updateFrame(true)});	
 		if (fm.camera) {

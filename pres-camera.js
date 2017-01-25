@@ -2,7 +2,6 @@
 	 var cm= {frame:1, cameraPositions:[]}; 
 	 
 	 cm.onFrameChange = function(callback) {
-		 console.log(callback);
 		 cm.callback = callback;
 		 return cm;
 	 } 
@@ -24,6 +23,9 @@
 		stopAllTransitions();
 		cm.callback();
 		return cm;
+	 }
+	 cm.goFirst = function() {
+	  cm.switchFrame(-Infinity);	 
 	 }
 	 
 	 cm.updateZoom = function() {
