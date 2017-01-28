@@ -309,11 +309,15 @@ addToCodex("mathJaxed","transform", {
 	},
 	onDraw:function(i) {
 		//if (i.ready) {			
-			i.style.x=0;
-			i.style.y=i.deltaY;
-			i.style.scale = i.scale;
-			codex.transform.onDraw(i);		
+		i.style.x=0;
+		i.style.y=i.deltaY;
+		i.style.scale = i.scale;
+		codex.transform.onDraw(i);		
 	//	}
+	},
+	onLayout:function(i) {
+		//console.log("layout", i.parent.datum.math, i.scale, i.style.scale);
+	   codex.transform.onLayout(i);
 	}
 });
 
@@ -332,12 +336,22 @@ function getFormulasJSON() {
   return JSON.stringify(formulas);
 	
 }
+/*
 function addExportLink() {
 	var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(getFormulasJSON());
   var a =d3.select("body").append("div").style("position","absolute").style("top","0").style("width","10%").style("align","center").append("a").text("Save Formulas Locally");	
   a.attr("href",     dataStr     );
   a.attr("download", "math.json");
 
+}*/
+function saveToLocalStorage() {	
+   localStorage.setItem('formulas',getFormulasJSON());
+}
+function getFromLocalStorage() {	
+	return JSON.parse(localStorage.getItem('formulas')) 
+}
+function clearLocalStorage() {	
+   localStorage.setItem('formulas',null); 
 }
 
 function useMathSvg(i, svg) {
@@ -349,8 +363,8 @@ function useMathSvg(i, svg) {
 	 target.ready=true;
      target.scale = getComputed("size", i.mathSpan) / 15; 
 	 //target.scale = svg.scale;
-     console.log("scale:: ", svg.scale)
-	 target.deltaY = svg.deltaY*target.scale/(svg.scale||1);
+     console.log("scale (frame): ", svg.scale, " saved: ", svg.scale)
+	 target.deltaY = svg.deltaY*(target.scale||1)/(svg.scale||1);
 	 
 	 i.mathSpan.history.forEach(function(s) {
 		if (s) {
@@ -379,6 +393,7 @@ function parseMathJaxOutput (i) {
   setTimeout(()=>{	 
       target.scale = getComputed("size", i.mathSpan) / 15; 
       target.deltaY = -(target.g.node().getBBox().height + svg.style("vertical-align").slice(0,-3)*1 +3 )*target.scale; 
+		console.log(i.datum.math, " scale defined ", target.scale)
   },1);
   i.mathSpan.history.forEach(function(s) {
     if (s) {
@@ -390,11 +405,12 @@ function parseMathJaxOutput (i) {
 }
 
 
-MathJaxImport = function(knownData, useMathJax, callBackFunction) {
-  if (useMathJax && typeof MathJax == "undefined") {
+MathJaxImport = function(useMathJax, callBackFunction) {
+  useMathJax= 	typeof MathJax != "undefined"
+  /*if (useMathJax && typeof MathJax == "undefined") {
      console.error("MathJax is not loaded, disable \"mathjax\" in the top settings");
      useMathJax=false;     
-  }
+  }*/
   if (useMathJax) {
 	  MathJax.Hub.Config({
 		 tex2jax: {
@@ -403,11 +419,15 @@ MathJaxImport = function(knownData, useMathJax, callBackFunction) {
 		 }
 	  });
   }
+  var knownData = null;
   if (importedMathFormulas) {
 	  knownData = importedMathFormulas;
+  } else {
+	  knownData = getFromLocalStorage();
   }
   if (knownData) {
     if (typeof knownData=="string") {
+		console.error("Using string for math input is Deprecated");
       try{
         d3.json(knownData, runWithData) ; 
       } catch (e) {
@@ -444,7 +464,7 @@ MathJaxImport = function(knownData, useMathJax, callBackFunction) {
 		//			  }, 0) 
 					  });
 		  } else {
-			  console.log("Error : Mathjax not found to parse formula "+d.datum.math);
+			  console.log("Error : Mathjax is disabled, cannot parse formula "+d.datum.math);
 		  }
 	  })
 	  
@@ -455,8 +475,9 @@ MathJaxImport = function(knownData, useMathJax, callBackFunction) {
 	    callBack();},1) 
   }
   function callBack() {
-      setTimeout(()=>{
+      setTimeout(()=>{			
           console.log("Math processing complete"); 
+			 saveToLocalStorage();  
           callBackFunction();
       }, 1);
   }

@@ -1168,6 +1168,7 @@ frameManager = function(style, sozi)  {
 	addMenu("Start", function() {fm.camera.goFirst()}, "Go to first frame")
 	addMenu("Export HTML", exportSingleHTML, "Export as a single HTML file without dependencies (including all scripts, images and math formulas).")
 	addMenu("Export graph coordinates", showGraph(fm), "Show coordinates")
+	addMenu("Clear Saved Formulas", clearLocalStorage, "Delete cached math formulas, to be recomputed with MathJax next time.")
 	fm.run=function() {
 	   fm.nextOverlay();
        console.log("=========================");       
@@ -1186,8 +1187,8 @@ frameManager = function(style, sozi)  {
             
         updateFrame(false);
         updateFrame(true);
-        if (fm.style.mathjax || fm.style.math) {
-			MathJaxImport(fm.style.math,fm.style.mathjax, function() {updateFrame(false);});
+        if (fm.style.math) {
+			MathJaxImport(fm.style.mathjax, function() {updateFrame(false);});
 		}
 	}
 	

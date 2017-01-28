@@ -41,6 +41,7 @@ addToCodex("laceLink", "path", {
 })
 
 addToCodex("link", "path", {
+	defaultStyle:{fill:"none"},
    onBuild: function(i) {    
        i.source = i.datum.source;
        i.target = i.datum.target;
@@ -50,8 +51,26 @@ addToCodex("link", "path", {
           i.display=false;
    },
    onDraw: function(i) {
-        i.style.d= "M"+xy(i.datum.source.style)+ " L"+xy(i.datum.target.style);       
-        codex.path.onDraw(i);
+		  var cp1=null;
+		  var cp2=null;
+        i.style.d= "M"+xy(i.datum.source.style);
+			if (i.style.srcTangent) 
+				cp1={x:i.datum.source.style.x+(i.style.srcTangent.x||0), 
+				y:i.datum.source.style.y+(i.style.srcTangent.y||0)};
+			if (i.style.tgtTangent) 
+				cp2={x:i.datum.target.style.x+(i.style.tgtTangent.x||0), 
+				y:i.datum.target.style.y+(i.style.tgtTangent.y||0)};
+				
+			if (!cp1 && !cp2)
+				i.style.d+=" L";       
+			else if (cp1 && cp2)
+				i.style.d+=" C"+xy(cp1)+" "+xy(cp2)+" ";       
+			else if (cp1)
+				i.style.d+=" Q"+xy(cp1)+" ";
+			else 
+				i.style.d+=" Q"+xy(cp2)+" ";
+			i.style.d+=xy(i.datum.target.style)
+         codex.path.onDraw(i);
         // using i.datum.source afterwards is deprecated
     }
 })
@@ -264,6 +283,7 @@ addToCodex("freeGraph", "g", {
         i.getOrAddNode = function(id) {
            return nodeIndex[id] || i.addNode(id);
         }
+		  
         //add a link from src to tgt, or with one parameter "src-tgt"
         i.addLink = function(idSrc, idTgt) {
           if (typeof idTgt == "undefined") {
@@ -275,16 +295,17 @@ addToCodex("freeGraph", "g", {
           var tgt= i.getOrAddNode(idTgt);
           var linkId = idSrc+"-"+idTgt;
           linkIndex[linkId] = linkBox.append("link#"+i.id+"/"+linkId,shallowCopy(linkStyle),{source:src, target:tgt});
-          return i;
+          return i.graphBag([linkIndex[linkId]]);
         }
         //add links from a ;-separated list
         i.addLinks=function (links) {
           var s = splitIds(links);
           var x;
+			 var theselinks = i.graphBag([]);
           for (x=0; x<s.length;x++) {
-            i.addLink(s[x]);
+            theselinks.merge(i.addLink(s[x]));
           }          
-          return i;
+          return theselinks;
         }
         //returns a link by id (e.g. "5-8")
         i.getLink = function(id) {
@@ -306,6 +327,31 @@ addToCodex("freeGraph", "g", {
           var ns=i.getNodes(ids).items;
           return  i.graphBag(i.links().filter(function(l){return ns.indexOf(l.source)>=0 || ns.indexOf(l.target)>=0}))
         }
+		  
+		  i.addLace = function(id, style, d ) {
+				d = d||{};
+				if (d.d) {
+				  d.size=d.d.length;          
+				} else {
+				   importDefault(d, {size: 10})
+					d.d=d3.range(d.size);
+				}
+				style=style||{};
+				importDefault(style, {x:0,y:0, dx:15, dy:0});			
+				var newNodes= [];
+				for (var u=0; u<d.size; u++) {
+					   var x= style.x + (u-d.size/2)*style.dx;
+						var y= style.y + (u-d.size/2)*style.dy;
+						newNodes.push(i.addNode(id+":"+u, x, y)
+						  .set(copyWithDefault(style, {label:d.d[u]}))
+						  .set({x:x, y:y}));
+						if (u>0) {
+							 i.addLink(id+":"+(u-1)+"-"+id+":"+u)
+						}
+				 }
+				 return i.graphBag(newNodes);
+			 
+		  }
         //creates (or returns) a force simulation for node placement
         i.simulation=function(d) {          
           if (simulation==null) {            
@@ -371,15 +417,19 @@ addToCodex("freeGraph", "g", {
 			  
               b.nodes = i.nodes;
               b.links = i.links;
+              b.then = i.then;
+				  b.setNodeStyle = i.setNodeStyle
+				  b.setLinkStyle = i.setLinkStyle
 			  b.addNode = i.addNode;
 			  b.addLink = i.addLink;
 			  b.getNode = i.getNode;
 			  b.getLink = i.getLink;
 			  b.addNodes = i.addNodes;
 			  b.addLinks = i.addLinks;
-              b.getNodes = i.getNodes;
-              b.getLinks = i.getLinks;
+           b.getNodes = i.getNodes;
+           b.getLinks = i.getLinks;
 			  b.getNeighborLinks = i.getNeighborLinks;
+			  b.addLace = i.addLace;
 			  
 			  return b;
 		  }
@@ -406,3 +456,26 @@ addToCodex("graph", "freeGraph", {
    i.height=i.style.height;  
  }
 });/**/
+
+
+addToCodex("laceGraph", "graph", {
+    defaultStyle:{rx:5,ry:2, r:5},
+    onBuild: function(i) {
+		  codex.graph.onBuild(i);
+		  var d = i.datum;
+        if (d.d) {
+            d.size=d.d.length;          
+        } else {
+            importDefault(d, {size: 10})
+            d.d=d3.range(d.size);
+        }
+        
+		  var prevn= null;
+        for (var x=0; x<d.size; x++) {
+			   i.addNode(x, (x-d.size/2)*15, 0).set({label:d.d[x]});
+            if (x>0) {
+                i.addLink((x-1)+"-"+x)
+            }
+        }
+    }
+});

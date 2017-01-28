@@ -34,7 +34,6 @@ function makeMenu () {
       .style("min-width","220px")
       .style("box-shadow","0px 8px 16px 0px rgba(0,0,0,0.2)")
       .style("z-index","1")
-      .style("","")
 		 
 }
 function addMenu(label, f, help) {
@@ -52,7 +51,11 @@ function addMenu(label, f, help) {
 		.on("mouseout", function() {g.style("background-color",null)})		
 		.attr("title",help)
 		 .text(label)
-        .on("click", f)		  
+        .on("click", function() {
+			  g.style("background-color",null);
+			  menu.style("display", "none"); 
+		     f();
+		  })		  
 		  
 	menuLength++;		 
 	

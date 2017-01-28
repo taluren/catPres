@@ -62,7 +62,7 @@ function exportSingleHTML() {
 		addMathJSON();		
 		save(done,"Slides.html", "text/html");
    }
-	d3.text("./pres.html", function(f) {
+	d3.text(window.location.href.match(/^[^\#]*/)[0] , function(f) {
 		todo=f;
 		readNextScriptFile("");
 	})	

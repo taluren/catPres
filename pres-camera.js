@@ -17,7 +17,7 @@
 	 cm.switchFrame= function (delta)  {
 		cm.frame+=delta;
 		cm.frame = max(1, min(cm.cameraPositions.length, cm.frame));
-		console.log(" switchFrame ", cm.frame);
+		//console.log(" switchFrame ", cm.frame);
 		window.location.hash = "frame"+cm.frame;
 		cm.updateZoom();
 		stopAllTransitions();
@@ -26,6 +26,22 @@
 	 }
 	 cm.goFirst = function() {
 	  cm.switchFrame(-Infinity);	 
+	 }
+	 cm.nextMain = function() {
+		 var d=cm.frame+1;
+		 while (d<cm.cameraPositions.length-1 && !cm.cameraPositions[d].mainFrame) {
+			 d++;
+		 }
+		 return cm.switchFrame(d-cm.frame);
+		 
+	 }
+	 cm.prevMain = function() {
+		 var d=cm.frame-1;
+		 while (d>0 && !cm.cameraPositions[d].mainFrame) {
+			 d--;
+		 }
+		 return cm.switchFrame(d-cm.frame);
+		 
 	 }
 	 
 	 cm.updateZoom = function() {
@@ -39,9 +55,18 @@
 	 }
 		 
 		function keyup (e) {
-			console.log(d3.event);
+			
 			if (d3.event.key== "ArrowLeft" || d3.event.key== "PageUp" ) cm.switchFrame(-1);
-			if (d3.event.key== "ArrowRight"|| d3.event.key== "PageDown") cm.switchFrame(1);
+			else if (d3.event.key== "ArrowRight"|| d3.event.key== "PageDown") cm.switchFrame(1);
+			else if (d3.event.key==" ") {
+				if (d3.event.shiftKey) {
+					cm.prevMain()
+				} else {
+					cm.nextMain()
+				}
+			}
+			else	console.log(d3.event);
+			
 		} 
 	 cm.start=function(style) {		
 	   style=style||{};

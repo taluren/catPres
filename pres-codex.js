@@ -48,7 +48,7 @@ var codex = {
 				i.useStyle("fill");		
 				i.useAttr("stroke", "stroke", "fill");	
 				i.useStyle("stroke-width","strokeWidth");	
-                i.useStyle("stroke-dasharray", "dash");
+            i.useStyle("stroke-dasharray", "dash");
 				i.useAttr("rx");	
 				i.useAttr("ry");	
 				i.useAttr("x","offsetx");	
@@ -152,6 +152,7 @@ addToCodex("g", "", {}); //g = default
 
 
 addToCodex("transform", "g", {
+	defaultStyle:{wriggle:0},
 	onDraw: function (i) {			  	
 		},    
   onLayout : function(i) {
