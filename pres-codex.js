@@ -112,6 +112,7 @@ var codex = {
 			i.g.attr("transform", "translate("+xy(i.style)+")");				
 		}
 	},
+	
 	tspan: {
 		tag:"tspan",
 		defaultStyle:{x:null, y:null,  wriggle:null},
@@ -129,6 +130,20 @@ var codex = {
 		},	
 		onLayout:function(i) {			
 		}		
+	},
+	svgimage: {
+		tag:"image",
+		defaultStyle:{x:0,y:0, width:0, height:0},	
+		onDraw: function(i) {	
+		   i.g.attr("width", i.width);
+		   i.g.attr("height", i.height);			
+		},
+		onLayout: function(i){			
+            i.g.attr("transform", "translate("+ 
+                               (i.style.x-i.style.width/2)+","
+										 +(i.style.y-i.style.height/2)+
+                               ")");
+		}
 	},
 	default: { //codex template:
 		tag:"g",  //tag of the elemnt to add

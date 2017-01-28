@@ -8,7 +8,7 @@
  
  */
  
- var debugMathJaxParsing = true;
+ var debugMathParsing = false;
 
 addToCodex("caption", "svgtext", {
      defaultStyle: {offsety : 4},
@@ -336,14 +336,7 @@ function getFormulasJSON() {
   return JSON.stringify(formulas);
 	
 }
-/*
-function addExportLink() {
-	var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(getFormulasJSON());
-  var a =d3.select("body").append("div").style("position","absolute").style("top","0").style("width","10%").style("align","center").append("a").text("Save Formulas Locally");	
-  a.attr("href",     dataStr     );
-  a.attr("download", "math.json");
 
-}*/
 function saveToLocalStorage() {	
    localStorage.setItem('formulas',getFormulasJSON());
 }
@@ -355,16 +348,16 @@ function clearLocalStorage() {
 }
 
 function useMathSvg(i, svg) {
-	 console.log("**** import", i.type, i.datum.math);
+	 if (debugMathParsing)
+		  console.log("**** import", i.type, i.datum.math);
     var target = i.mathJaxed; //span.node().parentNode.parentNode.parentNode;
 	 
 	 
 	 target.g.node().innerHTML = svg.html;
 	 target.ready=true;
-     target.scale = getComputed("size", i.mathSpan) / 15; 
+    target.scale = getComputed("size", i.mathSpan) / 15; 
 	 //target.scale = svg.scale;
-     console.log("scale (frame): ", svg.scale, " saved: ", svg.scale)
-	 target.deltaY = svg.deltaY*(target.scale||1)/(svg.scale||1);
+    target.deltaY = svg.deltaY*(target.scale||1)/(svg.scale||1);
 	 
 	 i.mathSpan.history.forEach(function(s) {
 		if (s) {
@@ -379,7 +372,7 @@ function forceDisplay(i) {
 	
 }
 function parseMathJaxOutput (i) {	
-  console.log("[Math] parsing", i.type, i.datum.math);
+  if (debugMathParsing)  console.log("***mathjax: parsing", i.type, i.datum.math);
   var svg = i.g.select("svg");
   if (svg.empty()) {console.log("ERROR : no svg found"); return;} 
 
@@ -392,8 +385,8 @@ function parseMathJaxOutput (i) {
   forceDisplay(target);
   setTimeout(()=>{	 
       target.scale = getComputed("size", i.mathSpan) / 15; 
-      target.deltaY = -(target.g.node().getBBox().height + svg.style("vertical-align").slice(0,-3)*1 +3 )*target.scale; 
-		console.log(i.datum.math, " scale defined ", target.scale)
+      target.deltaY = -(target.g.node().getBBox().height + svg.style("vertical-align").slice(0,-3)*1 +3.8 )*target.scale; 
+		  //3.8 = magic number for  good horizontal alignment, for some reason
   },1);
   i.mathSpan.history.forEach(function(s) {
     if (s) {
@@ -457,7 +450,8 @@ MathJaxImport = function(useMathJax, callBackFunction) {
 		  if (svg) {
 			  useMathSvg(d, svg);
 		  } else if (useMathJax) {
-			  MathJax.Hub.Queue(["Typeset", MathJax.Hub, node]);    
+           if (debugMathParsing)  console.log("***mathjax: queue", d.datum.math);
+  			  MathJax.Hub.Queue(["Typeset", MathJax.Hub, node]);    
 			  MathJax.Hub.Queue(function() { //when mathjax is done
 	//			  setTimeout(function(){ //wait for complete rendering (=> math bbox is computed)
 					  parseMathJaxOutput(d) //transform mathjax output to fit within the item tree

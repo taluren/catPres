@@ -248,12 +248,21 @@ function itemAndFrameFunctions(i) {
   }
   i.save=function(inheritStyle) {
 	  
-	  
+	  /*if (inheritStyle.phantom!=null)
+		  inheritStyle.phantom=1;
+	  */
 	  var s={};
 	  importDefault(s, i.style, i.defaultStyle, inheritStyle);  	  	  
 	  if (i.parent) {
 		  while (i.parent.history.length>i.history.length+1) {
-			  i.history.push(importDefault({show:false}, s));
+			  
+			  if (s.phantom!=null) {
+				  
+			     i.history.push(importDefault({show:true, opacity:s.phantom*(("opacity" in s)?s.opacity:1)}, s))  
+				  s.phantom=1;
+			  }
+			  else
+			     i.history.push(importDefault({show:false}, s));
 			  i.showBefore=false;
 		  }
 	  }
@@ -402,31 +411,31 @@ function Item(parent, typeAndId, style, d) {
   var id = splitTandId[1] || (type+"-"+(nextId++));
   
   var i= {
-    parent:parent,
-	 frame:parent.frame, //+parent.history.length,
-	 root:parent.root, //+parent.history.length,
-	 type:type,
-	 tag:tag,
-	 id:id,
-     g:parent.g.append(tag).attr("class",type),//.style("visibility", "hidden"),
-	 style:(style||{}),
-	 defaultStyle:code.defaultStyle || {},
-     children:[],
-	 history:[],
-	 lastDraw:-2,
-	 bgRect:null,
-	 showBefore:true,
-	 showAfter:true,	
-     shown:false,
-	 drawingFunction:code.onDraw,
-	 drawingFunctionPostOrder:code.onDrawPostOrder,
-	 loadingFunction:code.onLoad,
-	 savingFunction:code.onSave,
-     savingFunctionPrefix:code.onSavePrefix,
-	 layoutFunction:code.onLayout,
-     firstRunFunction:code.onFirstRun,
-	 datum:d,
-	 schedule:[]
+		parent:parent,
+		frame:parent.frame, 
+		root:parent.root, 
+		type:type,
+		tag:tag,
+		id:id,
+		g:parent.g.append(tag).attr("class",type),
+		style:(style||{}),
+		defaultStyle:code.defaultStyle || {},
+		children:[],
+		history:[],
+		lastDraw:-2,
+		bgRect:null,
+		showBefore:true,
+		showAfter:true,	
+		shown:false,
+		drawingFunction:code.onDraw,
+		drawingFunctionPostOrder:code.onDrawPostOrder,
+		loadingFunction:code.onLoad,
+		savingFunction:code.onSave,
+		savingFunctionPrefix:code.onSavePrefix,
+		layoutFunction:code.onLayout,
+		firstRunFunction:code.onFirstRun,
+		datum:d,
+		schedule:[]
   }
   
   i.root.index[id] = i;
@@ -434,30 +443,24 @@ function Item(parent, typeAndId, style, d) {
   if (i.parent.children.length>0) i.parent.children[i.parent.children.length-1].nextSibling=i;
   i.parent.children.push(i);
   i.g.datum(i);
-  /*if (d && (typeof d == "object") && d.id) {
-     i.g.attr("id", d.id);
-  }*/
   itemAndFrameFunctions(i);  
-  
   
   i.getLast=function (type) {
 	 for (var c=i.children.length-1; c>=0; c--) {
 		  if (i.children[c].type==type) return i.children[c];
 	 }	  
 	 return null;  	  
-  }
-  
+  }  
 
-  i.then = i.parent.append;
-  
+  i.then = i.parent.append;  
   
   i.hide = function () {
 	  i.style.show =false;
-      return i;
+     return i;
   }
   i.show = function () {
 	  i.style.show =true;
-      return i;
+     return i;
   }  
   i.setAndKeep=function(s) {
 	  var out={};
@@ -472,19 +475,17 @@ function Item(parent, typeAndId, style, d) {
 	  return out;	  
   }  
   i.move = function(dx, dy) {
-	  //i.propagate(dx, function(i,v) {
 	  if (typeof dx=="object") {
 		  dy=dx.y;
 		  dx=dx.x;
 	  }
 	  if (isNaN(dx) || isNaN(dy)) {
-			console.log("move "+xy(dx,dy));	    
-		  zzz.zz=0;
+		   stop("move "+xy(dx,dy));	    
 	  }
-	  i.style.x=i.style.x||i.defaultStyle.x||0; 
-	  i.style.x += dx
-	  //i.propagate(dy, function(i,v) {
-	  i.style.y=i.style.y||i.defaultStyle.y||0; i.style.y += dy//});	  	  
+	  i.style.x = i.style.x||i.defaultStyle.x||0; 
+	  i.style.x+= dx
+	  i.style.y = i.style.y||i.defaultStyle.y||0; 
+	  i.style.y+= dy;
 	  return i;	  	  
   }
   i.moveInner=function(move) {

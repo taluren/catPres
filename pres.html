@@ -13,19 +13,20 @@
     <body>
 	 
    <script src="./d3.v4.min.js"></script>
-   <!--script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG"-->
+   <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG">
 </script>
   <script src="./pres.js"></script>
   <script src="./pres-misc.js"></script>
+  <script src="./pres-camera.js"></script>
   <script src="./pres-codex.js"></script>
+  <script src="./pres-menu.js"></script>
   <script src="./pres-layout.js"></script>
   <script src="./pres-text.js"></script>
   <script src="./pres-helpLines.js"></script>
-  <script src="./pres-camera.js"></script>
   <script src="./pres-frameStyle.js"></script>
   <script src="./pres-transition.js"></script>
   <script src="./pres-graph.js"></script>
-  <script src="./pres-menu.js"></script>
+  <script src="./pres-image.js"></script>
   <script>
      window.addEventListener("load", function(event) {  
 	      
@@ -411,18 +412,22 @@
         fm.frame("Math alignment test:")
           .append("text")
           
-            .np("*|Size 6:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:6})
-            .np("*|Size 10:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:10})
-            .np("*|Size 12:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:12})
-            .np("*|Size 14:x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:14})
-            .np("*|Size :x $x$..$\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:20})
+            .np("*|Size 6:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:6})
+            .np("*|Size 10:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:10})
+            .np("*|Size 12:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:12})
+            .np("*|Size 14:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:14})
+            .np("*|Size 20:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:20})
+		  fm.frame("Images")
+		     .append("image#wiki")
+			   .url("https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg/1122px-Wikipedia-logo-v2.svg.png");
         fm.frame("Generalities")
 		  .append("text")
-		    .print("call order on new frame:")
-              .print("\n  onLoad (prefix)",{bullet:1})
-              .print("\n onDraw (prefix)",{bullet:1})
-              .print("\n  onDrawPostOrder (suffix)",{bullet:1})            
-              .print("\n onLayout (suffix)",{bullet:1})
+		    .np("call order on new frame:")
+              .np(".|onLoad (prefix)")
+              .np(".|onDraw (prefix)")
+              .np(".|onDrawPostOrder (suffix)")
+              .np(".|onLayout (suffix)")
+			 .np("|Style hierarchy")	  
 		   ;
 		fm.localImport="./math.json";
 		fm.run();
