@@ -418,16 +418,20 @@
             .np("*|Size 14:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:14})
             .np("*|Size 20:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:20})
 		  fm.frame("Images")
-		     .append("image#wiki")
+		     .append("image#wiki", {maxHeight:100})
 			   .url("https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg/1122px-Wikipedia-logo-v2.svg.png");
         fm.frame("Generalities")
 		  .append("text")
-		    .np("call order on new frame:")
-              .np(".|onLoad (prefix)")
-              .np(".|onDraw (prefix)")
-              .np(".|onDrawPostOrder (suffix)")
-              .np(".|onLayout (suffix)")
+		    .np("|Call order on new frame:")
+              .np(" 1|onLoad (prefix)")
+              .np(" 1|onDraw (prefix)")
+              .np(" 1|onDrawPostOrder (suffix)")
+              .np(" 1|onLayout (suffix)")
 			 .np("|Style hierarchy")	  
+			     .np(" 1|item style (as defined by .set())")
+			     .np(" 1|item default style (as defined in the codex)")
+				  .np(" 1|closest ancestor's style or default style")
+				  .np(" 1|null (=default svg value)")
 		   ;
 		fm.localImport="./math.json";
 		fm.run();

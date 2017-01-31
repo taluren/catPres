@@ -87,7 +87,7 @@ addToCodex("text","verticalVector",  {
               }
               var enumerateCount = [];
               function processBullet(bullet) {
-                bullet = bullet||i.currentIndent||"";
+                bullet = bullet||"";//i.currentIndent||"";
                 while (enumerateCount.length<bullet.length) 
                   enumerateCount.push(0);
                 var reset=false;
@@ -129,8 +129,8 @@ addToCodex("text","verticalVector",  {
               i.np = function (s, style, d) {
                   if (!style) style={};
                   style=shallowCopy(style);
-                  var bullet="";                  
-                  if (style.bullet) {
+                  var bullet=null;                  
+                  if ("bullet" in style) {
                      if (typeof style.bullet=="number") { 
                        bullet=Array(style.bullet).join(" ")+".";
                      } else {
@@ -142,7 +142,7 @@ addToCodex("text","verticalVector",  {
                     bullet = spl.shift();
                     s=spl.join("|");                    
                   }
-                  if (bullet) {
+                  if (bullet!=null) {
                     i.nnl(bullet);
                     i.currentIndent = Array(bullet.length+1).join(" ");
                   }           
@@ -150,7 +150,7 @@ addToCodex("text","verticalVector",  {
                   var b=i.printBag();
                   while (ss.length>1) {
                       i.getLast("sweetTextLine").print(b, ss.shift(),style,d);          
-                      i.nnl();
+                      i.nnl(i.currentIndent);
                   }
                   i.getLast("sweetTextLine").print(b, ss.shift(),style,d);
                   return   i;                        
@@ -221,8 +221,8 @@ addToCodex("textBox", "svgtext", {
 addToCodex("bullet","g",  {
 	defaultStyle:{bullet:"."},
 	onBuild: function(i) {	
-        if (typeof i.style.bullet== "number") i.style.bullet= Array(i.style.bullet).join(" ")+".";
-        i.bullet=i.style.bullet;
+      if (typeof i.style.bullet== "number") i.style.bullet=Array(i.style.bullet).join(" ")+".";
+      i.bullet=i.style.bullet;
 		i.style.width =i.width=i.style.bullet.length *20;
 		i.style.height = i.height=12;
 		codex.blackbox.onBuild(i);

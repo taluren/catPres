@@ -135,8 +135,8 @@ var codex = {
 		tag:"image",
 		defaultStyle:{x:0,y:0, width:0, height:0},	
 		onDraw: function(i) {	
-		   i.g.attr("width", i.width);
-		   i.g.attr("height", i.height);			
+			i.useAttr("width");	
+			i.useAttr("height");	
 		},
 		onLayout: function(i){			
             i.g.attr("transform", "translate("+ 

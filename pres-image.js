@@ -1,5 +1,6 @@
 
 addToCodex("image", "transform", {
+	defaultStyle: {maxWidth:350, maxHeight:250},
 	onBuild: function(i) {
 		var img = i.append("svgimage");
 		i.url = function(url) {
@@ -28,8 +29,19 @@ addToCodex("image", "transform", {
 			} else {
 				w=i.imgWidth;
 				h=i.imgHeight;
+				if (w>(i.style.maxWidth||Infinity)) {
+					var r=i.style.maxWidth/w;
+					w*=r;
+					h*=r;					
+				}
+				if (h>(i.style.maxHeight||Infinity)) {
+					var r=i.style.maxHeight/h;
+					w*=r;
+					h*=r;					
+				}
 			}
-		   i.down("image").set({width:w, height:h})
+		   i.down("svgimage").set({width:w, height:h})
+			console.log(i.down("svgimage").style);
 			
 		}
 });
