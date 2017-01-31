@@ -184,6 +184,18 @@ function itemAndFrameFunctions(i) {
 	  return i.match(selector.split("#"));
   }  
   
+  i.allNodes = function(type) {
+	  var b= itemBag([i]);
+	  if (type) b=b.filter(type);
+	  for (var c=i.children.length-1; c>=0; c--) {
+		  b.merge(i.children[c].allNodes(type));
+	  }	
+	  return b;
+  }
+  
+  i.childBag = function() {
+	  return itemBag(i.children);
+  }
   i.log = function(prefix, keys) {
 	  prefix=prefix||"";
 	  var st;
@@ -213,6 +225,17 @@ function itemAndFrameFunctions(i) {
 		  
   }
   
+  i.set=function(s) {
+	  for (var k in s) {
+		  if (s[k]==null) {
+			  delete i.style[k];
+		  }
+		  else 
+			  i.style[k]=s[k];		 		  
+	  } 
+     return i;		 	  
+  }
+  
   i.hasSchedule = function() {
 	  if (i.schedule) {//console.log (i.schedule); 
 	    return i.schedule.length;}
@@ -225,12 +248,21 @@ function itemAndFrameFunctions(i) {
   }
   i.save=function(inheritStyle) {
 	  
-	  
+	  /*if (inheritStyle.phantom!=null)
+		  inheritStyle.phantom=1;
+	  */
 	  var s={};
 	  importDefault(s, i.style, i.defaultStyle, inheritStyle);  	  	  
 	  if (i.parent) {
 		  while (i.parent.history.length>i.history.length+1) {
-			  i.history.push(importDefault({show:false}, s));
+			  
+			  if (s.phantom!=null) {
+				  
+			     i.history.push(importDefault({show:true, opacity:s.phantom*(("opacity" in s)?s.opacity:1)}, s))  
+				  s.phantom=1;
+			  }
+			  else
+			     i.history.push(importDefault({show:false}, s));
 			  i.showBefore=false;
 		  }
 	  }
@@ -379,31 +411,31 @@ function Item(parent, typeAndId, style, d) {
   var id = splitTandId[1] || (type+"-"+(nextId++));
   
   var i= {
-    parent:parent,
-	 frame:parent.frame, //+parent.history.length,
-	 root:parent.root, //+parent.history.length,
-	 type:type,
-	 tag:tag,
-	 id:id,
-     g:parent.g.append(tag).attr("class",type),//.style("visibility", "hidden"),
-	 style:(style||{}),
-	 defaultStyle:code.defaultStyle || {},
-     children:[],
-	 history:[],
-	 lastDraw:-2,
-	 bgRect:null,
-	 showBefore:true,
-	 showAfter:true,	
-     shown:false,
-	 drawingFunction:code.onDraw,
-	 drawingFunctionPostOrder:code.onDrawPostOrder,
-	 loadingFunction:code.onLoad,
-	 savingFunction:code.onSave,
-     savingFunctionPrefix:code.onSavePrefix,
-	 layoutFunction:code.onLayout,
-     firstRunFunction:code.onFirstRun,
-	 datum:d,
-	 schedule:[]
+		parent:parent,
+		frame:parent.frame, 
+		root:parent.root, 
+		type:type,
+		tag:tag,
+		id:id,
+		g:parent.g.append(tag).attr("class",type),
+		style:(style||{}),
+		defaultStyle:code.defaultStyle || {},
+		children:[],
+		history:[],
+		lastDraw:-2,
+		bgRect:null,
+		showBefore:true,
+		showAfter:true,	
+		shown:false,
+		drawingFunction:code.onDraw,
+		drawingFunctionPostOrder:code.onDrawPostOrder,
+		loadingFunction:code.onLoad,
+		savingFunction:code.onSave,
+		savingFunctionPrefix:code.onSavePrefix,
+		layoutFunction:code.onLayout,
+		firstRunFunction:code.onFirstRun,
+		datum:d,
+		schedule:[]
   }
   
   i.root.index[id] = i;
@@ -411,42 +443,25 @@ function Item(parent, typeAndId, style, d) {
   if (i.parent.children.length>0) i.parent.children[i.parent.children.length-1].nextSibling=i;
   i.parent.children.push(i);
   i.g.datum(i);
-  /*if (d && (typeof d == "object") && d.id) {
-     i.g.attr("id", d.id);
-  }*/
   itemAndFrameFunctions(i);  
-  
   
   i.getLast=function (type) {
 	 for (var c=i.children.length-1; c>=0; c--) {
 		  if (i.children[c].type==type) return i.children[c];
 	 }	  
 	 return null;  	  
-  }
-  
+  }  
 
-  i.then = i.parent.append;
-  
+  i.then = i.parent.append;  
   
   i.hide = function () {
 	  i.style.show =false;
-      return i;
+     return i;
   }
   i.show = function () {
 	  i.style.show =true;
-      return i;
+     return i;
   }  
-  i.set=function(s) {
-	  for (var k in s) {
-		  if (s[k]==null) {
-			  delete i.style[k];
-			  console.log ("set ",s, " delete ", k);
-		  }
-		  else 
-			  i.style[k]=s[k];		 		  
-	  } 
-     return i;		 	  
-  }
   i.setAndKeep=function(s) {
 	  var out={};
 	  for (var k in s) {
@@ -460,19 +475,17 @@ function Item(parent, typeAndId, style, d) {
 	  return out;	  
   }  
   i.move = function(dx, dy) {
-	  //i.propagate(dx, function(i,v) {
 	  if (typeof dx=="object") {
 		  dy=dx.y;
 		  dx=dx.x;
 	  }
 	  if (isNaN(dx) || isNaN(dy)) {
-			console.log("move "+xy(dx,dy));	    
-		  zzz.zz=0;
+		   stop("move "+xy(dx,dy));	    
 	  }
-	  i.style.x=i.style.x||i.defaultStyle.x||0; 
-	  i.style.x += dx
-	  //i.propagate(dy, function(i,v) {
-	  i.style.y=i.style.y||i.defaultStyle.y||0; i.style.y += dy//});	  	  
+	  i.style.x = i.style.x||i.defaultStyle.x||0; 
+	  i.style.x+= dx
+	  i.style.y = i.style.y||i.defaultStyle.y||0; 
+	  i.style.y+= dy;
 	  return i;	  	  
   }
   i.moveInner=function(move) {
@@ -515,30 +528,8 @@ function Item(parent, typeAndId, style, d) {
   i.get = function(c) {
 	  console.warn("deprecated");
 	  return i.children[c];
-  }
-  /*i.transition = function(t) {
-	  i.fortrans=i.backtrans = t;
-	  return i;
-  }
-  i.forwardTransition = function(t) {
-	  i.fortrans=t;
-	  return i;
-  }
-  i.backwardTransition = function(t) {
-	  i.backtrans=t;
-	  return i;
-  } */ 
-
-  i.allNodes = function() {
-	  var b= itemBag([i]);
-	  for (var c=i.children.length-1; c>=0; c--) {
-		  b.merge(i.children[c].allNodes());
-	  }	
-	  return b;
-  }
-  i.childBag = function() {
-	  return itemBag(i.children);
-  }
+  }  
+  
   
 	i.on = function(when, style) {
         if (i.schedule == null) i.schedule = [];
@@ -1150,7 +1141,7 @@ frameManager = function(style, sozi)  {
 	}
 	fm.drawing=false;
 	var updateFrame = function(regular) {
-		console.log("updateFrame");
+		//console.log("updateFrame");
 		
 		if (fm.drawing) {
 			if (!fm.drawAgain) {
@@ -1164,7 +1155,7 @@ frameManager = function(style, sozi)  {
 		do {			
          delete fm.drawAgain;		
 			var f=fm.currentFrame(); //sozi.player.currentFrameIndex+1;
-			console.log("Frame "+f + (regular?"":" --special--"));			
+			console.log("Frame "+f + (regular?"":" [special]"));			
 			for (i=0;i<fm.frames.length;i++) fm.frames[i].draw(f, regular);
 			drawHelpLines();
 			if (fm.drawAgain) {
@@ -1175,12 +1166,15 @@ frameManager = function(style, sozi)  {
 		fm.drawing=false;
 	}
 	
-	
+	addMenu("Start", function() {fm.camera.goFirst()}, "Go to first frame")
+	addMenu("Export HTML", exportSingleHTML, "Export as a single HTML file without dependencies (including all scripts, images and math formulas).")
+	addMenu("Export graph coordinates", showGraph(fm), "Show coordinates")
+	addMenu("Clear Saved Formulas", clearLocalStorage, "Delete cached math formulas, to be recomputed with MathJax next time.")
 	fm.run=function() {
+	   fm.nextOverlay();
        console.log("=========================");       
        console.log("===  Running !     ======");
        console.log("=========================");
-	   fm.nextOverlay();
 		if (sozi)
 			sozi.player.on("frameChange",function() {updateFrame(true)});	
 		if (fm.camera) {
@@ -1194,8 +1188,8 @@ frameManager = function(style, sozi)  {
             
         updateFrame(false);
         updateFrame(true);
-        if (fm.style.mathjax || fm.style.math) {
-			MathJaxImport(fm.style.math,fm.style.mathjax, function() {updateFrame(false);});
+        if (fm.style.math) {
+			MathJaxImport(fm.style.mathjax, function() {updateFrame(false);});
 		}
 	}
 	

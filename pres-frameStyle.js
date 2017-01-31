@@ -53,7 +53,7 @@ frameStyleCatalog.beamer = function (fs, style) {
 	}
 	
 frameStyleCatalog.cat = function (fs, style) {	    
-		fs	
+		fs.set()	
 		  .append("rect", {w:"fill", h:"fill", stroke:null, fill:"white"})			 
 		  .then("g", {x:160,y:130, opacity:0.2})
 			  .append("circle", {r:9, x: 12, y:0, fill:"#ECECEC", stroke:null})
