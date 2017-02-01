@@ -90,14 +90,15 @@ addToCodex("text","verticalVector",  {
                 bullet = bullet||"";//i.currentIndent||"";
                 while (enumerateCount.length<bullet.length) 
                   enumerateCount.push(0);
-                var reset=false;
+					 
+                var reset=(bullet=="");
                 var out=[];
                 for (var p=0;p<bullet.length; p++) {
                    if (reset) 
                      enumerateCount[p]=0;
                    
                    if (bullet[p]=="a") {
-                      out.push("abcdefghijklmnopqrstuvwxyz"[enumerateCount[p]%26]);                      
+                      out.push("abcdefghijklmnopqrstuvwxyz"[enumerateCount[p]%26]);
                    }else  if (bullet[p]=="A") {
                       out.push("ABCDEFGHIJKLMNOPQRSTUVWXYZ"[enumerateCount[p]%26]);
                    }else if (bullet[p]=="1") {
@@ -221,6 +222,7 @@ addToCodex("textBox", "svgtext", {
 addToCodex("bullet","g",  {
 	defaultStyle:{bullet:"."},
 	onBuild: function(i) {	
+	   var margin=0;
       if (typeof i.style.bullet== "number") i.style.bullet=Array(i.style.bullet).join(" ")+".";
       i.bullet=i.style.bullet;
 		i.style.width =i.width=i.style.bullet.length *20;
@@ -230,8 +232,9 @@ addToCodex("bullet","g",  {
         for (var p=0; p<i.bullet.length; p++) {
            var c = i.bullet[p];
            if (c==' ') continue;           
+			  if (!margin) margin = 6*2/(p+2);
            var bid="#"+i.id+"/"+p
-           var pos=i.append("transform"+bid, {x:p*20+12-i.width/2,  y:-4, scale:(1.5/(p+1.5)+0.4)})
+           var pos=i.append("transform"+bid, {x:p*20+11-i.width/2,  y:-4, scale:(1.5/(p+1.5)+0.4)})
            if (c=='>') {
                pos.append("path", {d:"M-4.2,0 L4,0 M0.2,3.8 L 4.2,0 0.2,-3.8", strokeWidth:2, fill:"none", stroke:"#008"});
               continue;
@@ -250,6 +253,7 @@ addToCodex("bullet","g",  {
            pos.append("svgtext", {text:c, color:"#008", y:4})
              
         }
+		  if (margin) importDefault(i.parent.style, {marginTop:margin})
 	},
     
     onSavePrefix: function(i, style) {
