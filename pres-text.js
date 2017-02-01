@@ -120,9 +120,9 @@ addToCodex("text","verticalVector",  {
                   }
                 return out;
               }
-              i.nnl=function(bullet) {                
-                  i.append("sweetTextLine#"+i.id+"/line"+(lineIndex++))
-                    .append("bullet",{bullet:processBullet(bullet)}) ;
+              i.nnl=function(bullet, style) {                
+                  i.append("sweetTextLine#"+i.id+"/line"+(lineIndex++), style)
+                    .append("bullet",{bullet:processBullet(bullet)}, style) ;
                   //if (bullet==null) bullet=i.currentIndent;
                      
                   return i; //.printBag();  
@@ -144,14 +144,14 @@ addToCodex("text","verticalVector",  {
                     s=spl.join("|");                    
                   }
                   if (bullet!=null) {
-                    i.nnl(bullet);
+                    i.nnl(bullet, style);
                     i.currentIndent = Array(bullet.length+1).join(" ");
                   }           
                   var ss = s.split("\n");
                   var b=i.printBag();
                   while (ss.length>1) {
                       i.getLast("sweetTextLine").print(b, ss.shift(),style,d);          
-                      i.nnl(i.currentIndent);
+                      i.nnl(i.currentIndent, style);
                   }
                   i.getLast("sweetTextLine").print(b, ss.shift(),style,d);
                   return   i;                        
@@ -257,7 +257,7 @@ addToCodex("bullet","g",  {
 	},
     
     onSavePrefix: function(i, style) {
-       var keys=["fill","stroke", "r"];
+       var keys=["fill","stroke", "r", "size", "color"];
        for  (var k=0; k<keys.length; k++) {
           for (var j=0; j<i.bullet.length; j++) {
              var sk = keys[k]+"Bullet";
@@ -270,7 +270,7 @@ addToCodex("bullet","g",  {
                continue;
              }
              var b= i.down("#"+i.id+"/"+j, true);
-             if (b) b.set(s);
+             if (b) b.allNodes().set(s);
              
           }
        }
