@@ -136,12 +136,15 @@ function getAlignMove(kx, kwidth, align, targetX, targetWidth, element) {
 function itemAndFrameFunctions(i) {
 	//i.transitions=[];
 
-	
+	i.open = i.root.open;
+	i.close = i.root.close;
+	i.continue = i.root.continue;
+	i.addTo = function(id) {
+		i.root.addToSet(i, id);
+	}
    i.append=function (type, style, d) {
-	  if (i.mainItem)
-	     return Item(i.mainItem, type, style, d);
-     else
-		  return Item(i, type, style, d);
+	  return i.root.saveToBlocks(Item(i.mainItem || i, type, style, d));
+     
    }
 
 	i.addFirst=function(type, style, d) {
@@ -384,10 +387,48 @@ function FrameBase(frame, holder, transform, style) {
   
   } 
   itemAndFrameFunctions(fb);  
+  
+  var openBlocks= {};
+  var blockIds = [];
+  
+  fb.open=function (blockId) {
+	  if (blockIds.indexOf(blockId) != -1) console.error("set "+blockId+" already open");
+	  blockIds.push(blockId);		  
+	  openBlocks[blockId]=itemBag([]);
+	  return this;
+  }
+  fb.addToSet=function (item, blockId) {
+	  openBlocks[blockId].add(i);
+	  return this;
+  }
+  fb.continue = function(blockId) {
+	  if (blockIds.indexOf(blockId) != -1) console.error("set "+blockId+" already open");
+	  blockIds.push(blockId);
+	  openBlocks[blockId]=fb.index[blockId]||itemBag([]);
+	  return this;
+  }
+  fb.close=function (blockId) {
+	  if (!blockId)
+		  blockId=blockIds.shift();
+	  else {
+		  var j = blockIds.indexOf(blockId)
+		  if (j==-1) console.error("set "+blockId+" not open");
+        blockIds.splice(j, 1);
+	  }
+	  fb.index[blockId] = openBlocks[blockId]
+	  delete openBlocks[blockId];
+	  return this;
+  }
+  fb.saveToBlocks = function(i) {
+	  for (k in openBlocks) {
+		  openBlocks[k].add(i);
+	  }
+	  return i;	  
+  }  
+  
+  /*base frame is ready, run model to draw background, title, etc.*/
   frameStyleCatalog[fb.style.model||fb.defaultStyle.model](fb);
   fb.mainItem = fb.goto("#main")||fb;
-  
-		
 		
   return fb;
 }
@@ -564,6 +605,8 @@ function Item(parent, typeAndId, style, d) {
 		return i;
 			
 	}
+	
+	if (i.parent.cell) i.cell = i.parent.cell;
 	
 	/****private ***/
 	i.setWidthToActual = function (kx, kwidth) {
@@ -840,6 +883,17 @@ function itemBag (itemList) {
 	b.goto = function(selector) {
 		return b.items[0].goto(selector);
 	}
+	b.open = function(id) {
+		return b.items[0].open(id);
+	}
+	b.close = function(id) {
+		return b.items[0].close(id);
+	}
+	b.addTo = function(id) {
+		for (var x=0;x<b.items.length; x++) {
+			b.items[x].addTo(id);
+		}
+	}
 	b.up= function(selector) {
 		return b.items[0].up(selector);
 	}
@@ -1083,9 +1137,7 @@ frameManager = function(style, sozi)  {
 	fm.frame=function(s, style, camera) {		
 	   if (!camera) camera={};
 		camera.mainFrame=true;
-		while (fm.topF && fm.topF.hasSchedule()) {
-			
-			//if (fm.topF) console.log(fm.topF.hasSchedule());
+		while (fm.topF && fm.topF.hasSchedule()) {			
 			fm.nextOverlay({});
 		} 
 	   fm.nextOverlay(camera);

@@ -32,8 +32,7 @@
 		 while (d<cm.cameraPositions.length-1 && !cm.cameraPositions[d].mainFrame) {
 			 d++;
 		 }
-		 return cm.switchFrame(d-cm.frame);
-		 
+		 return cm.switchFrame(d-cm.frame);		 
 	 }
 	 cm.prevMain = function() {
 		 var d=cm.frame-1;
@@ -79,22 +78,20 @@
 		  cm.holder.attr("transform",  d3.event.transform);
 		}
 		 
-		 cm.svg =
+		cm.svg =
 		   d3.select("body")			 
-				 .on("keyup", keyup)
+				.on("keyup", keyup)
 		   .append("svg") 
 				.style("background", style.screenBackground)
 				.attr("viewBox", "-200 -150 400 300")
-		   	 .call(cm.zoom)
-			
-			  .attr("height", "100%")
-			  .attr("width", "100%")   
-		
-      		.style("position", "fixed")
-			 .style("top", "0")
-			 .style("bottom", "0")
-			 .style("left", "0")
-			 .style("right", "0")/**/
+				.call(cm.zoom)
+				.attr("height", "100%")
+				.attr("width", "100%")   
+				.style("position", "fixed")
+				.style("top", "0")
+				.style("bottom", "0")
+				.style("left", "0")
+				.style("right", "0")/**/
 		cm.holder=cm.svg.append("g")
 		
 		

@@ -262,6 +262,38 @@
            .goto("#boxg1")  
              .append("caption",{y:90}, "k=3")  
              
+			
+		  fm.frame("Bags", {model:"2Columns"})	
+		     .append("text")
+			     .np(".|Define set1 and set2")
+			  .goto("#right")
+			    
+			    .append("circle")
+				 .open("set1") //start filling up a bag called set1
+				 .then("circle")
+				 .then("circle")
+				 .open("set2") //start filling up a bag called set2 (set1 is still running)
+				 .then("circle")
+				 .then("circle")
+				 .close("set1") //stop with set1
+				 .then("circle")
+				 .then("circle")
+				 .close() //stop with set2 (implicit: this is the last set still open)
+				 .then("circle")
+				 .then("circle")
+				 .continue("set1") //continue again with set1
+				 .then("circle")
+				 .then("circle")
+				 .close();
+			
+        fm.nextOverlay()
+            .goto("#set1")
+               .set({fill:"red", r:8})		
+            .goto("text").np(".| .goto( \"#set1\").set({fill:\"red\", r:8})")					
+        fm.nextOverlay()
+            .goto("#set2")
+               .set({fill:"yellow"})				
+				.goto("text").np(".| .goto( \"#set2\").set({fill:\"yellow\"})") 
 				 
         
                      
