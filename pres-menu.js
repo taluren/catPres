@@ -7,7 +7,10 @@ function makeMenu () {
 		.attr("id", "menu")
 		.style("position","fixed")
 		.style("opacity","0.05")
+		.style("left","0")
+		.style("top","0")
 		.style("font-family","sans-serif")
+		.style("margin","0px")
 		.on("mouseover", function() {
 			 mainmenu.style("opacity","1")
 			 menu.style("display", "block")})
@@ -22,6 +25,7 @@ function makeMenu () {
 		.style("background-color", "rgba(30,30,30,0.7)")
 		.style("color","white")
 		.style("padding","10px")
+		.style("margin","0px")
 		.style("font-size","14px")
 		.style("border","none")
 		.style("cursor","pointer")
