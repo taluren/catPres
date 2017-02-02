@@ -71,9 +71,9 @@ var codex = {
 			i.useAttr("d");	
 			i.useAttr("fill");	
 			i.useAttr("stroke");	                
-            i.useStyle("stroke-width","strokeWidth");
+         i.useStyle("stroke-width","strokeWidth");
 			i.useStyle("opacity");
-            i.useStyle("stroke-dasharray", "dash");
+         i.useStyle("stroke-dasharray", "dash");
 		},
 		onLayout:function(i){
 			i.g.attr("transform", "translate("+xy(i.style)+")");
@@ -90,17 +90,17 @@ var codex = {
 			i.useAttr("x", "offsetx");
 			i.useAttr("y", "offsety");
 			i.useStyle("fill","color");	
-		    i.useStyle("opacity");
+			i.useStyle("opacity");
 			i.useAttr("font-size","size");
 			i.useAttr("font-family","font");	
 			i.useAttr("font-weight","weight");	
 			i.useAttr("text-anchor","anchor");	
-            i.useAttr("alignment-baseline","alignmentBaseline");
-            i.useStyle("cursor");
-            i.useStyle("-webkit-user-select","select");
-            i.useStyle("-moz-user-select","select");
-            i.useStyle("-ms-user-select","select");
-            i.useStyle("user-select","select");
+			i.useAttr("alignment-baseline","alignmentBaseline");
+			i.useStyle("cursor");
+			i.useStyle("-webkit-user-select","select");
+			i.useStyle("-moz-user-select","select");
+			i.useStyle("-ms-user-select","select");
+			i.useStyle("user-select","select");
             
             
 //         console.log("svgtext : ", i.style.text);
@@ -135,8 +135,8 @@ var codex = {
 		tag:"image",
 		defaultStyle:{x:0,y:0, width:0, height:0},	
 		onDraw: function(i) {	
-		   i.g.attr("width", i.width);
-		   i.g.attr("height", i.height);			
+			i.useAttr("width");	
+			i.useAttr("height");	
 		},
 		onLayout: function(i){			
             i.g.attr("transform", "translate("+ 

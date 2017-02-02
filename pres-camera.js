@@ -29,15 +29,14 @@
 	 }
 	 cm.nextMain = function() {
 		 var d=cm.frame+1;
-		 while (d<cm.cameraPositions.length-1 && !cm.cameraPositions[d].mainFrame) {
+		 while (d<cm.cameraPositions.length && !cm.cameraPositions[d-1].mainFrame) {
 			 d++;
 		 }
-		 return cm.switchFrame(d-cm.frame);
-		 
+		 return cm.switchFrame(d-cm.frame);		 
 	 }
 	 cm.prevMain = function() {
 		 var d=cm.frame-1;
-		 while (d>0 && !cm.cameraPositions[d].mainFrame) {
+		 while (d>1 && !cm.cameraPositions[d-1].mainFrame) {
 			 d--;
 		 }
 		 return cm.switchFrame(d-cm.frame);
@@ -56,15 +55,27 @@
 		 
 		function keyup (e) {
 			
-			if (d3.event.key== "ArrowLeft" || d3.event.key== "PageUp" ) cm.switchFrame(-1);
-			else if (d3.event.key== "ArrowRight"|| d3.event.key== "PageDown") cm.switchFrame(1);
-			else if (d3.event.key==" ") {
+			if (d3.event.key== "ArrowLeft" || d3.event.key== "PageUp" ) {
+				if (d3.event.ctrlKey)
+					cm.prevMain()
+				else 
+					cm.switchFrame(-1);
+			} else if (d3.event.key== "ArrowRight"|| d3.event.key== "PageDown") {
+				if (d3.event.ctrlKey)
+					cm.nextMain()
+				else 
+				   cm.switchFrame(1);
+			}	/*else if (d3.event.key==" ") {
 				if (d3.event.shiftKey) {
 					cm.prevMain()
 				} else {
 					cm.nextMain()
 				}
-			}
+			}*/
+			else if (d3.event.key=="Home")
+				  cm.switchFrame(-Infinity)
+			else if (d3.event.key=="End")
+				  cm.switchFrame(Infinity)			  
 			else	console.log(d3.event);
 			
 		} 
@@ -79,22 +90,20 @@
 		  cm.holder.attr("transform",  d3.event.transform);
 		}
 		 
-		 cm.svg =
+		cm.svg =
 		   d3.select("body")			 
-				 .on("keyup", keyup)
+				.on("keyup", keyup)
 		   .append("svg") 
 				.style("background", style.screenBackground)
 				.attr("viewBox", "-200 -150 400 300")
-		   	 .call(cm.zoom)
-			
-			  .attr("height", "100%")
-			  .attr("width", "100%")   
-		
-      		.style("position", "fixed")
-			 .style("top", "0")
-			 .style("bottom", "0")
-			 .style("left", "0")
-			 .style("right", "0")/**/
+				.call(cm.zoom)
+				.attr("height", "100%")
+				.attr("width", "100%")   
+				.style("position", "fixed")
+				.style("top", "0")
+				.style("bottom", "0")
+				.style("left", "0")
+				.style("right", "0")/**/
 		cm.holder=cm.svg.append("g")
 		
 		

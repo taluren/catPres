@@ -28,18 +28,272 @@
   <script src="./pres-graph.js"></script>
   <script src="./pres-image.js"></script>
   <script>
+     
      window.addEventListener("load", function(event) {  
 	      
-			
+		//create the "frame manager" with some parameters	
 		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
-		fm.frame("Pres.html", {model:"titleFrame"})
+		
+		
+	   //Add a title Frame
+		fm.frame("dotPres",{model:"titleFrame"})
 			.append("text")
-				.print("---")
+				.print("Sample presentation")
 			.up("#main")
 			.append("text")
-				.print("---")
+				.print("Author: Laurent Bulteau\n\nUse arrows to navigate.", {size:10})
+				
 				
 
+		//add a regular frame with title "Text"
+		fm.frame("Text")
+		  //add a text element with label "t1"
+		  .append("text#t1", {width:200})
+		    //print in the text element.
+		    .np("Here is a simple paragraph with\n itemized list:")
+			 .np(".|An item")  // the "|" separates the bullet (here: ".") from the main text
+			 .np(".| another with some math: $\\delta=\\sqrt{\\left(x^{2}+y^2\\right)}$")
+			 //formulas in latex  are enclosed with $ $. backslashes need to be escaped
+			 .np(".|$\\alpha = \\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$")
+			 
+		//create an overlay (stay in the same frame, but add or modify some elements	 
+		fm.nextOverlay()
+		  //add another text block
+		  .append("text", {align:"right"})
+			 .np("|Here, another paragraph") // "|" can also be used for new lines, as well as \n
+			 .np("|with style")
+			 .np("|{align: \"right\"}")
+			 
+		fm.nextOverlay()
+		  //go back to the first text box ("t1")
+		  .goto("#t1")
+		    //print a new line
+		    .np(" >|Add a sub-item")
+		   //we are in the text box: we go up  to the root of the frame (#root and #main are always defined)	 
+		  .up("#root")
+		    //a caption behaves like  a text box with a simpler syntax, but it does not handle bullets, multi-lines, or math mode
+		    .append("caption",{color:"darkgreen"},"This is a caption");   
+		
+		//new frame
+		fm.frame("Shapes")
+		   //place elements with absolute coordinates in #foreground
+		   .goto("#foreground")
+				//"append" is used to add a child to the current element ...
+				.append("rect", {x:-55, y:-40, w:15, h:10})
+				//"then" is used to add a sibling to the current element.
+				.then("circle", {x:-55, y:-40, r:5})
+				.then("circle", {x:-100,y:40, r:8})
+				.then("path", {d:"M0,0 l100,23 l34,-45 l-87,0 z"})
+				.then("caption", {y:130}, "Rectangle (rect), path and circle")	
+				
+		fm.frame("Overlays")
+		   //Array: more details later. This one has rows align in the middle (all the same size), and two columns (one aligned left, another center of width 50)
+			.append("array#a", {}, {rows:"m1x", cols:"lc50"})
+			   //add a decoration to the current element, this can be a border or a background
+				.decoration("border")
+				
+				//show some text 
+				.print(".on(1, {fill:\"red\"})\\\\"+
+				".on([2,3], {r:2})\\\\"+
+				".on([3], {opacity:0.5})\\\\"+
+				".on([1], {fill:\"yellow\"})\n.on(2, {fill:\"red\"})")
+				.cell(1,0)
+					.append("circle")
+					  .on(1, {fill:"red"}) 
+					  //on next overlay (and only then), the circle will be filled red
+					
+				.up("array").cell(1,1)
+					.append("circle")
+					.on([2,3], {r:2})
+					 //from overlay n+2 to n+3, the radius will be smaller
+				.up("array").cell(1,2)
+					.append("circle")
+					.on([3], {opacity:0.5})
+					//starting on overlay 3 and for the rest of  the frame, circle is transparent
+				.up("array").cell(1,3)
+					.append("circle")
+					.on([1], {fill:"yellow"})
+					.on(2, {fill:"red"})
+					// there can be several scheduled styles
+					
+			.up("#root")
+			   .append("caption", {text:"0"})		
+					.on(1, {text:"1"})
+					.on(2, {text:"2"})
+					.on(3, {text:"3"})
+					.on([4], {text:"4"})
+					//show overlay index
+					
+					
+		fm.nextOverlay();		 
+		
+		//different frame models
+		fm.frame("Frame model: simple", {model:"simple"})
+		  .append("text", {align:"center"})
+			.np("Models:", {weight:"bold"})
+			.np("\nempty\nbase\n  titleFrame\n beamer\n 2Columns");
+		
+		//two column frame style
+		fm.frame("Two Columns", {model:"2Columns"})
+		   //first: 
+          .append("text")
+             .print("--- Left ---")
+          .up("text")
+          .then("circle", {fill:"yellow", r:5})
+          .then("circle", {fill:"orange", r:10})
+          .then("circle", {fill:"red", r:15})
+          .then("circle", {fill:"black", r:20})
+          
+         .goto("#right")
+          .append("text")
+            .print("--- Right ---")
+          .up("text")
+          .then("circle", {fill:"yellow", r:5})
+          .then("circle", {fill:"orange", r:10})
+          .then("circle", {fill:"red", r:15})
+          
+         .goto("#foreground")
+          .append("circle", {y:-10})
+          .then("caption", {text:"(foreground)", size:8})
+          .then("rect", {x:10,y:15})
+           
+			  
+		//	laces : will be eventualy completely superseded by graph objects
+		fm.frame("Lace")
+		   .goto("#foreground")
+		   .append("lace",{}, {size:41})
+			    .nodes()				 
+				 .set(function(i,j) {return {x:(j-20)*9, r:3.5};})
+				 .on([1], function(i,j) {return {y:Math.sin(j/3)*60, fill:"#88"+(j*200/40+16).toString(16)+(255-j*200/40).toString(16)};})		 
+				 .on([2], function(i,j) {return {y:Math.sin(j/3+1.5)*60};})
+				 .on([3], function(i,j) {return {y:Math.sin(j/3+3)*60};})
+		 fm.nextOverlay()
+		  //transitions
+		  .goto("lace").set({transition:{duration:1000}})
+		 fm.nextOverlay()		 
+		  .goto("lace")
+		   .set({transition:{duration:2500}})		 
+		 fm.nextOverlay()		 
+    	  .goto("lace")		  
+		   .set({transition:{duration:2500}})		 
+		
+         
+      fm.frame("Graph")
+		    ///add a graph object
+			 //parameters: 
+			 //  simulation:true -> run a force simulation to place the nodes
+			 //  seed:0.72... -> select this seed for pseudo-random starting placement of nodes. (if ommited, a random seed is selected and printed in the console)
+          .append("graph",{},{simulation:true,seed:0.7259184720682743})
+			 //set style that will be applied to all new nodes
+          .setNodeStyle({stroke:"blue"})
+			 //add links (create the missing nodes as needed)
+          .addLinks("1-2;1-4;1-5;1-9;1-10")
+			 //different style for those nodes (no border line)
+          .setNodeStyle({stroke:null})          
+          .addLinks("2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9")
+          
+        fm.nextOverlay()
+		   .goto("graph")
+			   //this style is for the new links
+            .setLinkStyle({stroke:"red", dash:5})
+            .addLinks("9-11;3-11;4-11");
+				//those links are taken into account only on this overlay in the force simulation
+           
+        fm.nextOverlay()
+		   //remove a node and a link (or rather, hide them and ignore them in the force simulation)
+          .goto("graph")
+            .getNode("2")
+              .hide()
+          .goto("graph")
+            .getLinks("4-11;1-9")
+              .hide()
+           
+
+        //a more complicated example
+        fm.frame("Graph-2")
+          .append("text#def")//.decoration("background",{fill:"#AAF"})
+            .print("Vertex Cover:",{weight:"bold"})
+      
+		//define styles for nodes and links
+        var selectVCStyle = {stroke:"black", fill:"#ccc", color: "black"};
+        var simpleNode = {fill:"#eef", color:"#008"};
+        var strongNode = {fill:"#ddd", stroke:"black", color:"black"};
+        
+        var simpleEdge = {stroke:"#449", opacity:1, strokeWidth:1};
+        var strongEdge = {stroke:"blue", opacity:1, strokeWidth:1.8};
+        
+		  fm.append("horizontalVector#hv")
+           .append("box#boxg1")
+            .append("graph",{},{simulation:true, seed:0.2856390579108874})
+            .setNodeStyle(simpleNode)
+            .setLinkStyle(simpleEdge)
+            .addLinks("1-2;1-4;1-5;1-9;1-10;2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9;3-11;3-12;1-11")
+
+		  //helper function to highligh a node (given by id) and its neighboring links
+        function selectNodeForVC(graph, id) {
+          graph.getNode(id)
+            .set(selectVCStyle)
+          graph.getNeighborLinks(id)
+            .set(strongEdge);
+        }
+        
+        fm.nextOverlay()
+           .goto("#def")
+            .print(" set of vertices covering all edges")
+        selectNodeForVC(fm.goto("graph"), "1");
+        fm.nextOverlay()
+        selectNodeForVC(fm.goto("graph"), "2");
+        fm.nextOverlay()
+        selectNodeForVC(fm.goto("graph"), "3");
+        fm.nextOverlay()
+           .goto("#def")
+            .print("\nKernel: ",{weight:"bold"})
+            .print(" smaller instance (size f(k)) equivalent to the original")
+            
+           .goto("#hv")
+            .append("text").print("==>")
+           .goto("#hv")
+            .append("box")
+              .append("graph#kernel",{},{simulation:true, seed:0.2856390579108874})
+              .setNodeStyle({fill:"#eef", color:"#008"})
+              .setLinkStyle({stroke:"#66A"})
+              .addLinks("1-2;1-5;1-9;2-5;2-7;2-8;2-9")   
+             .then("caption",{y:90}, "k=2")  
+           .goto("#boxg1")  
+             .append("caption",{y:90}, "k=3")  
+             
+				 
+        
+                     
+        
+	//	addHelpLines(fm.goto("#hv"));		
+        fm.frame("Bullets")
+          .append("text")
+           .np("Bullet: ai1", {bullet:"ai1 "})
+           .np("...", {bullet:"  1 "})
+           .np("...", {bullet:" i1 "})
+           .np("...", {bullet:"  1 "})
+           .np("...", {bullet:" i  "})
+           .np("...", {bullet:"aI  "})
+           .np("...", {bullet:" IA "})
+           .np("...", {bullet:"  A "})
+           .np("Bullet: o and .", {bullet:"oo.."})
+           .np("Bullet: - and >", {bullet:"-->>"})
+           .np("Bullet: misc", {bullet:"*$#~"})
+           
+        fm.frame("Math alignment test:")
+          .append("text")
+          
+            .np("*|Size 6:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:6})
+            .np("*|Size 10:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:10})
+            .np("*|Size 12:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:12})
+            .np("*|Size 14:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:14})
+            .np("*|Size 20:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:20})
+		  fm.frame("Images")
+		     .append("image#wiki", {maxHeight:100})
+			   .url("https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg/1122px-Wikipedia-logo-v2.svg.png");
+        
+		  
          
         fm.frame("Array")   
          
@@ -64,371 +318,41 @@
 				"b20&a&b&c&overflow&")
 		
 		
-		addHelpLines(fm.goto("#root"));		
 		
-		fm.frame("Text")
-		
-		//console.log(
-		fm.append("g", {width:"fill"})
-		  .append("text#1", {width:200})
-		    .print("Items :")
-			 .print("\nFirst,"+
-						"\n   with some math $\\sqrt{\\left(x^{2}+y^2\\right)}$..."+
-						"\n$\\alpha = \\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {bullet:1})
-		//    .goto("#1")
-		//	   .down("sweetTextLine").lm.debug=true;
-		//drawItemTree(fm.goto("#1"), {opacity:0.33});
-		fm.nextOverlay();
-		
-		fm.append("text", {align:"right"})
-			 .print("A paragraph, align : \"right\",\n"+
-						"with some math $\\sqrt{\\left(x^{2}+y^2\\right)}$...\n"+
-						"$\\alpha = \\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$\n")
-			 .print("Kerning : AV = A").print("V.");
-		fm.nextOverlay();
-		fm.goto("#1")
-		    .print("\nSmaller items\n yeah!", {bullet:2})
-		  .up("#root")
-		    .append("caption",{color:"darkgreen"},"Here be a caption");   
-		
-		fm.frame("Shapes")
-		   .goto("#foreground")
-				.append("rect", {x:5, y:100})
-				.then("circle", {x:-50})
-				.then("path", {d:"M0,0 l100,23 l34,-45 l-87,0 z"})
-					
-		fm.frame("Overlays")
-		  // .goto("#foreground")
-				.append("array#a", {}, {rows:"m1x", cols:"lc50"})
-				.decoration("border")
-				
-				.print(".on(1, {fill:\"red\"})\\\\"+
-				".on([2,3], {r:2})\\\\"+
-				".on([3], {opacity:0.5})\\\\"+
-				".on([1], {fill:\"yellow\"})\n.on(2, {fill:\"red\"})")
-				.cell(1,0)
-					//.decoration("border")
-					.append("circle")
-					.on(1, {fill:"red"})
-					.up("array")				
-				.cell(1,1)
-					.append("circle")
-					.on([2,3], {r:2})
-					.up("array")				
-				.cell(1,2)
-					.append("circle")
-					.on([3], {opacity:0.5})
-					.up("array")				
-				.cell(1,3)
-					.append("circle")
-					.on([1], {fill:"yellow"})
-					.on(2, {fill:"red"})
-					.up("array")		
-					
-			.then("svgtext", {text:"0"})		
-					.on(1, {text:"1"})
-					.on(2, {text:"2"})
-					.on(3, {text:"3"})
-					.on([4], {text:"4"})
-					
-		addHelpLines(fm.goto("#a"));			
-		fm.nextOverlay();		 
-	//	console.log(fm.topF.hasSchedule())			
-		fm.frame("Frame model: simple", {model:"simple"})
-		  .append("text", {align:"center"})
-			.print("Models:\n", {weight:"bold"})
-			.print("empty\nbase\ntitleFrame\nbeamer");
-		fm.frame("Lace")
-		   .goto("#foreground")
-		   .append("lace",{}, {size:41})
-			    .nodes()
-				 .set(function(i,j) {return {x:(j-20)*9, r:3.5};})
-				 .on([1], function(i,j) {return {y:Math.sin(j/3)*60, fill:"#88"+(j*200/40+16).toString(16)+(255-j*200/40).toString(16)};})		 
-				 .on([2], function(i,j) {return {y:Math.sin(j/3+1.5)*60};})
-				 .on([3], function(i,j) {return {y:Math.sin(j/3+3)*60};})
-		fm.nextOverlay()
-		  .goto("lace").set({transition:{duration:1000}}).log("--", ["transition", ])
-		//.transition(function() {return d3.transition("aaa").duration(3000)});
-		fm.nextOverlay()		 
-		  .goto("lace")// .allNodes()
-		   .set({transition:{duration:2500}})		 
-		   
-		fm.nextOverlay()		 
-    	  .goto("lace")// .allNodes()
-		   .set({transition:{duration:2500}})		 
-		//fm.goto("lace").transition(d3.transition().duration(3));
-		//fm.goto("lace").transition(d3.transition().duration(3000));
-		
-		fm.frame("Two Columns", {model:"2Columns"})
-          .append("text")
-             .print("--- Left ---")
-          .up("text")
-          .then("circle", {fill:"yellow", r:5})
-          .then("circle", {fill:"orange", r:10})
-          .then("circle", {fill:"red", r:15})
-          .then("circle", {fill:"black", r:20})
-          
-         .goto("#right")
-          .append("text")
-            .print("--- Right ---")
-          .up("text")
-          .then("circle", {fill:"yellow", r:5})
-          .then("circle", {fill:"orange", r:10})
-          .then("circle", {fill:"red", r:15})
-          
-         .goto("#foreground")
-          .append("circle", {y:-10})
-          .then("caption", {text:"(foreground)", size:8})
-          .then("rect", {x:10,y:15})
-           
-         
-        fm.frame("Graph")
-          .append("graph",{},{simulation:true,seed:0.7259184720682743})
-          .setNodeStyle({stroke:"blue"})
-          .addLinks("1-2;1-4;1-5;1-9;1-10")
-          .setNodeStyle({stroke:null})          
-          .addLinks("2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9")
-          ;
-        fm.nextOverlay()
-		  .goto("graph")
-            .setLinkStyle({stroke:"red", dash:5})
-            .addLinks("9-11;3-11;4-11");
-           ; 
-        fm.nextOverlay()
-          .goto("graph")
-            .getNode("2")
-              .hide()
-          .goto("graph")
-            .getLinks("4-11;1-9")
-              .hide()
-           ;
-
-        
-        fm.frame("Graph-2")
-          .append("text#def")//.decoration("background",{fill:"#AAF"})
-            .print("Vertex Cover:",{weight:"bold"})
-      
-		  addHelpLines(fm.goto("#root"));		      
-        fm.append("horizontalVector#hv")
-           .append("box#boxg1")
-            .append("graph",{},{simulation:true, seed:0.2856390579108874})
-            .setNodeStyle({fill:"#eef", color:"#008"})
-            .setLinkStyle({stroke:"#66A"})
-            .addLinks("1-2;1-4;1-5;1-9;1-10;2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9;3-11;3-12;1-11")   
-        var selectVCStyle = {stroke:"black", fill:"#ccc", color: "black"};
-        var missingNode = {fill:"#f3f3f3"};
-        var simpleNode = {fill:"#eef", color:"#008"};
-        var currentNode = {fill:"orange", color:"#008"};
-        var deletedNode = {fill:"#feecec"};
-        var strongNode = {fill:"#ddd", stroke:"black", color:"black"};
-        
-        var simpleEdge = {stroke:"#449", opacity:1, strokeWidth:1};
-        var currentEdge = {stroke:"orange", opacity:1, strokeWidth:1.4};
-        var deletedEdge = {stroke:"#feecec", opacity:1, strokeWidth:1};
-        var missingEdge = {stroke:"#6A6", opacity:0.4, strokeWidth:1};
-        var strongEdge = {stroke:"blue", opacity:1, strokeWidth:1.8};
-        
-        
-        
-        function selectNodeForVC(graph, id) {
-          graph.getNode(id)
-           .set(selectVCStyle)
-          graph. getNeighborLinks(id)
-            .set({stroke:"black", strokeWidth:2});
-        }
-        
-        fm.nextOverlay()
-           .goto("#def")
-            .print(" set of vertices covering all edges")
-        selectNodeForVC(fm.goto("graph"), "1");
-        fm.nextOverlay()
-        selectNodeForVC(fm.goto("graph"), "2");
-        fm.nextOverlay()
-        selectNodeForVC(fm.goto("graph"), "3");
-        fm.nextOverlay()
-           .goto("#def")
-            .print("\nKernel: ",{weight:"bold"})
-            .print(" smaller instance (size f(k)) equivalent to the original")
-            .print("\n(same spirit as sketches, in an exact setting)", {align:"center",color:"#888"})
-           .goto("#hv")
-            .append("text").print("==>")
-           .goto("#hv")
-            .append("box")
-              .append("graph#kernel",{},{simulation:true, seed:0.2856390579108874})
-              .setNodeStyle({fill:"#eef", color:"#008"})
-              .setLinkStyle({stroke:"#66A"})
-              .addLinks("1-2;1-5;1-9;2-5;2-7;2-8;2-9")   
-             .then("caption",{text:"k=2", y:90})  
-           .goto("#boxg1")  
-             .append("caption",{text:"k=3", y:90})  
-             
-         fm.frame("Kernelization algorithm",{model:"2Columns"})
-           .goto("#right")
-            .append("graph#g",{},{simulation:true})//, seed:0.2856390579108874})
-            .import({"1":{"x":39.684520520623536,"y":-7.76628311405876},"2":{"x":5.951670676982954,"y":-27.042109517004803},"3":{"x":64.01097336852732,"y":27.75530973767176},"4":{"x":-9.430666029625318,"y":11.261483546132803},"5":{"x":13.432957515988443,"y":32.75993872352939},"6":{"x":41.06551136710176,"y":65.73017786929394},"7":{"x":-8.197737303196092,"y":64.6431767030179},"8":{"x":-47.77074762330303,"y":20.354527135229898},"9":{"x":-49.874570370695814,"y":60.97582518602755},"10":{"x":12.906938461171995,"y":-48.32208909942591},"11":{"x":-33.71255577756046,"y":-29.05555665995763},"12":{"x":-68.03874060049218,"y":-40.25162547979207},"13":{"x":-36.53249588505291,"y":-66.33668903154707},"14":{"x":76.36976143774288,"y":-64.03098495964181}})
-            .setNodeStyle({fill:"#eef", color:"#008"})
-            .setLinkStyle({stroke:"#66A"})
-           // .addLinks("1-2;1-4;1-5;1-9;1-10;2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9;3-11;3-12;1-11")   
-            .addLinks("1-2;1-3;1-4;1-5;1-10;3-6;4-7;4-8;5-6;5-8;6-7;7-9;8-9;11-10;11-2;11-4;11-13;11-8;11-12")
-            .addNodes("14")        
-           .goto("#main")
-            .append("text#algo")      
-           .goto("#foreground")
-            .append("caption#k",{x:100, y:120, text:"k=5"})
-         
-        fm.nextOverlay().goto("#g/14").set({fill:"orange"})
-           .goto("#algo").print("For each vertex $v$ with degree 0", {bullet:1});
-            
-        fm.nextOverlay().goto("#g/14").hide()
-           .goto("#algo").print("\n delete $v$", {bullet:2});
-
-        fm.nextOverlay().goto("#g/11").set({fill:"orange"})
-           .goto("#algo").print("\n For each vertex $v$ with degree >k", {bullet:1});
-           
-        fm.nextOverlay().goto("#g").getNeighborLinks("11").hide()
-           .goto("#g/11").set(selectVCStyle).set({fix:true})
-           .goto("#k").set({text:"k=4"})
-           .goto("#algo").print("\n Add to solution", {bullet:2});
-
-        fm.nextOverlay().goto("#g").getNodes("12;13").set({fill:"orange"})
-        fm.nextOverlay().goto("#g").getNodes("12;13").hide()
-        
-        fm.nextOverlay().goto("#g/1").set(selectVCStyle).set({fix:true})                   
-        fm.nextOverlay().goto("#g").getNeighborLinks("1").hide()
-           .goto("#k").set({text:"k=3"})
-          
-        fm.nextOverlay().goto("#g").getNodes("2;10").set({fill:"orange"})
-        fm.nextOverlay().goto("#g").getNodes("2;10").hide()
-        
-        fm.nextOverlay()
-           .goto("#algo").print("\n Then: at most $k^2$ edges", {bullet:1});
-   
-        
-        fm.frame("Streaming Kernel",{model:"2Columns"})        
-         
-           .goto("#right")
-            .append("graph#g",{},{simulation:true})//, seed:0.2856390579108874})
-            .import({"1":{"x":39.684520520623536,"y":-7.76628311405876},"2":{"x":5.951670676982954,"y":-27.042109517004803},"3":{"x":64.01097336852732,"y":27.75530973767176},"4":{"x":-9.430666029625318,"y":11.261483546132803},"5":{"x":13.432957515988443,"y":32.75993872352939},"6":{"x":41.06551136710176,"y":65.73017786929394},"7":{"x":-8.197737303196092,"y":64.6431767030179},"8":{"x":-47.77074762330303,"y":20.354527135229898},"9":{"x":-49.874570370695814,"y":60.97582518602755},"10":{"x":12.906938461171995,"y":-48.32208909942591},"11":{"x":-33.71255577756046,"y":-29.05555665995763},"12":{"x":-68.03874060049218,"y":-40.25162547979207},"13":{"x":-36.53249588505291,"y":-66.33668903154707},"14":{"x":76.36976143774288,"y":-64.03098495964181}})
-            .setNodeStyle(missingNode)
-            .setLinkStyle(missingEdge)
-           // .addLinks("1-2;1-4;1-5;1-9;1-10;2-5;2-6;2-7;2-8;2-9;3-7;3-8;3-9;3-11;3-12;1-11")   
-            .addLinks("1-2;1-3;1-4;1-5;1-10;3-6;4-7;4-8;5-6;5-8;6-7;7-9;8-9;11-10;11-2;11-4;11-13;8-11;11-12")
-            .addNodes("14")        
-           .goto("#main")
-            .append("text#algo")      
-           .goto("#foreground")
-            .append("caption#k",{x:100, y:120, text:"k=2"})
-            
-        fm.nextOverlay()         
-            .goto("#algo")   
-              .np("With each new edge:", {bullet:1})
-               .np("Keep if independent\n (maintain a maximal matching)", {bullet:2})
-               .np("Ignore if gives degree >k+1", {bullet:2})
-              .np("Stop if:", {bullet:1})
-               .np("Matching has size >k", {bullet:2})
-               .np(">k vertices of degree k+1", {bullet:2})
-              
-        function processEdge(src,tgt,lines, afterEdge, afterNode, afterNode2 ) {
-          if (!afterNode2) afterNode2=afterNode;
-          fm.nextOverlay()         
-              .goto("#g")
-				   .getLinks(src+"-"+tgt).set(currentEdge).on([1], afterEdge)
-               .getNodes(src+"").set(currentNode).on([1], afterNode)
-               .getNodes(tgt+"").set(currentNode).on([1], afterNode2)     
-              .goto("#algo")
-				   .getLines(lines+"").on(0,{fillBullet:"orange"});
-        }
-        processEdge(8,11,"2;3",strongEdge, simpleNode);
-        processEdge(1,5,"2;3",strongEdge, simpleNode);
-        processEdge(11,12,"",simpleEdge, simpleNode);
-        processEdge(11,13,"",simpleEdge, strongNode,simpleNode);
-        processEdge(5,6,"",simpleEdge, simpleNode);
-        processEdge(4,8,"",simpleEdge, simpleNode);
-        processEdge(11,2,"4",deletedEdge, strongNode, deletedNode);
-        processEdge(1,2,"",simpleEdge, simpleNode);
-        processEdge(11,4,"4",deletedEdge, strongNode, simpleNode);
-        processEdge(1,3,"",simpleEdge, strongNode, simpleNode);
-        processEdge(11,10,"4",deletedEdge, strongNode, deletedNode);
-        processEdge(1,10,"4",deletedEdge, strongNode, deletedNode);
-        
-        processEdge(7,9,"2;3", {stroke:"red", strokeWidth:1.6}, {});
-        
-        fm.nextOverlay()
-          .goto("#algo").getLines("5;6").on(0,{fillBullet:"red"});
-        fm.nextOverlay()
-          .goto("#algo") 
-             .np("If the graph goes through:", {bullet:1})
-             .np("k independent edges", {bullet:2})
-             .np("degree k+1", {bullet:2})
-             .np("O(k^2)-space kernel", {bullet:" >"})
-          .goto("#g")
-				 .getNeighborLinks("9").hide()
-				 .getNeighborLinks("7").hide()			 
-				 .getNeighborLinks("10").hide()			 
-				 .getLinks("8-9;4-7;1-4;11-2;3-6;11-4;5-8").hide()
-				 .getNodes("7;9;10;14").hide()
-			 //insert following code in the presentation to set the graph coordinates:
-  .goto("#g")
-    .import({"1":{"x":-6.856612844837996,"y":-22.78061648433042},"2":{"x":-25.446170008316606,"y":-53.38072804633437},"3":{"x":14.649030313855317,"y":-52.78344293886796},"4":{"x":-30.188729173070705,"y":-1.4556111691176012},"5":{"x":-40.06236113793888,"y":17.108053439793952},"6":{"x":-63.62853556200723,"y":41.63997717494376},"7":{"x":-8.197737303196092,"y":64.6431767030179},"8":{"x":2.821082726933655,"y":18.946232480463063},"9":{"x":-49.874570370695814,"y":60.97582518602755},"10":{"x":12.906938461171995,"y":-48.32208909942591},"11":{"x":43.33282920255294,"y":16.023522362875987},"12":{"x":42.56743874771568,"y":50.37986280782568},"13":{"x":63.62605838371406,"y":-12.78175665484777},"14":{"x":76.36976143774288,"y":-64.03098495964181}})
-        
-        
-        
-        /*fm.nextOverlay()         
-            .goto("#g").getLinks("8-11").set(currentEdge).on([1], strongEdge)
-            .goto("#g").getNodes("8;11").set(currentNode).on([1], simpleNode)
-            
-        fm.nextOverlay()         
-            .goto("#g").getLinks("1-5").set(currentEdge).on([1], strongEdge)
-            .goto("#g").getNodes("1;5").set(currentNode).on([1], simpleNode)
-        fm.nextOverlay()         
-            .goto("#g").getLinks("11-12").set(currentEdge).on([1], simpleEdge)
-            .goto("#g").getNodes("11;12").set(currentNode).on([1], simpleNode)
-            
-        fm.nextOverlay()         
-            .goto("#g").getLinks("11-13").set(currentEdge).on([1], simpleEdge)
-            .goto("#g").getNodes("11;13").set(currentNode).on([1], simpleNode)            
-        fm.nextOverlay()         
-            .goto("#g").getLinks("11-12").set(currentEdge).on([1], simpleEdge)
-            .goto("#g").getNodes("11;12").set(currentNode).on([1], simpleNode)*/
-        
-                     
-        
-	//	addHelpLines(fm.goto("#hv"));		
-        fm.frame("Bullets")
-          .append("text")
-           .np("Bullet: ai1", {bullet:"ai1 "})
-           .np("...", {bullet:"  1 "})
-           .np("...", {bullet:" i1 "})
-           .np("...", {bullet:"  1 "})
-           .np("...", {bullet:" i  "})
-           .np("...", {bullet:"aI  "})
-           .np("...", {bullet:" IA "})
-           .np("...", {bullet:"  A "})
-           .np("Bullet: o", {bullet:"oooo"})
-           .np("Bullet: -", {bullet:"----"})
-           .np("Bullet: >", {bullet:">>>>"})
-           .np("Bullet: misc", {bullet:"*$#~"})
-           
-        fm.frame("Math alignment test:")
-          .append("text")
-          
-            .np("*|Size 6:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:6})
-            .np("*|Size 10:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:10})
-            .np("*|Size 12:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:12})
-            .np("*|Size 14:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:14})
-            .np("*|Size 20:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:20})
-		  fm.frame("Images")
-		     .append("image#wiki")
-			   .url("https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg/1122px-Wikipedia-logo-v2.svg.png");
-        fm.frame("Generalities")
+		  fm.frame("Generalities")
+		    .append("text")
+			    .np("|Tree-structure of the items")
+				 .np(" -|root = frame element")
+				 .np(" -|simple internal nodes (for layout purpose):")
+				 .np("   -|g: basic group, can be translated")
+				 .np("   -|transform: same as g with scale and rotation")
+				 .np("   -|vector: arrange children in a top-to-bottom vector")
+				 .np("   -|horizontalVector: arrange children in a left-to-right vector")
+				 .np(" -|rich internal nodes:")
+				 .np("   -|text, graph, array, ... ")
+				 .np(" -|leaves:")
+				 .np("   -|rect, circle, path, caption")
+				 
+		  fm.frame("Generalities-2")
 		  .append("text")
-		    .np("call order on new frame:")
-              .np(".|onLoad (prefix)")
-              .np(".|onDraw (prefix)")
-              .np(".|onDrawPostOrder (suffix)")
-              .np(".|onLayout (suffix)")
+		    .np("|Call order on new frame:")
+              .np(" 1|onLoad (prefix)")
+              .np(" 1|onDraw (prefix)")
+              .np(" 1|onDrawPostOrder (suffix)")
+              .np(" 1|onLayout (suffix)")
 			 .np("|Style hierarchy")	  
-		   ;
+			     .np(" 1|item style (as defined by .set())")
+			     .np(" 1|item default style (as defined in the codex)")
+				  .np(" 1|closest ancestor's style or default style")
+				  .np(" 1|null (=default svg value)")
+		   
+		  fm.frame("Top-left menu")
+		   .append("text")
+			  .np("|Place your mouse on the top-left corner to show the menu:")
+		    .np("o|start: ", {weight:"bold"}).np("go to first frame")
+		    .np("o|Export HTML: ", {weight:"bold"}).np("export presentation as a single html file,\n including all dependencies (*.js files) and pre-computed\n formula layout")
+			 .np("o|Export graph coordinates: ", {weight:"bold"}).np("click on a graph to get the\n set of x,y coordinates\of all nodes, to be copy-pasted in\n the presentation to directly get this configuration")
+          .np("o|Clear saved fomulas: ", {weight:"bold"}).np("layout of math formulas is cached\n in browser memory to avoid calling mathjax each time.\n This clears the cache.") 
 		fm.localImport="./math.json";
 		fm.run();
 	});

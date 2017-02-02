@@ -87,17 +87,18 @@ addToCodex("text","verticalVector",  {
               }
               var enumerateCount = [];
               function processBullet(bullet) {
-                bullet = bullet||i.currentIndent||"";
+                bullet = bullet||"";//i.currentIndent||"";
                 while (enumerateCount.length<bullet.length) 
                   enumerateCount.push(0);
-                var reset=false;
+					 
+                var reset=(bullet=="");
                 var out=[];
                 for (var p=0;p<bullet.length; p++) {
                    if (reset) 
                      enumerateCount[p]=0;
                    
                    if (bullet[p]=="a") {
-                      out.push("abcdefghijklmnopqrstuvwxyz"[enumerateCount[p]%26]);                      
+                      out.push("abcdefghijklmnopqrstuvwxyz"[enumerateCount[p]%26]);
                    }else  if (bullet[p]=="A") {
                       out.push("ABCDEFGHIJKLMNOPQRSTUVWXYZ"[enumerateCount[p]%26]);
                    }else if (bullet[p]=="1") {
@@ -119,9 +120,9 @@ addToCodex("text","verticalVector",  {
                   }
                 return out;
               }
-              i.nnl=function(bullet) {                
-                  i.append("sweetTextLine#"+i.id+"/line"+(lineIndex++))
-                    .append("bullet",{bullet:processBullet(bullet)}) ;
+              i.nnl=function(bullet, style) {                
+                  i.append("sweetTextLine#"+i.id+"/line"+(lineIndex++), style)
+                    .append("bullet",{bullet:processBullet(bullet)}, style) ;
                   //if (bullet==null) bullet=i.currentIndent;
                      
                   return i; //.printBag();  
@@ -129,8 +130,8 @@ addToCodex("text","verticalVector",  {
               i.np = function (s, style, d) {
                   if (!style) style={};
                   style=shallowCopy(style);
-                  var bullet="";                  
-                  if (style.bullet) {
+                  var bullet=null;                  
+                  if ("bullet" in style) {
                      if (typeof style.bullet=="number") { 
                        bullet=Array(style.bullet).join(" ")+".";
                      } else {
@@ -142,15 +143,15 @@ addToCodex("text","verticalVector",  {
                     bullet = spl.shift();
                     s=spl.join("|");                    
                   }
-                  if (bullet) {
-                    i.nnl(bullet);
+                  if (bullet!=null) {
+                    i.nnl(bullet, style);
                     i.currentIndent = Array(bullet.length+1).join(" ");
                   }           
                   var ss = s.split("\n");
                   var b=i.printBag();
                   while (ss.length>1) {
                       i.getLast("sweetTextLine").print(b, ss.shift(),style,d);          
-                      i.nnl();
+                      i.nnl(i.currentIndent, style);
                   }
                   i.getLast("sweetTextLine").print(b, ss.shift(),style,d);
                   return   i;                        
@@ -221,8 +222,9 @@ addToCodex("textBox", "svgtext", {
 addToCodex("bullet","g",  {
 	defaultStyle:{bullet:"."},
 	onBuild: function(i) {	
-        if (typeof i.style.bullet== "number") i.style.bullet= Array(i.style.bullet).join(" ")+".";
-        i.bullet=i.style.bullet;
+	   var margin=0;
+      if (typeof i.style.bullet== "number") i.style.bullet=Array(i.style.bullet).join(" ")+".";
+      i.bullet=i.style.bullet;
 		i.style.width =i.width=i.style.bullet.length *20;
 		i.style.height = i.height=12;
 		codex.blackbox.onBuild(i);
@@ -230,8 +232,9 @@ addToCodex("bullet","g",  {
         for (var p=0; p<i.bullet.length; p++) {
            var c = i.bullet[p];
            if (c==' ') continue;           
+			  if (!margin) margin = 6*2/(p+2);
            var bid="#"+i.id+"/"+p
-           var pos=i.append("transform"+bid, {x:p*20+12-i.width/2,  y:-4, scale:(1.5/(p+1.5)+0.4)})
+           var pos=i.append("transform"+bid, {x:p*20+11-i.width/2,  y:-4, scale:(1.5/(p+1.5)+0.4)})
            if (c=='>') {
                pos.append("path", {d:"M-4.2,0 L4,0 M0.2,3.8 L 4.2,0 0.2,-3.8", strokeWidth:2, fill:"none", stroke:"#008"});
               continue;
@@ -250,10 +253,11 @@ addToCodex("bullet","g",  {
            pos.append("svgtext", {text:c, color:"#008", y:4})
              
         }
+		  if (margin) importDefault(i.parent.style, {marginTop:margin})
 	},
     
     onSavePrefix: function(i, style) {
-       var keys=["fill","stroke", "r"];
+       var keys=["fill","stroke", "r", "size", "color"];
        for  (var k=0; k<keys.length; k++) {
           for (var j=0; j<i.bullet.length; j++) {
              var sk = keys[k]+"Bullet";
@@ -266,7 +270,7 @@ addToCodex("bullet","g",  {
                continue;
              }
              var b= i.down("#"+i.id+"/"+j, true);
-             if (b) b.set(s);
+             if (b) b.allNodes().set(s);
              
           }
        }
