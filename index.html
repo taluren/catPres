@@ -312,7 +312,20 @@
            .np("Bullet: o and .", {bullet:"oo.."})
            .np("Bullet: - and >", {bullet:"-->>"})
            .np("Bullet: misc", {bullet:"*$#~"})
+			  .np("Colors", {bullet:"..x~", fillBullet:"red", rBullet2:3, colorBullet3:"darkgreen", sizeBullet4:16})
            
+		
+        fm.frame("Opacity, Phantom", {fill:"#aaa", phantom:0.5})	  
+		     .append("rect")
+		  
+		  fm.nextOverlay()  
+			  .append("rect")
+			  .then("circle",{stroke:"darkblue"})
+			fm.nextOverlay()  
+			  .append("rect")
+			  .then("circle")
+		  
+				  
         fm.frame("Math alignment test:")
           .append("text")
           
@@ -323,7 +336,7 @@
             .np("*|Size 20:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:20})
 		  fm.frame("Images")
 		     .append("image#wiki", {maxHeight:100})
-			   .url("https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg/1122px-Wikipedia-logo-v2.svg.png");
+			   .url("https://upload.wikimedia.org/wikipedia/" +"en/thumb/8/80/Wikipedia-logo-v2.svg/1122px-Wikipedia-logo-v2.svg.png");
         
 		  
          
@@ -386,7 +399,13 @@
 			 .np("o|Export graph coordinates: ", {weight:"bold"}).np("click on a graph to get the\n set of x,y coordinates\of all nodes, to be copy-pasted in\n the presentation to directly get this configuration")
           .np("o|Clear saved fomulas: ", {weight:"bold"}).np("layout of math formulas is cached\n in browser memory to avoid calling mathjax each time.\n This clears the cache.") 
 		
-		
+		   fm.frame("Buggy behaviors")
+			fm.nextOverlay()  
+			  .append("horizontalVector", {phantom:.5})
+			     .append("circle")
+				  .then("circle",{stroke:"darkblue"})
+				  .then("circle")
+				  .then("caption", {}, "phantom+vector")
 		//we're done with the document preparation, start the actual drawing of the frames, and wait for the user to navigate
 		fm.run();
 	});
