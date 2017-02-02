@@ -293,7 +293,7 @@ function itemAndFrameFunctions(i) {
 		  delete i.backtrans;
 	  }*/
 	  
-      if (i.savingFunctionPrefix) i.savingFunctionPrefix(i, s);
+     if (i.savingFunctionPrefix) i.savingFunctionPrefix(i, s);
       
 	  for (var c=0; c<i.children.length; c++) {
 		  i.children[c].save(copyExceptKeys(s, ["x", "y", "opacity", "margin","width", "height", "marginTop","marginBottom","marginLeft","marginRight","bg", "align","alignV", "model"]));
