@@ -341,7 +341,7 @@ function saveToLocalStorage() {
    localStorage.setItem('formulas',getFormulasJSON());
 }
 function getFromLocalStorage() {	
-	return JSON.parse(localStorage.getItem('formulas')) 
+	return JSON.parse(localStorage.getItem('formulas')||"false") 
 }
 function clearLocalStorage() {	
    localStorage.setItem('formulas',null); 
