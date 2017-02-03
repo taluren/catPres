@@ -361,7 +361,8 @@ function FrameBase(frame, holder, transform, style) {
      id:"root",  
 	  index:{},
 	  style:style,
-	  history:[]
+	  history:[],
+	  box:{container:{x:0, y:0, width:400, height:300}}
   } 
   fb.root=fb;
   fb.index["root"] = fb;
@@ -476,7 +477,8 @@ function Item(parent, typeAndId, style, d) {
 		layoutFunction:code.onLayout,
 		firstRunFunction:code.onFirstRun,
 		datum:d,
-		schedule:[]
+		schedule:[],
+		box:{container:{type:"inherit"}, actual:{type:"real"}, bg: {}}
   }
   
   i.root.index[id] = i;
@@ -644,7 +646,7 @@ function Item(parent, typeAndId, style, d) {
      i.differentFrameLoaded = (i.nextDraw != i.lastDraw) 
      if (i.differentFrameLoaded || !regular) {
          i.style = shallowCopy(i.history[i.nextDraw]);
-         i.trans = getTransition(i.style, i.nextDraw  - i.lastDraw)              
+         i.trans = getTransition(i.style, i.nextDraw  - i.lastDraw)     
      } 
      
      if (show==null) show=i.style.show;
@@ -653,6 +655,7 @@ function Item(parent, typeAndId, style, d) {
      if (i.loadingFunction) i.loadingFunction(i, show, ov==f-i.frame);
      
      i.g.style("display", i.display?null:"none");
+	  i.updateContainerBox();
      for (var c=0; c<i.children.length; c++) {
           i.children[c].load(f, regular);
      }
@@ -676,10 +679,67 @@ function Item(parent, typeAndId, style, d) {
 	  }
   }
   
+  i.updateContainerBox =function() {
+	  if (i.box.container.typeX == "inherit" || ) {
+		  i.box.container.width = i.parent.container.width;
+		  i.box.container.x = i.parent.container.x - i.style.x;
+	  } else if (i.box.container.typeX == "tight") {
+		  i.box.container.width = null;
+		  i.box.container.x = 0;
+	  }
+	  if (i.box.container.typeY == "inherit" || ) {
+		  i.box.container.height = i.parent.container.height;
+		  i.box.container.y = i.parent.container.y - i.style.y;	  
+	  } else if (i.box.container.typeY == "tight") {
+		  i.box.container.height = null;
+		  i.box.container.y =0;		  
+	  }
+	  //"custom"-> do nothing
+  }
+  i.updateActualBox =function() {
+	  if (i.box.actual.typeX == "real" || i.box.actual.typeY=="real") {
+		  var left=0, right=0, top=0, bottom=0;
+		  for (var c=0; c<i.children.length; c++) {
+			  if (!i.children[c].style.show) continue;
+			  var cx =i.children[c].box.actual.x + i.children[c].style.x;
+			  var cy =i.children[c].box.actual.y + i.children[c].style.y;
+			  var cwh =i.children[c].box.actual.width/2;
+			  var chh =i.children[c].box.actual.height/2;
+			  left=min(left, cx-cwh);
+			  right=max(right, cx+cwh)
+			  top=min(top, cx-chh);
+			  bottom=max(bottom, cy+chh);
+		  }
+		  if (i.box.actual.typeX == "real") {				  
+			  i.box.actual.width = left-right;
+			  i.box.actual.x = (left+right)/2;
+		  }
+		  if (i.box.actual.typeY == "real") {
+			  i.box.actual.height = bottom-top
+			  i.box.actual.y = (top+bottom)/2;			  
+		  }
+	  } 
+	  if (i.box.actual.typeX == "outside") {
+			i.box.actual.width=0;			
+			i.box.actual.x=0;	
+	  } else if (i.box.actual.typeX == "fill") {
+			i.box.actual.width=i.box.container.width;			
+			i.box.actual.x=i.box.container.x;
+	  } 
+	  if (i.box.actual.typeY == "outside") {
+			i.box.actual.height=0;
+			i.box.actual.y=0;		
+	  } else  if (i.box.actual.typeY == "fill") {
+			i.box.actual.height=i.box.container.height;			
+			i.box.actual.y=i.box.container.y;	
+	  }
+	  //"custom" -> do nothing
+  }
+  
   /*draw: draw an item and all its descendants
    * applied only if frame is different or "irregular" calls
    * 
-   */ 
+   */ 	
   i.draw=function(regular) {	  
      i.shown=true;
 	 i.bbox=null;
@@ -692,9 +752,10 @@ function Item(parent, typeAndId, style, d) {
 			 i.g = i.g.transition(transitionShop[i.trans].make().transObj);             
 		 }
 		 //compute width and height when defined as "fill" (now that the parent has been drawn)
-		 i.fillUpWidthHeight();
-         
-         //call the actual drawing function (set line colors, set text, etc.)
+		// i.fillUpWidthHeight();
+       i.updateContainerBox();  
+		 
+       //call the actual drawing function (set line colors, set text, etc.)
 		 if (i.drawingFunction!=null) {
 	       i.drawingFunction(i, regular); 
 		 }			 
@@ -707,8 +768,10 @@ function Item(parent, typeAndId, style, d) {
 		 if (i.drawingFunctionPostOrder!=null) {
 			 i.drawingFunctionPostOrder(i, regular); 
 		 }
+		 
+		 i.updateActualBox();
 		 //draw the background rectangle if necessary
-	     i.drawBackground(true); //automatic drawing, may be disabled         
+	    i.drawBackground(true); //automatic drawing, may be disabled         
 		 checkTree(i);
          //place the item at the correct coordinates
 		 i.layout();
