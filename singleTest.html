@@ -1,0 +1,95 @@
+
+
+
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Pres</title>
+        <style>
+        </style>
+    </head>
+    <body>
+	 
+   <script src="./d3.v4.min.js"></script>
+   <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG">
+</script>
+  <script src="./pres.js"></script>
+  <script src="./pres-misc.js"></script>
+  <script src="./pres-camera.js"></script>
+  <script src="./pres-codex.js"></script>
+  <script src="./pres-menu.js"></script>
+  <script src="./pres-layout.js"></script>
+  <script src="./pres-text.js"></script>
+  <script src="./pres-helpLines.js"></script>
+  <script src="./pres-frameStyle.js"></script>
+  <script src="./pres-transition.js"></script>
+  <script src="./pres-graph.js"></script>
+  <script src="./pres-image.js"></script>
+  <script>
+     
+     window.addEventListener("load", function(event) {  
+	      
+		//create the "frame manager" with some parameters	
+		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
+		
+		function fillDummyVector(v, debug) {
+		   v.append("circle")
+            .then("rect", {w:20, h:15})
+            .then("circle")
+            .then("g", {fill:"yellow"})
+              .append("rect")
+              .then("circle", {x:13,y:0, r:12})
+              .then("circle", {x:3,y:14})
+              .then("circle", {x:20,y:-20})              
+           v.append("rect",{w:22,h:12})
+            .then("circle")
+            
+           if (debug){
+             addHelpLines(v);
+             v.lm.debug=true;
+           }
+		}
+		
+		fm.frame("vectors",{model:"emptyWithBG"})
+		
+		fillDummyVector(fm.append("horizontalVector", {x:-75, y:-30}), true);
+		fillDummyVector(fm.append("horizontalVector", {x:-75, y:30,layout:"spread", width:150}));
+        fillDummyVector(fm.append("verticalVector", {x:90}));
+        fillDummyVector(fm.append("verticalVector", {x:50, height:200, layout:""}), true);
+        
+        addHelpLines(
+        fm.frame("text",{model:"emptyWithBG"})
+         .append("text")
+           .np("o|Hello\nblah")
+           .np(" bold",{weight:"bold"})
+          .np(".|---"));
+         
+        fm.nextOverlay();
+         
+        
+         //drawItemTree(fm.goto("#v"), {r:3, opacity:0.6}) 
+		
+				
+				
+
+		//add a regular frame with title "Text"
+	/*	fm.frame("Text")
+		  //add a text element with label "t1"
+		  .append("text#t1", {width:200})
+		    //print in the text element.
+		    .np("Here is a simple paragraph with\n itemized list:")
+			 .np(".|An item")  // the "|" separates the bullet (here: ".") from the main text
+			 .np(".| another with some math: $\\delta=\\sqrt{\\left(x^{2}+y^2\\right)}$")
+			 //formulas in latex  are enclosed with $ $. backslashes need to be escaped
+			 .np(".|$\\alpha = \\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$")
+			 
+		*/
+		fm.run();
+	});
+		 
+
+  </script>
+    </body>
+</html>
