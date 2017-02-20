@@ -207,6 +207,7 @@ addToCodex("sweetTextLine", "horizontalVector", {
 	});
 addToCodex("textBox", "svgtext", {
 		onBuild:  function(i) {
+            codex.svgtext.onBuild(i);
 			i.print=function(bag, label, style,d) {
    			var st={text:label};
 				importDefault(st, style);

@@ -14,9 +14,11 @@ var decorationCodex = {
 
 var codex = {
 	frame: {
+        internalNode:true,
 		defaultStyle:{fill:"white", stroke:"black", color:"black", size:12, font:"sans-serif",w:10,h:10,r:5, anchor:"middle", align:"center",spaceBefore:0,spaceAfter:0, show:true,dx:0, dy:0,margin:0,x:0,y:0,model:"cat", wriggle:null}					
 		},
 	circle: {
+        internalNode:false,
 		tag:"circle",
 		defaultStyle:{x:0,y:0, wriggle:defaultWriggleThreshold},
 		onBuild:null,
@@ -39,26 +41,29 @@ var codex = {
 		}
 	},
 	rect: {
+        internalNode:false,
 		tag:"rect",
-		defaultStyle:  {x:0,y:0, wriggle:defaultWriggleThreshold} ,
+		defaultStyle:  {x:0,y:0, wriggle:defaultWriggleThreshold, offsetx:0, offsety:0} ,
 		onBuild:  null ,
 		onDraw: function (i) {
 				i.useAttr("width","w");
-				i.useStyle("opacity");
+				i.useAttr("height","h");    
+                i.useStyle("opacity");
 				i.useStyle("fill");		
 				i.useAttr("stroke", "stroke", "fill");	
 				i.useStyle("stroke-width","strokeWidth");	
-            i.useStyle("stroke-dasharray", "dash");
+                i.useStyle("stroke-dasharray", "dash");
 				i.useAttr("rx");	
 				i.useAttr("ry");	
-				i.useAttr("x","offsetx");	
-				i.useAttr("y", "offsety");	
-				i.useAttr("height","h");	
+                i.g.attr("x",i.style.offsetx-i.style.w/2);
+                i.g.attr("y",i.style.offsety-i.style.h/2);	
+				//i.useAttr("y", "offsety");	
+				
 			},
 		onLayout: function(i){
 			
-            i.g.attr("transform", "translate("+ //+xy(i.style)+")");    
-                               (i.style.x-i.style.w/2)+","+(i.style.y-i.style.h/2)+
+            i.g.attr("transform", "translate("+ xy(i.style)+")");    
+                               /*(i.style.x-i.style.w/2)+","+(i.style.y-i.style.h/2)+
                                ")");
             /*i.g.attr("x", i.style.x-i.style.w/2);
 			i.g.attr("y", i.style.y-i.style.h/2);*/
@@ -66,6 +71,7 @@ var codex = {
 	},
 	path: {
 		tag:"path",
+        internalNode:false,
 		defaultStyle: {d: "", x:0, y:0, wriggle:defaultWriggleThreshold} ,
 		onDraw:function(i) { 
 			i.useAttr("d");	
@@ -81,10 +87,11 @@ var codex = {
 	},
 	svgtext: {
 		tag:"text",
+        internalNode:true,
 	    defaultStyle: {x:0,y:0, text:"", select:"none", wriggle:defaultWriggleThreshold} ,
-		/*onBuild:  function(i,s) {i.g.style("-moz-user-select","none")
-          
-        } ,*/
+		onBuild:  function(i,s) {
+          i.box.actual.type="real";          
+        } ,
 				
       onDraw: function (i) {checkTree(i)
 			i.useAttr("x", "offsetx");
@@ -115,6 +122,7 @@ var codex = {
 	
 	tspan: {
 		tag:"tspan",
+        internalNode:false,
 		defaultStyle:{x:null, y:null,  wriggle:null},
 		onBuild:    function(i,s) {i.g.style("-moz-user-select","none")},
 		onDraw: function (i) {	
@@ -133,6 +141,7 @@ var codex = {
 	},
 	svgimage: {
 		tag:"image",
+        internalNode:false,
 		defaultStyle:{x:0,y:0, width:0, height:0},	
 		onDraw: function(i) {	
 			i.useAttr("width");	
@@ -147,6 +156,7 @@ var codex = {
 	},
 	default: { //codex template:
 		tag:"g",  //tag of the elemnt to add
+        internalNode:true, //may have children
 		defaultStyle: {x:0, y:0, wriggle:defaultWriggleThreshold}, //default values for this node and its descendants  
 		onBuild:  null, //function to be called once, at build time ("append"), parameter: item
 		onLoad: null, 

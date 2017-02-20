@@ -1,5 +1,6 @@
 
 var alignDebug = false;
+var logNextFrame = false;
 /*style computation at save time:
  * i.style, then i.defaultStyle, then parent's computed style
 
@@ -469,6 +470,7 @@ function Item(parent, typeAndId, style, d) {
 		showBefore:true,
 		showAfter:true,	
 		shown:false,
+        internalNode:code.internalNode,
 		drawingFunction:code.onDraw,
 		drawingFunctionPostOrder:code.onDrawPostOrder,
 		loadingFunction:code.onLoad,
@@ -478,7 +480,7 @@ function Item(parent, typeAndId, style, d) {
 		firstRunFunction:code.onFirstRun,
 		datum:d,
 		schedule:[],
-		box:{container:{type:"inherit"}, actual:{type:"real"}, bg: {}}
+		box:{container:{type:"inherit"}, actual:{type:code.internalNode?"children":"real"}, bg: {}}
   }
   
   i.root.index[id] = i;
@@ -564,7 +566,7 @@ function Item(parent, typeAndId, style, d) {
   }
   
   i.align=function (kx, kwidth,align, targetX, containerWidth) {
-	  if (containerWidth == null) containerWidth = i.style[kwidth];	  
+	  if (containerWidth == null) containerWidth = i.containerBox(kwidth);
 	  i.move(getAlignMove(kx, kwidth, align, targetX||0, containerWidth, i));
   }
 	
@@ -678,16 +680,32 @@ function Item(parent, typeAndId, style, d) {
 		  
 	  }
   }
+  i.containerBox= function (key, value) {
+    if (typeof value=="undefined")  {
+       return i.box.container[key];
+    } else {
+      i.box.container[key]=value;
+      return i;
+    }
+  }
+  i.actualBox= function (key, value) {
+    if (typeof value=="undefined")  {
+       return i.box.actual[key];
+    } else {
+      i.box.actual[key]=value;
+      return i;
+    }
+  }
   
   i.updateContainerBox =function() {
-	  if (i.box.container.typeX == "inherit" || ) {
+	  if (i.box.container.typeX == "inherit"  ) {
 		  i.box.container.width = i.parent.container.width;
 		  i.box.container.x = i.parent.container.x - i.style.x;
 	  } else if (i.box.container.typeX == "tight") {
 		  i.box.container.width = null;
 		  i.box.container.x = 0;
 	  }
-	  if (i.box.container.typeY == "inherit" || ) {
+	  if (i.box.container.typeY == "inherit" ) {
 		  i.box.container.height = i.parent.container.height;
 		  i.box.container.y = i.parent.container.y - i.style.y;	  
 	  } else if (i.box.container.typeY == "tight") {
@@ -697,7 +715,27 @@ function Item(parent, typeAndId, style, d) {
 	  //"custom"-> do nothing
   }
   i.updateActualBox =function() {
-	  if (i.box.actual.typeX == "real" || i.box.actual.typeY=="real") {
+      //todo include padding here.
+      if (!i.box.actual.typeX) i.box.actual.typeX=i.box.actual.type;
+      if (!i.box.actual.typeY) i.box.actual.typeY=i.box.actual.type;
+      if (i.box.actual.typeX == "real" || i.box.actual.typeY=="real") {
+        var bbox=false;
+        if (i.display) {
+          try {
+            bbox=shallowCopy(i.g.node().getBBox()) 
+          } catch (e) {console.log("bbox unavailable")};
+        }
+        if (!bbox) bbox = {x:0,y:0,width:0, height:0};
+        if (i.box.actual.typeX == "real") {
+          i.box.actual.x= bbox.x+bbox.width/2;
+          i.box.actual.width= bbox.width;          
+        }
+        if (i.box.actual.typeY == "real") {
+          i.box.actual.y= bbox.y+bbox.height/2;
+          i.box.actual.height= bbox.height;          
+        }
+      }
+      if (i.box.actual.typeX == "children" || i.box.actual.typeY=="children") {
 		  var left=0, right=0, top=0, bottom=0;
 		  for (var c=0; c<i.children.length; c++) {
 			  if (!i.children[c].style.show) continue;
@@ -707,14 +745,16 @@ function Item(parent, typeAndId, style, d) {
 			  var chh =i.children[c].box.actual.height/2;
 			  left=min(left, cx-cwh);
 			  right=max(right, cx+cwh)
-			  top=min(top, cx-chh);
+			  top=min(top, cy-chh);
 			  bottom=max(bottom, cy+chh);
+              
+              if (i.children.length>2) console.log(i.id, cx, i.children[c].box.actual.x, left, right);
 		  }
-		  if (i.box.actual.typeX == "real") {				  
-			  i.box.actual.width = left-right;
+		  if (i.box.actual.typeX == "children") {				  
+			  i.box.actual.width = right-left;
 			  i.box.actual.x = (left+right)/2;
 		  }
-		  if (i.box.actual.typeY == "real") {
+		  if (i.box.actual.typeY == "children") {
 			  i.box.actual.height = bottom-top
 			  i.box.actual.y = (top+bottom)/2;			  
 		  }
@@ -733,6 +773,7 @@ function Item(parent, typeAndId, style, d) {
 			i.box.actual.height=i.box.container.height;			
 			i.box.actual.y=i.box.container.y;	
 	  }
+      if (["textBox", "svgtext"].indexOf(i.type)>-1) console.log(i.id+" updateActualBox ",i.box.actual)
 	  //"custom" -> do nothing
   }
   
@@ -752,8 +793,8 @@ function Item(parent, typeAndId, style, d) {
 			 i.g = i.g.transition(transitionShop[i.trans].make().transObj);             
 		 }
 		 //compute width and height when defined as "fill" (now that the parent has been drawn)
-		// i.fillUpWidthHeight();
-       i.updateContainerBox();  
+		 i.fillUpWidthHeight();
+         i.updateContainerBox();  
 		 
        //call the actual drawing function (set line colors, set text, etc.)
 		 if (i.drawingFunction!=null) {
@@ -1013,6 +1054,51 @@ function itemBag (itemList) {
 		
 	}
 	
+  b.containerBox= function (key, value) {
+    if (typeof value=="undefined")  {
+       return b.items[0].containerBox(key);
+    } else {
+       for (var i=0;i<b.items.length; i++) 
+         b.items[i].containerBox(key,value);
+      return b;
+    }
+  }
+  b.unionBox = function(kx, kwidth) {
+       var left=0, right=0;
+       for (var i=0;i<b.items.length; i++)  {
+         if (!b.items[i].style.show) continue;
+         var cx =b.items[i].box.actual[kx] + i.children[c].style[kx];
+         var cwh =i.children[c].box.actual[kwidth]/2;
+         left=min(left, cx-cwh);
+         right=max(right, cx+cwh)              
+         
+      }
+      out={};
+      out[kx]=left+right/2;
+      out[kwidth]=right-left;
+      return out;
+  }
+  b.actualBox= function (key, value) {
+    if (typeof value=="undefined")  {
+       return b.items[0].actualBox(key);
+    } else {
+       for (var i=0;i<b.items.length; i++) 
+         b.items[i].actualBox(key,value);
+      return b;
+    }
+  }
+  b.getMaxSize= function (key) { 
+     var m=0;
+     for (var i=0;i<b.items.length; i++) 
+         m=max(m, b.items[i].actualBox(key));
+     return m;    
+  }
+  b.getMinSize= function (key) { 
+     var m=0;
+     for (var i=0;i<b.items.length; i++) 
+         m=min(m, b.items[i].actualBox(key));
+     return m;    
+  }
 	/*
 	
 	b.getTheoreticalBBox = function(evenFloat) {
@@ -1113,9 +1199,9 @@ function itemBag (itemList) {
 		}
 		return m;
 	}
-	b.align=function (kx, kwidth,align, targetX, containerWidth,  keepRelative) {
+	b.align=function (kx, kwidth, align, targetX, containerWidth,  keepRelative) {
 		if (targetX== null) targetX = b.style[kx];
-		if (containerWidth==null) containerWidth=b.style[kwidth];
+		if (containerWidth==null) containerWidth=b.containerBox(kwidth);
 		
 		//console.log(targetX, containerWidth);
 		if (keepRelative) {
@@ -1230,7 +1316,7 @@ frameManager = function(style, sozi)  {
 		  	
 			fm.f++;
 			fm.topF.save({show:true});
-			console.log("saved for frame "+(fm.f-1));
+			if (logNextFrame) console.log("saved for frame "+(fm.f-1));
 			
 		}		
 		return fm;

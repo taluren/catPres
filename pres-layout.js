@@ -195,10 +195,10 @@ addToCodex("array", "box", {
 		
 	onDraw: function(i) {
 	   i.vl.setBag(i.rowBag, true);
-		i.vl.setFixedDimensions(i.box.container.height);						
+		i.vl.setFixedDimensions(i.containerBox("height"));						
 	
 	   i.hl.setBag(i.colBag, true);
-		i.hl.setFixedDimensions(i.box.container.width);		
+		i.hl.setFixedDimensions(i.containerBox("width"));		
 	   
 	},
    onDrawPostOrder: function(i) {
@@ -207,14 +207,14 @@ addToCodex("array", "box", {
 		i.hl.apply();
 //before		i.style.width=i.hl.totalSize;
 //before		i.style.height=i.vl.totalSize;
-		i.box.actual.width=i.hl.totalSize;
-		i.box.actual.height=i.vl.totalSize;
+		i.actualBox("width",i.hl.totalSize);
+		i.actualBox("height",i.vl.totalSize);
 		
 		i.layout(2);
 		for (var ic =0; ic<i.children.length; ic++) {					
 			i.children[ic].drawBackground();
-		}
-			
+		}	
+        
 	}
 })
 
@@ -243,26 +243,15 @@ addToCodex("verticalVector", "customBGBox", {
 		//vertical arrange
 		i.lm.apply();
 		
+        i.actualBox("height", i.lm.totalSize)
+        if (i.style.align[0]!="n")
 		
 		//horizontal align
 		var b= i.childBag();
-		if (i.style.align[0]!="n") 
-			b.setWidthToMin("x","width")
-			 .align("x","width",i.style.align[0],i.style.x, i.style.width, false);
-	  // else 
-		//	b.setWidthToActual("x", "width");
-		
-		//compute self dimensions
-		if (i.style.width == null) 
-			i.style.width=b.style.width;
-		
-		//if (i.style.height == null) 
-		//	i.style.height=b.setWidthToActual("y", "height").style.height;
-		
-	    i.bgWidth = i.style.width;
-		i.bgHeight = i.style.height;
-		
-		//layout itself and children
+		if (i.style.align[0]!="n") {
+            i.actualBox("width", b.getMaxSize("width") ) 
+            b.align("x","width",i.style.align[0],0, i.actualBox("width"), false);
+        }			
 		i.layout(1);
 	}
 })
@@ -288,22 +277,19 @@ addToCodex("horizontalVector", "customBGBox", {
 	},
    onDrawPostOrder: function(i) {
 		//arrange horizontaly
-		i.lm.apply();
-		
+		i.lm.apply();		
+        
+        i.actualBox("width", i.lm.totalSize);
+        
 		//vertical align
 		var b= i.childBag();		
 		if (i.style.align[0]!="n")  {		
-			b.setWidthToMin("y","height")
-		   b.align("y","height",i.style.align[0],i.style.y, i.style.height,false);
+		   i.actualBox("height", b.getMaxSize("height") ) 
+           b.align("y","height",i.style.align[0],0, i.actualBox("height"), false);
 		}
 		
-		//compute self dimensions
-		if (i.style.height == null) 
-			i.style.height=b.style.height;
-		
-        i.bgWidth = i.style.width;
-		i.bgHeight = i.style.height;
 		i.layout(1);
+        
 	}
 })
 
@@ -370,7 +356,7 @@ function layoutManager(str, horizontal) {
 		   .split(l.lineExp);
 	if (splits[splits.length-1]=="") splits.pop();
 	
-	if (l.debug) console.log(str, l.lineExp, splits+"");
+	//if (l.debug) console.log(str, l.lineExp, splits+"");
 	while (splits.length>0) {
 		var x=splits.shift();
   
@@ -423,7 +409,7 @@ function layoutManager(str, horizontal) {
 		l.fixedSize=0;
 		l.unknownPercent=0;
 		l.sumX = 0;
-		if (l.debug) console.log("SetFixedDimensions "+(l.horizontal?"H":"V"));
+		if (l.debug) console.log("SetFixedDimensions "+(l.horizontal?"H":"V")+" totalSize="+totalSize);
 		l.bag.each(function(i, col) {
 			var a= l.arrange[col];
 			var width=null;
@@ -437,39 +423,41 @@ function layoutManager(str, horizontal) {
 					l.unknownPercent += a.value;
 				//console.log(width, isNaN(l.totalSize), l.totalSize);
 			}
-            if (l.debug) console.log(width);				
+            if (l.debug) console.log(a.str+": "+ width+ " (null is ok)");				
 			if (a.ratio == "x") l.sumX += a.value;
 			//if (width!=null)  //add this if to keep child dimensions ... TODO
-         if (width) l.fixedSize+=width;
+         if (width) 
+            l.fixedSize+=width;
 			l.sizeSequence.push(width);
+            i.containerBox(l.kwidth, width);
 		})
 		
-		if (l.totalSize != null) {
-		   var x = (l.totalSize-l.fixedSize)/l.sumX;		
+		if (l.totalSize != null && l.sumX>0) {
+		    var x = (l.totalSize-l.fixedSize)/l.sumX;		
 			if (l.debug) console.log("set x values with factor ",x);
 			l.bag.each(function(i, col) {
 				var a= l.arrange[col];
 				if (a.ratio == "x") {
-					var width = a.value * x;
-				   i.box.container[l.kwidth] = width;
+				   var width = a.value * x;
+				   i.containerBox(l.kwidth, width);
 				   l.fixedSize+=width;
-					l.sizeSequence[col] = width;
+				   l.sizeSequence[col] = width;
 				}
 			})			
 		}
 			
-		setContainerWidth();
+		//setContainerWidth();
 		if (l.debug) {
 			console.log("end of setFixed dimensions: cols with fixed width only")
-			console.log(l.bag.items.map(function(b,col) {return l.arrange[col].str+":"+l.sizeSequence[col]";}))
+			console.log(l.bag.items.map(function(b,col) {return l.arrange[col].str+":"+l.sizeSequence[col];}).join(", "))
 		}
 	}
 	function setContainerWidth() {		
 		l.bag.each(function(i, col) {
-			if (!l.deep) 		
-		      i.box.container[l.kwidth] = width;
+              i.containerBox(l.kwidth,l.sizeSequence[col]);
+			/*if (!l.deep) 		
 			else
-			 	i.each(function(j) {j.box.container[l.kwidth] = l.sizeSequence[col]});
+			 	i.each(function(j) {j.box.container[l.kwidth] = l.sizeSequence[col]});*/
 			})
 	}
 	l.computeMissingSizes = function() {
@@ -482,19 +470,25 @@ function layoutManager(str, horizontal) {
 			
 			
 			var a= l.arrange[col];
-			if (!l.deep || a.keepRelative) { 
-				
-				l.sizeSequence[col] = i.getActualBox(l.kwidth);
-				
-				if (l.debug) console.log("col ", col, " gets real width = ", l.sizeSequence[col]);
-			}
-			else {
-				l.sizeSequence[col] = i.getMinimumSize(l.kwidth);
-				
+            if (l.deep) {
+              if ( a.keepRelative) {
+                //many objects, no alignment: compute their bounding box as a union
+                var b= i.unionBox(l.kx, l.kwidth);                
+                l.sizeSequence[col] =b[l.kwidth];
+                i.containerBox(l.kx, b[l.kx]);
+                i.containerBox(l.kwidth, b[l.kkwidth]);                
+                if (l.debug) console.log("col ", col, " gets real union width = ", l.sizeSequence[col]);
+              } else {
+                //many objects, with alignment: we only consider the target with (=largest item width)
+                l.sizeSequence[col] = i.getMaxSize(l.kwidth);				
 				if (l.debug) console.log("col ", col, " gets min  possible width = ", l.sizeSequence[col]);
 				//i.style[l.kwidth] = i.getMaxInnerDimension(l.kwidth);
-			}			
-		
+              }              
+            } else  {                 
+                //single object, take its own width
+                l.sizeSequence[col] = i.actualBox(l.kwidth);                
+                if (l.debug) console.log("col ", col, " gets real width = ", l.sizeSequence[col]);
+            }
 			if (l.debug) console.log("box width according to bbox:", l.sizeSequence[col]);
 			if (a.ratio=="%" || a.ratio=="x") {
 				if (a.ratio =="x") {
@@ -516,8 +510,9 @@ function layoutManager(str, horizontal) {
 			l.bag.each(function(i, col) {
 				var a= l.arrange[col];
 				if (a.ratio =="x") {
-					l.sizeSequence[col] = l.minX * a.value;
-					l.fixedSize += i.style[l.kwidth];
+                    var width=l.minX * a.value;
+					l.sizeSequence[col] = width;
+					l.fixedSize += width;
 				}			
 			})
 			
@@ -535,22 +530,23 @@ function layoutManager(str, horizontal) {
 				l.bag.each(function(i, col) {
 					var a= l.arrange[col];
 					if (a.ratio =="%") {
-						l.sizeSequence[col]= l.totalSize * a.value;
-						l.fixedSize += i.style[l.kwidth];
+                        var width=  l.totalSize * a.value;
+						l.sizeSequence[col]= width
+						l.fixedSize += width
 					}
 				});			
 			}
 		
 		}
-		//copy width fas "container width" to each child
+		//copy width sequence as "container width" to each child
 		
 		setContainerWidth();
 		
 		if (l.totalSize==null) l.totalSize = l.fixedSize;
 		
 		if (l.debug) {		
-			console.log("end of setFixed dimensions: all width should be set")
-			console.log(l.bag.items.map(function(b,col) {return l.arrange[col].str+":"+b.style[l.kx]+"[+"+b.style[l.kwidth]+"]";}))
+			console.log("end of computeMissingSizes: all width should be set")
+			console.log(l.bag.items.map(function(b,col) {return l.arrange[col].str+":"+b.style[l.kx]+"[+"+b.containerBox(l.kwidth)+"]";}))
 		} 
 	}
 	
@@ -565,16 +561,18 @@ function layoutManager(str, horizontal) {
 			
 			var a= l.arrange[col];
 			
-			if (l.debug) console.log("align bag: "+l.kx+a.align, child.style[l.kx], child.style[l.kwidth])
+			if (l.debug) console.log("align bag: "+l.kx+a.align, child.style[l.kx], child.containerBox(l.kwidth))
 			
 			child.align(l.kx, l.kwidth, a.align, null, null, a.keepRelative);
 			
 			
 		});	
 		l.bag.each(function(child, col) {
-			
-			child.style[l.kx] = cursor+l.sizeSequence[col]/2 - child.getActualBox(l.kx);
-			if (l.debug) console.log("cursor: ",cursor, child.getActualBox(l.kx),  child.getActualBox(l.ky), xy(child.style));
+			var dx=child.actualBox(l.kx);
+            child.containerBox(l.kx,dx );
+			child.style[l.kx] = cursor+l.sizeSequence[col]/2 - dx;
+            
+			if (l.debug) console.log("cursor= ",cursor, "  actual box x and width=",child.actualBox(l.kx),  child.actualBox(l.kwidth)," given x,y", xy(child.style));
 			cursor += l.sizeSequence[col];
 			if (l.gaps[col+1]=="*") ngaps++;
 			
@@ -599,7 +597,7 @@ function layoutManager(str, horizontal) {
 				child.each(function(i) {
 					i.style[l.kx] = child.style[l.kx];
 				})
-				if (l.debug) console.log("child x width:", child.style[l.kx], child.style[l.kwidth]);
+				if (l.debug) console.log("child x and width:", child.style[l.kx], child.containerBox(l.kwidth));
 			})	
 		}
 		
@@ -610,8 +608,8 @@ function layoutManager(str, horizontal) {
 			l.computeMissingSizes();
 		} else {
 			l.bag.each(function(i, col) {
-				if (l.sizeSequence[l.kwidth]==null)  
-				   l.sizeSequence[l.kwidth]=i.getActualBox(l.kwidth);
+				if (l.sizeSequence[col]==null)  
+				   l.sizeSequence[col]=i.actualBox(l.kwidth);
 			});			
 		}
 		l.computePositions();		
@@ -630,35 +628,16 @@ function layoutManager(str, horizontal) {
 			g.append("rect")
 			  .attr("x",-3-col/2)
 			  .attr("y",-3-col/2)
-			  .attr("width",6+col)
-			  .attr("height",6+col)
+			  .attr("width",5+col)
+			  .attr("height",5+col)
 			  .style("opacity",0.5)
 			  .style("stroke","black")
 			  .attr("class", "lmHelpLines"+l.kx)
 			  .style("fill", color[g.datum().type] ||"gray")
-			  .attr(l.kx, child.style[l.kx]-child.style[l.kwidth]/2)
-			  .attr(l.kwidth, child.style[l.kwidth])				
+			  .attr(l.kx, child.style[l.kx]+child.containerBox(l.kx)-child.containerBox(l.kwidth)/2)
+			  .attr(l.kwidth, child.containerBox(l.kwidth))				
 		});		
 	}
 	return l;
 	
 }
-var needHelpLines = [];
-function addHelpLines(i) {
-	needHelpLines.push(i);
-}
-function drawRecursiveHelpLines(i) {
-        if (!i) return;
-		/*if (i.vl) i.vl.drawHelpLines(i.g);
-		if (i.hl) i.hl.drawHelpLines(i.g);
-		if (i.lm) i.lm.drawHelpLines(i.g);*/
-		//console.log(i);
-          
-		i.children.forEach(drawRecursiveHelpLines);			
-}
-	
-function drawHelpLines() {
-	
-	needHelpLines.forEach(drawRecursiveHelpLines);
-}
-

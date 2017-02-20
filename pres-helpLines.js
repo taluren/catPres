@@ -1,5 +1,5 @@
 function drawItemTree(item, style) {
-	drawItemTree2(item.parent, item, 15, style);
+	drawItemTree2(item.parent, item, 10, style||{opacity:0.4});
 }
 function drawItemTree2(holder, item, r, style) {
 	if (r<=0) 
@@ -53,3 +53,24 @@ addToCodex("itemTree-g", "g", {
 	} 
 	
 })
+
+
+var needHelpLines = [];
+function addHelpLines(i) {
+    needHelpLines.push(i);
+}
+function drawRecursiveHelpLines(i) {
+        if (!i) return;
+        if (i.vl) i.vl.drawHelpLines(i.g);
+        if (i.hl) i.hl.drawHelpLines(i.g);
+        if (i.lm) i.lm.drawHelpLines(i.g);
+        //console.log(i);
+          
+        i.children.forEach(drawRecursiveHelpLines);         
+}
+    
+function drawHelpLines() {
+    
+    needHelpLines.forEach(drawRecursiveHelpLines);
+}
+
