@@ -116,19 +116,18 @@ function getAlignMove(kx, kwidth, align, targetX, targetWidth, element) {
 	var move={x:0,y:0};			
 	if (align == "n") return move;
 	
-	var bbox = element.getLayoutBBox(kx, kwidth);		
-
-	
+	var boxC = element.actualBox(kx)+element.style[kx];
+	var boxW = element.actualBox(kwidth);			
 	
 	
 	if (targetWidth==null) stop(["Cannot align when "+kwidth+" is not defined", element]);
 	
 	if (align == "l" || align=="t") 
-					move[kx] = (targetX - targetWidth/2) - ( bbox[kx] )
+					move[kx] = (targetX - targetWidth/2) - ( boxC - boxW/2 )
 	if (align == "c" || align=="m")  
-					move[kx] = targetX                   - ( bbox[kx] + bbox[kwidth]/2 );
+					move[kx] = targetX                   - ( boxC );
 	if (align == "r" || align=="b") 
-					move[kx] = (targetX + targetWidth/2) - ( bbox[kx] + bbox[kwidth] )
+					move[kx] = (targetX + targetWidth/2) - ( boxC + boxW/2 )
     if (isNaN(move[kx])) stop(move);		
    if (alignDebug) console.log("align "+kx+align, move.x,targetX,targetWidth, bbox[kx], bbox[kwidth]);
 	return move;	
@@ -612,13 +611,15 @@ function Item(parent, typeAndId, style, d) {
 			
 	}
 	
-	if (i.parent.cell) i.cell = i.parent.cell;
+	i.cell = i.parent.cell || null;
+	i.appendIn = i.parent.appendIn || null;
+	i.np = i.parent.np || null;
 	
 	/****private ***/
-	i.setWidthToActual = function (kx, kwidth) {
-	  i.style[kwidth] = i.getLayoutBBox(kx, kwidth)[kwidth];
+	/*i.setWidthToActual = function (kx, kwidth) {
+	  i.style[kwidth] = i.(kx, kwidth)[kwidth];
 	  return i;
-   }
+   }*/
   
 	i.setWidthToMin = i.setWidthToActual;
 	
@@ -949,9 +950,7 @@ function Item(parent, typeAndId, style, d) {
 	  return b;
 	  
   }
-  i.getLayoutBBox= function(kx, kwidth) {
-	  return i.getParentBBox();
-  }
+  
   
   /*if (code.getBackgroundBBox) 
 	  i.getBackgroundBBox = function() { return code.getBackgroundBBox(i)};
@@ -1209,7 +1208,7 @@ function itemBag (itemList) {
 		for (var x=0;x<b.items.length; x++) {
 		
    //		console.log(b.items[x].getLayoutBBox(kx, kwidth));
-			m=max(m, b.items[x].getLayoutBBox(kx, kwidth)[kwidth]);
+			m=max(m, b.items[x].actualBox(kwidth));
 		}
 		return m;
 	}
@@ -1238,7 +1237,7 @@ function itemBag (itemList) {
 	  return b;
    }
 	b.setWidthToActual = function (kx, kwidth) {
-	  b.style[kwidth] = b.getLayoutBBox(kx, kwidth)[kwidth];
+	  b.style[kwidth] = b.actualBox(kwidth);
 	  return b;
    }
 	
