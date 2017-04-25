@@ -549,7 +549,7 @@ function Item(parent, typeAndId, style, d) {
 	  if (!style) style={};
 	  if (!i.bgRect) {
 		  i.bgRect={
-			   g:i.g.insert("rect", ":first-child").attr("class", "background"),				
+			    g:i.g.insert("rect", ":first-child").attr("class", "background"),				
 				useAttr : function (attr, key1,key2,key3) {  useAttr(i.bgRect,attr,key1, key2, key3);},
   
 				useStyle :function (attr, key1,key2,key3) {useStyle(i.bgRect, attr,key1,key2,key3);},
@@ -695,6 +695,7 @@ function Item(parent, typeAndId, style, d) {
     if (typeof value=="undefined")  {
        return i.box.actual[key];
     } else {
+      console.log ("redefine actual box", i.id, key, value)
       i.box.actual[key]=value;
       return i;
     }
@@ -846,6 +847,7 @@ function Item(parent, typeAndId, style, d) {
         
         //  marginAndPadding(i.style.bg, "padding");
           var bbox=i.getBackgroundBBox();
+          console.log("DRAW BACKGROUND", i.id,  bbox);
           //console.log(i.type, bbox)
           if (!bbox) return false;
           

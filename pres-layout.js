@@ -81,8 +81,8 @@ addToCodex("blackbox", "box", {
  }
 });
 
-//cell: box 
-addToCodex("cell", "box", {	
+//cell 
+addToCodex("cell", "g", {	
  onBuild: function(i){ 
 	
 	i.getLayoutBBox= function(kx, kwidth) {	  
@@ -97,12 +97,11 @@ addToCodex("cell", "box", {
 	i.move = i.moveInner;
 
  },
- onDraw: function (i) {
+ onRun: function (i) {
 	 if (i.bgRect) i.bgRect.automatic=false; 
 	 //don't draw background rectangle at normal time, let the parent trigger it instead.
-	 //can be onRun	 
  },
- defaultBackground:"container"
+ defaultBackground:"container" //use container-defined dimensions as default, instead of contents
 });
 
 addToCodex("array", "box", {
@@ -114,7 +113,7 @@ addToCodex("array", "box", {
 		if (!i.datum) i.datum={};
 		if (!i.datum.cols) i.datum.cols="c";
 		if (!i.datum.rows) i.datum.rows="m";
-		
+		i.box.actual={type:"custom", x:0, y:0};
 		i.currentRow=0;
 		i.currentColumn=0;
 		
@@ -195,6 +194,10 @@ addToCodex("array", "box", {
 		
 	},
 	
+    onRun: function (i) {
+        if (i.bgRect) i.bgRect.automatic=false; 
+        //don't draw background rectangle at normal time, let the parent trigger it instead.
+    },
 		
 	onDraw: function(i) {
 	   i.vl.setBag(i.rowBag, true);
@@ -217,7 +220,8 @@ addToCodex("array", "box", {
 		for (var ic =0; ic<i.children.length; ic++) {					
 			i.children[ic].drawBackground();
 		}	
-        
+        i.drawBackground();
+        console.log(i.box.actual);
 	}
 })
 
