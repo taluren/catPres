@@ -164,7 +164,7 @@ addToCodex("array", "box", {
 			return i.colBag.get(c).get(r);
 		}
 		i.appendIn=function(c,r,type, style, data, more) {
-		   console.log("**** appendIn  **** ", c,r, type);	
+            console.log("**** appendIn  **** ", c,r, type);	
 			console.log(i);
 			var cell= i.cell(c,r);
 			var inside =cell.append(type,style, data);
@@ -184,7 +184,7 @@ addToCodex("array", "box", {
 				var cells = rows[ir].split("&");
 				for (var ic =0; ic<cells.length; ic++) {					
 					if (ic) i.currentColumn++;
-					i.appendIn("text", i.currentColumn, i.currentRow, style, data, function(i) {i.print(cells[ic])// style.text = cells[ic]
+					i.appendIn(i.currentColumn, i.currentRow,"text",  style, data, function(i) {i.print(cells[ic])// style.text = cells[ic]
 					});
 				}
 			}			
