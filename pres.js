@@ -733,6 +733,7 @@ function Item(parent, typeAndId, style, d) {
       //todo include padding here.
       if (!i.box.actual.typeX) i.box.actual.typeX=i.box.actual.type;
       if (!i.box.actual.typeY) i.box.actual.typeY=i.box.actual.type;
+      var scale=(i.style.scale || 1);
       if (i.box.actual.typeX == "real" || i.box.actual.typeY=="real") {
         var bbox=false;
         if (i.display) {
@@ -774,6 +775,14 @@ function Item(parent, typeAndId, style, d) {
 			  i.box.actual.y = (top+bottom)/2;			  
 		  }
 	  } 
+      if (i.box.actual.typeX == "children" || i.box.actual.typeX == "real") {        
+              i.box.actual.width *=scale;
+              i.box.actual.x *=scale;
+      }
+      if (i.box.actual.typeY == "children" || i.box.actual.typeY == "real") {        
+              i.box.actual.height *=scale;
+              i.box.actual.y *=scale;
+      }
 	  if (i.box.actual.typeX == "outside") {
 			i.box.actual.width=0;			
 			i.box.actual.x=0;	

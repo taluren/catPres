@@ -34,6 +34,18 @@
 		//create the "frame manager" with some parameters	
 		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
 		
+		 fm.frame("Math alignment test:")
+          .append("text")
+          
+            .np("*|Size 6:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:6})
+            .np("*|Size 10:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:10})
+            .np("*|Size 12:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:12})
+          
+          addHelpLines(fm.goto("text"));     
+          
+          
+       
+		/*
 		fm.frame("Overlays")
            //Array: more details later. This one has rows align in the middle (all the same size), and two columns (one aligned left, another center of width 50)
             .append("array#a", {}, {rows:"m1x", cols:"lc50"})
@@ -93,7 +105,7 @@ v.append("circle")
   if (debug){
 	 addHelpLines(v);
   }
-}/*
+}
 
 fm.frame("vectors",{model:"emptyWithBG"})
 

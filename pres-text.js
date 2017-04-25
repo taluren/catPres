@@ -312,6 +312,7 @@ addToCodex("mathJaxed","transform", {
 		i.deltaY=-12; //looks good on first approximation
 	 //	i.append("circle",{fill:"none",r:1});
 	},
+    internalNode:false, //does not contain children in the item tree (but child elements are directly added to the DOM)
 	onDraw:function(i) {
 		//if (i.ready) {			
 		i.style.x=0;
