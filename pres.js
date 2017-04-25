@@ -480,7 +480,9 @@ function Item(parent, typeAndId, style, d) {
 		firstRunFunction:code.onFirstRun,
 		datum:d,
 		schedule:[],
-		box:{container:{type:"inherit"}, actual:{type:code.internalNode?"children":"real"}, bg: {}}
+		box:{container:{type:"inherit"}, 
+             actual:{type:code.internalNode?"children":"real"}, 
+             bg: {use:code.defaultBackground}}
   }
   
   i.root.index[id] = i;
@@ -541,6 +543,7 @@ function Item(parent, typeAndId, style, d) {
       return i;
   }
 
+  
   i.decoration=function (codex, style) {
 	  
 	  if (typeof codex== "object") {style=codex; codex="border"};
@@ -574,7 +577,6 @@ function Item(parent, typeAndId, style, d) {
 	  console.warn("deprecated");
 	  return i.children[c];
   }  
-  
   
 	i.on = function(when, style) {
         if (i.schedule == null) i.schedule = [];
@@ -696,6 +698,17 @@ function Item(parent, typeAndId, style, d) {
       return i;
     }
   }
+  i.getBackgroundBBox = function() {
+    var defaultBG=i.box.bg.use;
+    if (typeof defaultBG== "function") defaultBG=defaultBG(i);
+    if (defaultBG == "actual") 
+       defaultBG=i.box.actual
+    else if (defaultBG == "container") 
+       defaultBG=i.box.container    
+    
+    return  copyWithDefault(i.box.bg, defaultBG); 
+  }
+  
   
   i.updateContainerBox =function() {
 	  if (i.box.container.typeX == "inherit"  ) {
@@ -723,7 +736,7 @@ function Item(parent, typeAndId, style, d) {
         if (i.display) {
           try {
             bbox=shallowCopy(i.g.node().getBBox()) 
-          } catch (e) {console.log("bbox unavailable")};
+          } catch (e) {console.log(i.id+": bbox unavailable")};
         }
         if (!bbox) bbox = {x:0,y:0,width:0, height:0};
         if (i.box.actual.typeX == "real") {
@@ -748,7 +761,7 @@ function Item(parent, typeAndId, style, d) {
 			  top=min(top, cy-chh);
 			  bottom=max(bottom, cy+chh);
               
-              if (i.children.length>2) console.log(i.id, cx, i.children[c].box.actual.x, left, right);
+//              if (i.children.length>2) console.log(i.id, cx, i.children[c].box.actual.x, left, right);
 		  }
 		  if (i.box.actual.typeX == "children") {				  
 			  i.box.actual.width = right-left;
@@ -940,13 +953,13 @@ function Item(parent, typeAndId, style, d) {
 	  return i.getParentBBox();
   }
   
-  if (code.getBackgroundBBox) 
+  /*if (code.getBackgroundBBox) 
 	  i.getBackgroundBBox = function() { return code.getBackgroundBBox(i)};
   else 
 	  i.getBackgroundBBox = function() {
 	     return i.childBag().getParentBBox(false);
      }
-  	  
+  	*/  
   if (code.getAnchoredBBox) 
 	  i.getAnchoredBBox = function() { return code.getAnchoredBBox(i)};
   else 
@@ -1002,6 +1015,7 @@ function itemBag (itemList) {
 		return b.items[0].up(selector);
 	}
 	b.move=function(p,q) {
+      console.log(b, " move ", p, q);
 		for (var x=0;x<b.items.length; x++) {
 			var P= (typeof p == "function") ? p(b.items[x], x) : p;
 			var Q= (typeof q == "function") ? q(b.items[x], x) : q;
@@ -1200,7 +1214,7 @@ function itemBag (itemList) {
 		return m;
 	}
 	b.align=function (kx, kwidth, align, targetX, containerWidth,  keepRelative) {
-		if (targetX== null) targetX = b.style[kx];
+		if (targetX== null) targetX = b.containerBox(kx);
 		if (containerWidth==null) containerWidth=b.containerBox(kwidth);
 		
 		//console.log(targetX, containerWidth);

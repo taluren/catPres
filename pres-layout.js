@@ -37,19 +37,20 @@
 //all children should "try" to fit in the [0,width]x[0,height] box.
 //does not override layoutBBox (for layout, a box bbox is the visible one)
 addToCodex("box", "g", {
-	getBackgroundBBox : function(i) {
+	/*getBackgroundBBox : function(i) {
 		if ( i.style.width == null || i.style.height==null) stop(["box dimensions are not set",i]);
 		return {x:-i.style.width/2, y:-i.style.height/2, width:i.style.width, height:i.style.height};
 	},	
 	getAnchoredBBox : function(i) {
+        stop("obsolete");
 		return {x:-i.style.width/2, y:-i.style.height/2, width:i.style.width, height:i.style.height};
 		//return {x:i.style.x, y:i.style.y, width:i.style.width+i.style.x, height:i.style.height+i.style.y};
-	}
+	}*/
 	
 	
 })
 addToCodex("customBGBox", "g", {
-	getBackgroundBBox : function(i) {
+	/*getBackgroundBBox : function(i) {
 		var b= {x:-i.bgWidth/2, y:-i.bgHeight/2, width:i.bgWidth, height:i.bgHeight};
 		if ( i.bgWidth == null || i.bgHeight==null) {
 			var b2 = i.childBag().getParentBBox(false);
@@ -66,6 +67,7 @@ addToCodex("customBGBox", "g", {
 		return b;
 	}//,	
 	//getAnchoredBBox:null
+    */
 })
 
 //same as box, but also override getLayoutBBox, i.e. inner contents should never be probed.
@@ -99,7 +101,8 @@ addToCodex("cell", "box", {
 	 if (i.bgRect) i.bgRect.automatic=false; 
 	 //don't draw background rectangle at normal time, let the parent trigger it instead.
 	 //can be onRun	 
- }
+ },
+ defaultBackground:"container"
 });
 
 addToCodex("array", "box", {
@@ -116,12 +119,12 @@ addToCodex("array", "box", {
 		i.currentColumn=0;
 		
 		
-	   i.vl = layoutManager(i.datum.rows, false);	
+	    i.vl = layoutManager(i.datum.rows, false);	
 		i.hl = layoutManager(i.datum.cols, true);			
 		
+        
 		i.rowBag=itemBag();
 		i.colBag=itemBag();
-		
 		i.fillCellsUpToDimension=function(c,r, nowarning) {
 			if (!nowarning && (i.colBag.size()<=c || i.rowBag.size()<=r))
 				console.warn("The array is being extended to have column "+c+" and row "+r+".");
@@ -331,6 +334,7 @@ function layoutManager(str, horizontal) {
 		gaps:[],
 		deep:false,
 		debug:false,
+        quickDebug:false,
 		horizontal:horizontal,
 		kx : horizontal?"x":"y",
 		//ky : horizontal?"y":"x",
@@ -544,7 +548,7 @@ function layoutManager(str, horizontal) {
 		
 		if (l.totalSize==null) l.totalSize = l.fixedSize;
 		
-		if (l.debug) {		
+		if (l.debug || l.quickDebug) {		
 			console.log("end of computeMissingSizes: all width should be set")
 			console.log(l.bag.items.map(function(b,col) {return l.arrange[col].str+":"+b.style[l.kx]+"[+"+b.containerBox(l.kwidth)+"]";}))
 		} 
@@ -594,10 +598,12 @@ function layoutManager(str, horizontal) {
 		});
 		if (l.deep) {
 			l.bag.each(function(child, col) {
+                if (l.debug) console.log("child x and width:", child.style[l.kx], child.containerBox(l.kwidth));
+                       
 				child.each(function(i) {
 					i.style[l.kx] = child.style[l.kx];
+                    console.log("contains ",i.id, i.style[l.kx]);
 				})
-				if (l.debug) console.log("child x and width:", child.style[l.kx], child.containerBox(l.kwidth));
 			})	
 		}
 		
@@ -613,7 +619,7 @@ function layoutManager(str, horizontal) {
 			});			
 		}
 		l.computePositions();		
-		if (l.debug) console.log("Apply layout manager ", l.arrange, " : complete.");
+		if (l.debug ||l.quickDebug) console.log("Apply layout manager "+ str+ " size="+l.totalSize+"  : complete.");
 	}
 	
 	var color= {vector:"red", 

@@ -168,7 +168,8 @@ var codex = {
 		onLayout : function(i) {
 			i.g.attr("transform", "translate("+xy(i.style)+")");            
             i.useStyle("opacity");
-		}//called after only x and y may have changed
+		},//called after only x and y may have changed
+		defaultBackground:"actual" //box dimensions for the background rectangle are by default the actual bbox of the item. Other options are "container" (for a container-defined background, i.e. cell in array), or any object with "x", "y", "width" and/or "height" values, or a function returning one of the above.
 		
 	}
 	
