@@ -20,7 +20,7 @@ addToCodex("image", "transform", {
 			}
 		
 	},
-	onDraw: function(i) {		  
+	onDraw: function(i) {		  //todo: move to onrun ?
 	     var w, h;
 		   if (i.style.width||i.style.height) {
 				var r=i.imgWidth/i.imgHeight;

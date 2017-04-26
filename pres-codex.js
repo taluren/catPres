@@ -40,6 +40,7 @@ var codex = {
 			i.g.attr("transform", "translate("+xy(i.style)+")");	
 		}
 	},
+    
 	rect: {
         internalNode:false,
 		tag:"rect",
@@ -63,10 +64,6 @@ var codex = {
 		onLayout: function(i){
 			
             i.g.attr("transform", "translate("+ xy(i.style)+")");    
-                               /*(i.style.x-i.style.w/2)+","+(i.style.y-i.style.h/2)+
-                               ")");
-            /*i.g.attr("x", i.style.x-i.style.w/2);
-			i.g.attr("y", i.style.y-i.style.h/2);*/
 		}
 	},
 	path: {
@@ -77,9 +74,9 @@ var codex = {
 			i.useAttr("d");	
 			i.useAttr("fill");	
 			i.useAttr("stroke");	                
-         i.useStyle("stroke-width","strokeWidth");
+            i.useStyle("stroke-width","strokeWidth");
 			i.useStyle("opacity");
-         i.useStyle("stroke-dasharray", "dash");
+            i.useStyle("stroke-dasharray", "dash");
 		},
 		onLayout:function(i){
 			i.g.attr("transform", "translate("+xy(i.style)+")");
@@ -101,8 +98,8 @@ var codex = {
 			i.useAttr("font-size","size");
 			i.useAttr("font-family","font");	
 			i.useAttr("font-weight","weight");	
-			i.useAttr("text-anchor","anchor");	
-			i.useAttr("alignment-baseline","alignmentBaseline");
+			i.useAttr("text-anchor","anchor");	 //todo: test
+			i.useAttr("alignment-baseline","alignmentBaseline"); //todo: test
 			i.useStyle("cursor");
 			i.useStyle("-webkit-user-select","select");
 			i.useStyle("-moz-user-select","select");
@@ -154,7 +151,7 @@ var codex = {
 		}*/
 	},
 	default: { //codex template:
-		tag:"g",  //tag of the elemnt to add
+		tag:"g",  //tag of the element to add
         internalNode:true, //may have children
 		defaultStyle: {x:0, y:0, wriggle:defaultWriggleThreshold}, //default values for this node and its descendants  
 		onBuild:  null, //function to be called once, at build time ("append"), parameter: item
@@ -196,4 +193,10 @@ addToCodex("custom","", {
 		i.g.node().innerHTML = i.datum		
 	}
 })
+
+
+
+addToCodex("circ","circle", {});
+addToCodex("rectangle","rect", {});
+
 
