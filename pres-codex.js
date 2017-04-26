@@ -64,6 +64,13 @@ var codex = {
 		onLayout: function(i){
 			
             i.g.attr("transform", "translate("+ xy(i.style)+")");    
+		},
+		drawInPdf: function(i, doc) {
+			doc.rect(i.style.offsetx-i.style.w/2,i.style.offsety-i.style.h/2,i.style.w,i.style.h);
+			
+			if ("fill" in i.style) doc.fill(i.style.fill);
+			              
+			
 		}
 	},
 	path: {

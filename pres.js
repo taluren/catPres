@@ -430,7 +430,13 @@ function FrameBase(frame, holder, transform, style) {
   /*base frame is ready, run model to draw background, title, etc.*/
   frameStyleCatalog[fb.style.model||fb.defaultStyle.model](fb);
   fb.mainItem = fb.goto("#main")||fb;
-		
+  fb.toPdf = function (doc) {
+	  doc.addPage();
+	  doc.translate(200,150);
+	  doc.text("frame: "+fb.id);
+	  fb.children.forEach(function (i) {i.toPdf(doc)});
+	  
+  }
   return fb;
 }
 
@@ -481,7 +487,8 @@ function Item(parent, typeAndId, style, d) {
 		schedule:[],
 		box:{container:{type:"inherit"}, 
              actual:{type:code.internalNode?"children":"real"}, 
-             bg: {use:code.defaultBackground}}
+             bg: {use:code.defaultBackground}},
+		drawInPdf:code.drawInPdf ||function(){}
   }
   
   i.root.index[id] = i;
@@ -615,13 +622,8 @@ function Item(parent, typeAndId, style, d) {
 	i.appendIn = i.parent.appendIn || null;
 	i.np = i.parent.np || null;
 	
-	/****private ***/
-	/*i.setWidthToActual = function (kx, kwidth) {
-	  i.style[kwidth] = i.(kx, kwidth)[kwidth];
-	  return i;
-   }*/
-  
-	i.setWidthToMin = i.setWidthToActual;
+	  
+	//i.setWidthToMin = i.setWidthToActual;
 	
   
   /*load: prepare an item for drawing:
@@ -979,6 +981,18 @@ function Item(parent, typeAndId, style, d) {
      }
   
   
+  i.toPdf = function(doc) {
+	  doc.save();
+	  if (i.style.x!=undefined && i.style.y!=undefined)
+		doc.translate(i.style.x, i.style.y);
+     doc.rect(-2,-2,4,4);
+     doc.stroke("blue");	  
+	  //doc.text("item: "+i.id);
+	  i.drawInPdf(i, doc);
+	  i.children.forEach(function (i) {i.toPdf(doc)});	   
+	  doc.restore();
+	  
+  }
   if (code.onBuild) code.onBuild(i);
 
   return i;
