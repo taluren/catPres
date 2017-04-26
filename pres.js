@@ -1,5 +1,6 @@
 
 var alignDebug = false;
+var logNextFrame = false;
 /*style computation at save time:
  * i.style, then i.defaultStyle, then parent's computed style
 
@@ -115,19 +116,18 @@ function getAlignMove(kx, kwidth, align, targetX, targetWidth, element) {
 	var move={x:0,y:0};			
 	if (align == "n") return move;
 	
-	var bbox = element.getLayoutBBox(kx, kwidth);		
-
-	
+	var boxC = element.actualBox(kx)+element.style[kx];
+	var boxW = element.actualBox(kwidth);			
 	
 	
 	if (targetWidth==null) stop(["Cannot align when "+kwidth+" is not defined", element]);
 	
 	if (align == "l" || align=="t") 
-					move[kx] = (targetX - targetWidth/2) - ( bbox[kx] )
+					move[kx] = (targetX - targetWidth/2) - ( boxC - boxW/2 )
 	if (align == "c" || align=="m")  
-					move[kx] = targetX                   - ( bbox[kx] + bbox[kwidth]/2 );
+					move[kx] = targetX                   - ( boxC );
 	if (align == "r" || align=="b") 
-					move[kx] = (targetX + targetWidth/2) - ( bbox[kx] + bbox[kwidth] )
+					move[kx] = (targetX + targetWidth/2) - ( boxC + boxW/2 )
     if (isNaN(move[kx])) stop(move);		
    if (alignDebug) console.log("align "+kx+align, move.x,targetX,targetWidth, bbox[kx], bbox[kwidth]);
 	return move;	
@@ -361,7 +361,8 @@ function FrameBase(frame, holder, transform, style) {
      id:"root",  
 	  index:{},
 	  style:style,
-	  history:[]
+	  history:[],
+	  box:{container:{x:0, y:0, width:400, height:300}}
   } 
   fb.root=fb;
   fb.index["root"] = fb;
@@ -468,6 +469,7 @@ function Item(parent, typeAndId, style, d) {
 		showBefore:true,
 		showAfter:true,	
 		shown:false,
+        internalNode:code.internalNode,
 		drawingFunction:code.onDraw,
 		drawingFunctionPostOrder:code.onDrawPostOrder,
 		loadingFunction:code.onLoad,
@@ -476,7 +478,10 @@ function Item(parent, typeAndId, style, d) {
 		layoutFunction:code.onLayout,
 		firstRunFunction:code.onFirstRun,
 		datum:d,
-		schedule:[]
+		schedule:[],
+		box:{container:{type:"inherit"}, 
+             actual:{type:code.internalNode?"children":"real"}, 
+             bg: {use:code.defaultBackground}}
   }
   
   i.root.index[id] = i;
@@ -537,13 +542,14 @@ function Item(parent, typeAndId, style, d) {
       return i;
   }
 
+  
   i.decoration=function (codex, style) {
 	  
 	  if (typeof codex== "object") {style=codex; codex="border"};
 	  if (!style) style={};
 	  if (!i.bgRect) {
 		  i.bgRect={
-			   g:i.g.insert("rect", ":first-child").attr("class", "background"),				
+			    g:i.g.insert("rect", ":first-child").attr("class", "background"),				
 				useAttr : function (attr, key1,key2,key3) {  useAttr(i.bgRect,attr,key1, key2, key3);},
   
 				useStyle :function (attr, key1,key2,key3) {useStyle(i.bgRect, attr,key1,key2,key3);},
@@ -562,7 +568,7 @@ function Item(parent, typeAndId, style, d) {
   }
   
   i.align=function (kx, kwidth,align, targetX, containerWidth) {
-	  if (containerWidth == null) containerWidth = i.style[kwidth];	  
+	  if (containerWidth == null) containerWidth = i.containerBox(kwidth);
 	  i.move(getAlignMove(kx, kwidth, align, targetX||0, containerWidth, i));
   }
 	
@@ -570,7 +576,6 @@ function Item(parent, typeAndId, style, d) {
 	  console.warn("deprecated");
 	  return i.children[c];
   }  
-  
   
 	i.on = function(when, style) {
         if (i.schedule == null) i.schedule = [];
@@ -606,13 +611,15 @@ function Item(parent, typeAndId, style, d) {
 			
 	}
 	
-	if (i.parent.cell) i.cell = i.parent.cell;
+	i.cell = i.parent.cell || null;
+	i.appendIn = i.parent.appendIn || null;
+	i.np = i.parent.np || null;
 	
 	/****private ***/
-	i.setWidthToActual = function (kx, kwidth) {
-	  i.style[kwidth] = i.getLayoutBBox(kx, kwidth)[kwidth];
+	/*i.setWidthToActual = function (kx, kwidth) {
+	  i.style[kwidth] = i.(kx, kwidth)[kwidth];
 	  return i;
-   }
+   }*/
   
 	i.setWidthToMin = i.setWidthToActual;
 	
@@ -644,7 +651,7 @@ function Item(parent, typeAndId, style, d) {
      i.differentFrameLoaded = (i.nextDraw != i.lastDraw) 
      if (i.differentFrameLoaded || !regular) {
          i.style = shallowCopy(i.history[i.nextDraw]);
-         i.trans = getTransition(i.style, i.nextDraw  - i.lastDraw)              
+         i.trans = getTransition(i.style, i.nextDraw  - i.lastDraw)     
      } 
      
      if (show==null) show=i.style.show;
@@ -653,6 +660,7 @@ function Item(parent, typeAndId, style, d) {
      if (i.loadingFunction) i.loadingFunction(i, show, ov==f-i.frame);
      
      i.g.style("display", i.display?null:"none");
+	  i.updateContainerBox();
      for (var c=0; c<i.children.length; c++) {
           i.children[c].load(f, regular);
      }
@@ -675,11 +683,128 @@ function Item(parent, typeAndId, style, d) {
 		  
 	  }
   }
+  i.containerBox= function (key, value) {
+    if (typeof value=="undefined")  {
+       return i.box.container[key];
+    } else {
+      i.box.container[key]=value;
+      return i;
+    }
+  }
+  i.actualBox= function (key, value) {
+    if (typeof value=="undefined")  {
+       return i.box.actual[key];
+    } else {
+      console.log ("redefine actual box", i.id, key, value)
+      i.box.actual[key]=value;
+      return i;
+    }
+  }
+  i.getBackgroundBBox = function() {
+    var defaultBG=i.box.bg.use;
+    if (typeof defaultBG== "function") defaultBG=defaultBG(i);
+    if (defaultBG == "actual") 
+       defaultBG=i.box.actual
+    else if (defaultBG == "container") 
+       defaultBG=i.box.container    
+    
+    return  copyWithDefault(i.box.bg, defaultBG); 
+  }
+  
+  
+  i.updateContainerBox =function() {
+	  if (i.box.container.typeX == "inherit"  ) {
+		  i.box.container.width = i.parent.container.width;
+		  i.box.container.x = i.parent.container.x - i.style.x;
+	  } else if (i.box.container.typeX == "tight") {
+		  i.box.container.width = null;
+		  i.box.container.x = 0;
+	  }
+	  if (i.box.container.typeY == "inherit" ) {
+		  i.box.container.height = i.parent.container.height;
+		  i.box.container.y = i.parent.container.y - i.style.y;	  
+	  } else if (i.box.container.typeY == "tight") {
+		  i.box.container.height = null;
+		  i.box.container.y =0;		  
+	  }
+	  //"custom"-> do nothing
+  }
+  i.updateActualBox =function() {
+      //todo include padding here.
+      if (!i.box.actual.typeX) i.box.actual.typeX=i.box.actual.type;
+      if (!i.box.actual.typeY) i.box.actual.typeY=i.box.actual.type;
+      var scale=(i.style.scale || 1);
+      if (i.box.actual.typeX == "real" || i.box.actual.typeY=="real") {
+        var bbox=false;
+        if (i.display) {
+          try {
+            bbox=shallowCopy(i.g.node().getBBox()) 
+          } catch (e) {console.log(i.id+": bbox unavailable")};
+        }
+        if (!bbox) bbox = {x:0,y:0,width:0, height:0};
+        if (i.box.actual.typeX == "real") {
+          i.box.actual.x= bbox.x+bbox.width/2;
+          i.box.actual.width= bbox.width;          
+        }
+        if (i.box.actual.typeY == "real") {
+          i.box.actual.y= bbox.y+bbox.height/2;
+          i.box.actual.height= bbox.height;          
+        }
+      }
+      if (i.box.actual.typeX == "children" || i.box.actual.typeY=="children") {
+		  var left=0, right=0, top=0, bottom=0;
+		  for (var c=0; c<i.children.length; c++) {
+			  if (!i.children[c].style.show) continue;
+			  var cx =i.children[c].box.actual.x + i.children[c].style.x;
+			  var cy =i.children[c].box.actual.y + i.children[c].style.y;
+			  var cwh =i.children[c].box.actual.width/2;
+			  var chh =i.children[c].box.actual.height/2;
+			  left=min(left, cx-cwh);
+			  right=max(right, cx+cwh)
+			  top=min(top, cy-chh);
+			  bottom=max(bottom, cy+chh);
+              
+//              if (i.children.length>2) console.log(i.id, cx, i.children[c].box.actual.x, left, right);
+		  }
+		  if (i.box.actual.typeX == "children") {				  
+			  i.box.actual.width = right-left;
+			  i.box.actual.x = (left+right)/2;
+		  }
+		  if (i.box.actual.typeY == "children") {
+			  i.box.actual.height = bottom-top
+			  i.box.actual.y = (top+bottom)/2;			  
+		  }
+	  } 
+      if (i.box.actual.typeX == "children" || i.box.actual.typeX == "real") {        
+              i.box.actual.width *=scale;
+              i.box.actual.x *=scale;
+      }
+      if (i.box.actual.typeY == "children" || i.box.actual.typeY == "real") {        
+              i.box.actual.height *=scale;
+              i.box.actual.y *=scale;
+      }
+	  if (i.box.actual.typeX == "outside") {
+			i.box.actual.width=0;			
+			i.box.actual.x=0;	
+	  } else if (i.box.actual.typeX == "fill") {
+			i.box.actual.width=i.box.container.width;			
+			i.box.actual.x=i.box.container.x;
+	  } 
+	  if (i.box.actual.typeY == "outside") {
+			i.box.actual.height=0;
+			i.box.actual.y=0;		
+	  } else  if (i.box.actual.typeY == "fill") {
+			i.box.actual.height=i.box.container.height;			
+			i.box.actual.y=i.box.container.y;	
+	  }
+      if (["textBox", "svgtext"].indexOf(i.type)>-1) console.log(i.id+" updateActualBox ",i.box.actual)
+	  //"custom" -> do nothing
+  }
   
   /*draw: draw an item and all its descendants
    * applied only if frame is different or "irregular" calls
    * 
-   */ 
+   */ 	
   i.draw=function(regular) {	  
      i.shown=true;
 	 i.bbox=null;
@@ -693,8 +818,9 @@ function Item(parent, typeAndId, style, d) {
 		 }
 		 //compute width and height when defined as "fill" (now that the parent has been drawn)
 		 i.fillUpWidthHeight();
-         
-         //call the actual drawing function (set line colors, set text, etc.)
+         i.updateContainerBox();  
+		 
+       //call the actual drawing function (set line colors, set text, etc.)
 		 if (i.drawingFunction!=null) {
 	       i.drawingFunction(i, regular); 
 		 }			 
@@ -707,8 +833,10 @@ function Item(parent, typeAndId, style, d) {
 		 if (i.drawingFunctionPostOrder!=null) {
 			 i.drawingFunctionPostOrder(i, regular); 
 		 }
+		 
+		 i.updateActualBox();
 		 //draw the background rectangle if necessary
-	     i.drawBackground(true); //automatic drawing, may be disabled         
+	    i.drawBackground(true); //automatic drawing, may be disabled         
 		 checkTree(i);
          //place the item at the correct coordinates
 		 i.layout();
@@ -728,6 +856,7 @@ function Item(parent, typeAndId, style, d) {
         
         //  marginAndPadding(i.style.bg, "padding");
           var bbox=i.getBackgroundBBox();
+          console.log("DRAW BACKGROUND", i.id,  bbox);
           //console.log(i.type, bbox)
           if (!bbox) return false;
           
@@ -832,17 +961,15 @@ function Item(parent, typeAndId, style, d) {
 	  return b;
 	  
   }
-  i.getLayoutBBox= function(kx, kwidth) {
-	  return i.getParentBBox();
-  }
   
-  if (code.getBackgroundBBox) 
+  
+  /*if (code.getBackgroundBBox) 
 	  i.getBackgroundBBox = function() { return code.getBackgroundBBox(i)};
   else 
 	  i.getBackgroundBBox = function() {
 	     return i.childBag().getParentBBox(false);
      }
-  	  
+  	*/  
   if (code.getAnchoredBBox) 
 	  i.getAnchoredBBox = function() { return code.getAnchoredBBox(i)};
   else 
@@ -898,6 +1025,7 @@ function itemBag (itemList) {
 		return b.items[0].up(selector);
 	}
 	b.move=function(p,q) {
+      console.log(b, " move ", p, q);
 		for (var x=0;x<b.items.length; x++) {
 			var P= (typeof p == "function") ? p(b.items[x], x) : p;
 			var Q= (typeof q == "function") ? q(b.items[x], x) : q;
@@ -950,6 +1078,51 @@ function itemBag (itemList) {
 		
 	}
 	
+  b.containerBox= function (key, value) {
+    if (typeof value=="undefined")  {
+       return b.items[0].containerBox(key);
+    } else {
+       for (var i=0;i<b.items.length; i++) 
+         b.items[i].containerBox(key,value);
+      return b;
+    }
+  }
+  b.unionBox = function(kx, kwidth) {
+       var left=0, right=0;
+       for (var i=0;i<b.items.length; i++)  {
+         if (!b.items[i].style.show) continue;
+         var cx =b.items[i].box.actual[kx] + i.children[c].style[kx];
+         var cwh =i.children[c].box.actual[kwidth]/2;
+         left=min(left, cx-cwh);
+         right=max(right, cx+cwh)              
+         
+      }
+      out={};
+      out[kx]=left+right/2;
+      out[kwidth]=right-left;
+      return out;
+  }
+  b.actualBox= function (key, value) {
+    if (typeof value=="undefined")  {
+       return b.items[0].actualBox(key);
+    } else {
+       for (var i=0;i<b.items.length; i++) 
+         b.items[i].actualBox(key,value);
+      return b;
+    }
+  }
+  b.getMaxSize= function (key) { 
+     var m=0;
+     for (var i=0;i<b.items.length; i++) 
+         m=max(m, b.items[i].actualBox(key));
+     return m;    
+  }
+  b.getMinSize= function (key) { 
+     var m=0;
+     for (var i=0;i<b.items.length; i++) 
+         m=min(m, b.items[i].actualBox(key));
+     return m;    
+  }
 	/*
 	
 	b.getTheoreticalBBox = function(evenFloat) {
@@ -1046,13 +1219,13 @@ function itemBag (itemList) {
 		for (var x=0;x<b.items.length; x++) {
 		
    //		console.log(b.items[x].getLayoutBBox(kx, kwidth));
-			m=max(m, b.items[x].getLayoutBBox(kx, kwidth)[kwidth]);
+			m=max(m, b.items[x].actualBox(kwidth));
 		}
 		return m;
 	}
-	b.align=function (kx, kwidth,align, targetX, containerWidth,  keepRelative) {
-		if (targetX== null) targetX = b.style[kx];
-		if (containerWidth==null) containerWidth=b.style[kwidth];
+	b.align=function (kx, kwidth, align, targetX, containerWidth,  keepRelative) {
+		if (targetX== null) targetX = b.containerBox(kx);
+		if (containerWidth==null) containerWidth=b.containerBox(kwidth);
 		
 		//console.log(targetX, containerWidth);
 		if (keepRelative) {
@@ -1075,7 +1248,7 @@ function itemBag (itemList) {
 	  return b;
    }
 	b.setWidthToActual = function (kx, kwidth) {
-	  b.style[kwidth] = b.getLayoutBBox(kx, kwidth)[kwidth];
+	  b.style[kwidth] = b.actualBox(kwidth);
 	  return b;
    }
 	
@@ -1167,7 +1340,7 @@ frameManager = function(style, sozi)  {
 		  	
 			fm.f++;
 			fm.topF.save({show:true});
-			console.log("saved for frame "+(fm.f-1));
+			if (logNextFrame) console.log("saved for frame "+(fm.f-1));
 			
 		}		
 		return fm;

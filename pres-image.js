@@ -7,25 +7,25 @@ addToCodex("image", "transform", {
 				i.imgWidth=20;
 				i.imgHeight=20;				
 				var myImage = new Image();
-            myImage.onload = function() {
-               i.imgWidth = this.width;
-					i.imgHeight = this.height;
-					if (i.drawn) i.draw(false);
-					console.log("loaded");
-						
-            }
+                myImage.onload = function() {
+                  i.imgWidth = this.width;
+                        i.imgHeight = this.height;
+                        if (i.drawn) i.draw(false);
+                        console.log("loaded");
+                            
+                }
 				myImage.src=url;
 				img.g.attr("xlink:href", url);					
 				return i;
 			}
 		
 	},
-	onDraw: function(i) {		  
+	onDraw: function(i) {		  //todo: move to onrun ?
 	     var w, h;
 		   if (i.style.width||i.style.height) {
 				var r=i.imgWidth/i.imgHeight;
 			   w=i.style.width || (i.style.height*r);
-			   h=i.style.height || (i.style.width*r);
+			   h=i.style.height || (i.style.width/r);
 			} else {
 				w=i.imgWidth;
 				h=i.imgHeight;
@@ -40,7 +40,7 @@ addToCodex("image", "transform", {
 					h*=r;					
 				}
 			}
-		   i.down("svgimage").set({width:w, height:h})
+		    i.down("svgimage").set({width:w, height:h,x:0,y:0})
 			console.log(i.down("svgimage").style);
 			
 		}

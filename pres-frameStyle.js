@@ -28,6 +28,11 @@ frameStyleCatalog.simple = function (fs, style) {
 		  .append("rect", {w:"fill", h:"fill", stroke:"#AAA", fill:"white"})
 	}
 	
+frameStyleCatalog.emptyWithBG = function (fs, style) {       
+        frameStyleCatalog.empty(fs, style)
+        fs.goto("#background")
+          .append("rect", {w:"fill", h:"fill", stroke:"#AAA", fill:"white"})
+    }
 	
 frameStyleCatalog.titleFrame = function (fs, style) {	    
 		fs

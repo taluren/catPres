@@ -81,8 +81,8 @@ addToCodex("blackbox", "box", {
  }
 });
 
-//cell 
-addToCodex("cell", "g", {	
+//cell: box 
+addToCodex("cell", "box", {	
  onBuild: function(i){ 
 	
 	i.getLayoutBBox= function(kx, kwidth) {	  
@@ -97,11 +97,12 @@ addToCodex("cell", "g", {
 	i.move = i.moveInner;
 
  },
- onRun: function (i) {
+ onDraw: function (i) {
 	 if (i.bgRect) i.bgRect.automatic=false; 
 	 //don't draw background rectangle at normal time, let the parent trigger it instead.
+	 //can be onRun	 
  },
- defaultBackground:"container" //use container-defined dimensions as default, instead of contents
+ defaultBackground:"container"
 });
 
 addToCodex("array", "box", {
@@ -113,7 +114,7 @@ addToCodex("array", "box", {
 		if (!i.datum) i.datum={};
 		if (!i.datum.cols) i.datum.cols="c";
 		if (!i.datum.rows) i.datum.rows="m";
-		i.box.actual={type:"custom", x:0, y:0};
+		
 		i.currentRow=0;
 		i.currentColumn=0;
 		
@@ -162,9 +163,9 @@ addToCodex("array", "box", {
 			i.fillCellsUpToDimension(c,r);			
 			return i.colBag.get(c).get(r);
 		}
-		i.appendIn=function(c,r,type, style, data, more) {
-            console.log("**** appendIn  **** ", c,r, type);	
-			console.log(i);
+		i.appendIn=function(type,c,r, style, data, more) {
+		   //console.log("**** appendIn  **** ", c,r, type);	
+			
 			var cell= i.cell(c,r);
 			var inside =cell.append(type,style, data);
 			if (more) {more(inside);}
@@ -183,7 +184,7 @@ addToCodex("array", "box", {
 				var cells = rows[ir].split("&");
 				for (var ic =0; ic<cells.length; ic++) {					
 					if (ic) i.currentColumn++;
-					i.appendIn(i.currentColumn, i.currentRow,"text",  style, data, function(i) {i.print(cells[ic])// style.text = cells[ic]
+					i.appendIn("text", i.currentColumn, i.currentRow, style, data, function(i) {i.print(cells[ic])// style.text = cells[ic]
 					});
 				}
 			}			
@@ -194,10 +195,6 @@ addToCodex("array", "box", {
 		
 	},
 	
-    onRun: function (i) {
-        if (i.bgRect) i.bgRect.automatic=false; 
-        //don't draw background rectangle at normal time, let the parent trigger it instead.
-    },
 		
 	onDraw: function(i) {
 	   i.vl.setBag(i.rowBag, true);
@@ -220,8 +217,7 @@ addToCodex("array", "box", {
 		for (var ic =0; ic<i.children.length; ic++) {					
 			i.children[ic].drawBackground();
 		}	
-        i.drawBackground();
-        console.log(i.box.actual);
+        
 	}
 })
 
@@ -487,7 +483,7 @@ function layoutManager(str, horizontal) {
                 i.containerBox(l.kwidth, b[l.kkwidth]);                
                 if (l.debug) console.log("col ", col, " gets real union width = ", l.sizeSequence[col]);
               } else {
-                //many objects, with alignment: we only consider the target width (=largest item width)
+                //many objects, with alignment: we only consider the target with (=largest item width)
                 l.sizeSequence[col] = i.getMaxSize(l.kwidth);				
 				if (l.debug) console.log("col ", col, " gets min  possible width = ", l.sizeSequence[col]);
 				//i.style[l.kwidth] = i.getMaxInnerDimension(l.kwidth);
@@ -547,6 +543,8 @@ function layoutManager(str, horizontal) {
 		
 		}
 		//copy width sequence as "container width" to each child
+		
+		setContainerWidth();
 		
 		if (l.totalSize==null) l.totalSize = l.fixedSize;
 		
@@ -620,9 +618,6 @@ function layoutManager(str, horizontal) {
 				   l.sizeSequence[col]=i.actualBox(l.kwidth);
 			});			
 		}
-		
-		setContainerWidth();
-		
 		l.computePositions();		
 		if (l.debug ||l.quickDebug) console.log("Apply layout manager "+ str+ " size="+l.totalSize+"  : complete.");
 	}
