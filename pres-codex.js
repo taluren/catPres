@@ -145,14 +145,13 @@ var codex = {
 		defaultStyle:{x:0,y:0, width:0, height:0},	
 		onDraw: function(i) {	
 			i.useAttr("width");	
-			i.useAttr("height");	
-		},
-		onLayout: function(i){			
-            i.g.attr("transform", "translate("+ 
-                               (i.style.x-i.style.width/2)+","
-										 +(i.style.y-i.style.height/2)+
-                               ")");
+			i.useAttr("height");
+            i.g.attr("x", -i.style.width/2);
+            i.g.attr("y", -i.style.height/2);
 		}
+		/*onLayout: function(i){			
+            i.g.attr("transform", "translate("+xy(i.style)+ ")");
+		}*/
 	},
 	default: { //codex template:
 		tag:"g",  //tag of the elemnt to add
