@@ -523,7 +523,7 @@ function Item(parent, typeAndId, style, d) {
 		schedule:[],
 		box:{container:{type:"inherit"}, 
              actual:{type:code.internalNode?"children":"real"}, 
-             bg: {use:code.defaultBackground}},
+             bg: {use:code.defaultBackground||"actual"}},
 		drawInPdf:code.drawInPdf ||function(){}
   }
   
@@ -740,12 +740,13 @@ function Item(parent, typeAndId, style, d) {
   }
   i.getBackgroundBBox = function() {
     var defaultBG=i.box.bg.use;
+   
     if (typeof defaultBG== "function") defaultBG=defaultBG(i);
     if (defaultBG == "actual") 
        defaultBG=i.box.actual
     else if (defaultBG == "container") 
        defaultBG=i.box.container    
-    
+    console.log(defaultBG); 
     return  copyWithDefault(i.box.bg, defaultBG); 
   }
   

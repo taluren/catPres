@@ -151,11 +151,18 @@ var codex = {
 		onLayout:function(i) {	
 			i.g.attr("transform", "translate("+xy(i.style)+")");				
 		},
-        drawInPdf: function(i, doc, opacity) {
+        drawInPdf: function(i, doc, opacity) {            
             doc
+             .circle(0,0,5).stroke("#FFAAAA")          
+             .translate(
+                 i.box.actual.x-i.box.actual.width/2,     
+                 i.box.actual.y-i.box.actual.height/2 )
+             .circle(0,0,5).stroke("#AAAAFF"); 
+            i.useNumberForPdf(doc, "fontSize", "size");            
+            doc              
               .fillColor(i.style.color||"black",  opacity)
-              .moveUp()
-              .text(i.style.text, i.style.offsetx, i.style.offsety)
+             // .moveUp()
+              .text(i.style.text, i.style.dx, i.style.dy)
         }
 	},
 	
@@ -176,7 +183,15 @@ var codex = {
 				i.saveG.html(i.style.text);
 		},	
 		onLayout:function(i) {			
-		}		
+		},
+        drawInPdf: function(i, doc, opacity) {
+            i.useNumberForPdf(doc, "fontSize", "size");
+            
+            doc              
+              .fillColor(i.style.color||"black",  opacity)
+              //.moveUp()
+              .text(i.style.text, i.style.offsetx, i.style.offsety)
+        }
 	},
 	svgimage: {
 		tag:"image",
@@ -207,7 +222,7 @@ var codex = {
 			i.g.attr("transform", "translate("+xy(i.style)+")");            
             i.useStyle("opacity");
 		},//called after only x and y may have changed
-		defaultBackground:"actual" //box dimensions for the background rectangle are by default the actual bbox of the item. Other options are "container" (for a container-defined background, i.e. cell in array), or any object with "x", "y", "width" and/or "height" values, or a function returning one of the above.
+		defaultBackground:null //box dimensions for the background rectangle are by default the actual bbox of the item (null or "actual"). Other options are "container" (for a container-defined background, i.e. cell in array), or any object with "x", "y", "width" and/or "height" values, or a function returning one of the above.
 		
 	}
 	
