@@ -38,14 +38,30 @@
 		//create the "frame manager" with some parameters	
 		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
 		
-		 fm.frame("Math alignment test:")
-          .append("text")
+		 fm.frame("PDF test")
+          .append("circle")
+          .then("horizontalVector#v")
+            .append("circle")
+            .then("rect", {w:20, h:15})
+            .then("rect", {w:10, h:15,fill:"#400060", stroke:null})
+            .then("rect", {w:10, h:15,fill:"#300070", stroke:null})
+            .then("rect", {w:10, h:15,fill:"#200080", stroke:null})
+            .then("rect", {w:10, h:15,fill:"#100090", stroke:null})
+            .then("rect", {w:10, h:15,fill:"#0000A0", stroke:null})
+            .then("circle")
+            .then("g", {fill:"yellow"})
+               .decoration("background")
+              .append("rect")
+              .then("circle", {x:13,y:0, r:12})
+              .then("circle", {x:3,y:14, stroke:"blue"})
+              .then("circle", {x:20,y:-20})              
+         .goto("#v")
+           .append("rect",{w:22,h:12})
+           .then("circle")
+           .then("text")
+             .np(".|Hello")
+             .np(".|World");
           
-            .np("*|Size 6:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:6})
-            .np("*|Size 10:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:10})
-            .np("*|Size 12:x $x$..$\\_$..$f$..$e^{k^n}$..$x_{i_j}$..$\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$", {size:12})
-          
-          addHelpLines(fm.goto("text"));     
           
           
        

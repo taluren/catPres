@@ -38,7 +38,25 @@ var codex = {
 		onLayout:function(i) {		
 		   
 			i.g.attr("transform", "translate("+xy(i.style)+")");	
-		}
+		},
+		
+        drawInPdf: function(i, doc, opacity) {        
+          
+            function run() {
+              doc.circle(i.style.offsetx||0,i.style.offsety||0,i.style.r);       
+             i.useNumberForPdf(doc, "lineWidth", "strokeWidth");             
+            };            
+             if (i.style.fill) {
+               run();
+               doc.fillColor(i.style.fill, opacity);
+               doc.fill();               
+             }
+             if (i.style.stroke ) {
+               run();
+               doc.strokeColor(i.style.stroke, opacity);
+               doc.stroke();
+             }
+        }
 	},
     
 	rect: {
@@ -65,13 +83,24 @@ var codex = {
 			
             i.g.attr("transform", "translate("+ xy(i.style)+")");    
 		},
-		drawInPdf: function(i, doc) {
-			doc.rect(i.style.offsetx-i.style.w/2,i.style.offsety-i.style.h/2,i.style.w,i.style.h);
-			
-			if ("fill" in i.style) doc.fill(i.style.fill);
-			              
-			
-		}
+		
+        drawInPdf: function(i, doc, opacity) {
+            function run() {
+             doc.rect(i.style.offsetx-i.style.w/2,i.style.offsety-i.style.h/2,i.style.w,i.style.h);            
+             i.useNumberForPdf(doc, "lineWidth", "strokeWidth");             
+            };            
+             if (i.style.fill) {
+               run();
+               doc.fillColor(i.style.fill, opacity);
+               doc.fill();               
+             }
+             if (i.style.stroke ) {
+               run();
+               doc.strokeColor(i.style.stroke, opacity);
+               doc.stroke();
+             }            
+              
+        }
 	},
 	path: {
 		tag:"path",
@@ -121,7 +150,13 @@ var codex = {
 		},		
 		onLayout:function(i) {	
 			i.g.attr("transform", "translate("+xy(i.style)+")");				
-		}
+		},
+        drawInPdf: function(i, doc, opacity) {
+            doc
+              .fillColor(i.style.color||"black",  opacity)
+              .moveUp()
+              .text(i.style.text, i.style.offsetx, i.style.offsety)
+        }
 	},
 	
 	tspan: {

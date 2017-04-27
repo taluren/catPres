@@ -328,22 +328,58 @@ function useAttr(i,attr,key1, key2, key3) {
 	i.g.attr(attr,null);		
 }
 function useStyle(i,attr,key1,key2,key3) {
-	key1 = key1 ||attr;  
-	if (key1 in i.style) {
-		i.g.style(attr,i.style[key1]);		
-		return;
-	}	
-	if (key2!=null) {
-		if (key2 in i.style) {
-			i.g.style(attr,i.style[key2]);		
-			return;
-		} 
-		if (key3!=null && key3 in i.style) {
-			i.g.style(attr,i.style[key3]);		
-			return;
-		}
-	}
-	i.g.style(attr,null);		
+    key1 = key1 ||attr;  
+    if (key1 in i.style) {
+        i.g.style(attr,i.style[key1]);      
+        return;
+    }   
+    if (key2!=null) {
+        if (key2 in i.style) {
+            i.g.style(attr,i.style[key2]);      
+            return;
+        } 
+        if (key3!=null && key3 in i.style) {
+            i.g.style(attr,i.style[key3]);      
+            return;
+        }
+    }
+    i.g.style(attr,null);       
+}
+function useForPdf(i,doc,f,key1,key2,key3) {
+    if (key1 in i.style) {
+      
+       console.log("use "+f,key1, i.style[key1]);
+        doc[f].call(doc, i.style[key1]);      
+        return;
+    }   
+    if (key2!=null) {
+        if (key2 in i.style) {
+            doc[f].call(doc,i.style[key2]);      
+            return;
+        } 
+        if (key3!=null && key3 in i.style) {
+            doc[f].call(doc,i.style[key3]);      
+            return;
+        }
+    }     
+}
+function useNumberForPdf(i,doc,f,key1,key2,key3) {
+    if (key1 in i.style) {
+      
+       console.log("use "+f,key1, i.style[key1]);
+        doc[f].call(doc, i.style[key1]*1);      
+        return;
+    }   
+    if (key2!=null) {
+        if (key2 in i.style) {
+            doc[f].call(doc,i.style[key2]*1);      
+            return;
+        } 
+        if (key3!=null && key3 in i.style) {
+            doc[f].call(doc,i.style[key3]*1);      
+            return;
+        }
+    }     
 }
 function FrameBase(frame, holder, transform, style) { 
   if (!style) style={};
@@ -434,7 +470,7 @@ function FrameBase(frame, holder, transform, style) {
 	  doc.addPage();
 	  doc.translate(200,150);
 	  doc.text("frame: "+fb.id);
-	  fb.children.forEach(function (i) {i.toPdf(doc)});
+	  fb.children.forEach(function (i) {i.toPdf(doc,1)});
 	  
   }
   return fb;
@@ -935,6 +971,12 @@ function Item(parent, typeAndId, style, d) {
   i.useStyle= function (attr, key1, key2, key3) {
      useStyle(i, attr,key1, key2, key3);	
   }
+  i.useForPdf=function (doc, f, key1, key2, key3) {
+     useForPdf (i, doc, f, key1, key2, key3);  
+  }
+  i.useNumberForPdf=function (doc, f, key1, key2, key3) {
+     useNumberForPdf (i, doc, f, key1, key2, key3);  
+  }
   i.getBBox= function() {
 	  if (!i.display) return i.bbox = {x:0,y:0,width:0, height:0};
 	  if (i.bbox) return i.bbox;
@@ -981,15 +1023,17 @@ function Item(parent, typeAndId, style, d) {
      }
   
   
-  i.toPdf = function(doc) {
+  i.toPdf = function(doc, opacity) {
 	  doc.save();
 	  if (i.style.x!=undefined && i.style.y!=undefined)
 		doc.translate(i.style.x, i.style.y);
-     doc.rect(-2,-2,4,4);
-     doc.stroke("blue");	  
+      if ("opacity" in i.style) opacity*=i.style.opacity;
+    /*  doc.rect(-2,-2,4,4);
+      doc.opacity(opacity);
+      doc.stroke("blue");	  */
 	  //doc.text("item: "+i.id);
-	  i.drawInPdf(i, doc);
-	  i.children.forEach(function (i) {i.toPdf(doc)});	   
+	  i.drawInPdf(i, doc, opacity);
+	  i.children.forEach(function (i) {i.toPdf(doc, opacity)});	   
 	  doc.restore();
 	  
   }
@@ -1407,6 +1451,8 @@ frameManager = function(style, sozi)  {
 	
 	addMenu("Start", function() {fm.camera.goFirst()}, "Go to first frame")
 	addMenu("Export HTML", exportSingleHTML, "Export as a single HTML file without dependencies (including all scripts, images and math formulas).")
+    
+    addMenu("Export as PDF (incomplete)", function(){toPDF(fm)}, "Exports the slides as pdf, some differences may be visible.")
 	addMenu("Export graph coordinates", showGraph(fm), "Show coordinates")
 	addMenu("Clear Saved Formulas", clearLocalStorage, "Delete cached math formulas, to be recomputed with MathJax next time.")
 	fm.run=function() {

@@ -61,7 +61,7 @@ frameStyleCatalog.cat = function (fs, style) {
 		fs.set()	
 		  .append("rect", {w:"fill", h:"fill", stroke:null, fill:"white"})			 
 		  .then("g", {x:160,y:130, opacity:0.2})
-			  .append("circle", {r:9, x: 12, y:0, fill:"#ECECEC", stroke:null})
+			  .append("circle#paw", {r:9, x: 12, y:0, fill:"#ECECEC", stroke:null})
 			  .then("circle", {r:5, x: 23, y:-10, fill:"#ECECEC", stroke:null})
 			  .then("circle", {r:5, x: 28, y:0, fill:"#ECECEC", stroke:null})
 			  .then("circle", {r:5, x: 23, y:10, fill:"#ECECEC", stroke:null})

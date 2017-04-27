@@ -1,45 +1,34 @@
+ var blob;
+ 
  function toPDF(fm) {
-	 doc = new PDFDocument({size:[400,300]});
-	 stream = doc.pipe(blobStream())
-	 doc.text("hello pdf world");
-	 doc.rect(20,30,40,55)
-	 doc.addPage();
-	 /*doc.rect(-200,-300,400,550)
-	 
-	 doc.moveTo(0, 20)                            
-      .lineTo(100, 160)                            
-      .quadraticCurveTo(130, 200, 150, 120)        
-      .bezierCurveTo(190, -40, 200, 200, 300, 150) 
-      .lineTo(400, 90)       
-      .stroke()              
-		*/
-	  fm.frames.forEach(function(f) {
-		 
+	 doc = new PDFDocument(
+        {
+          size:[400,300],
+          autoFirstPage: false,
+          margin:0
+        });
+	 stream = doc.pipe(blobStream())	 
+	 fm.frames.forEach(function(f) {
+	
+         console.log("new page")	 
 		 f.toPdf(doc);
 	 })
+     doc.text("hello");
 	 
 	 doc.end()
 	 
 	 stream.on('finish', 
 	   function() {  blob = stream.toBlob('application/pdf')
-			saveData(blob);
-
-      /*url = stream.toBlobURL('application/pdf')
-      iframe.src = url*/
-	 })
-	 
-	 var saveData = (function () {
-    var a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style = "display: none";
-    return function (blob) {
-       var      url = window.URL.createObjectURL(blob);
-        a.href = url;
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style = "display: none";
+        a.href = url = window.URL.createObjectURL(blob);
+        console.log(url);
         a.download = "truc.pdf";
         a.click();
-        window.URL.revokeObjectURL(url);
-    };
-	}());
+        setTimeout(1000, function(){window.URL.revokeObjectURL(url)});
+	 })
+	 ;
 
 
  }
