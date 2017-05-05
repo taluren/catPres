@@ -13,6 +13,7 @@
 addToCodex("caption", "svgtext", {
      defaultStyle: {offsety : 4},
 	 onBuild: function(i) {
+         codex.svgtext.onBuild(i);
 		 if (typeof i.datum=="string")
 			 i.style.text=i.datum;
 	 }
@@ -306,6 +307,165 @@ addToCodex("freeBox","g", {
 	
 })
 
+function oldprepareImages(mathNodes, callBack) {
+  console.log(`exporting ${mathNodes.length} formulas to png`)
+  var count=mathNodes.length;
+  var canvas = d3.select("canvas"),       
+      context = canvas.node().getContext("2d");
+  function isReady(image, n) {
+      return function() {
+        console.log("ready ",count)
+        context.clearRect(0, 0, canvas.width, canvas.height);     
+        context.drawImage(image, 0, 0);    
+        n.png = canvas.toDataURL("image/png");     
+        count--;
+        console.log(`${count} remaining`)
+        if (count==0) callBack();
+      }
+  }
+  mathNodes.forEach(function(n, i) {
+    
+    var defs=d3.select("#MathJax_SVG_glyphs").node().outerHTML;
+    var svgSrc= n.g.node().children[0].outerHTML
+      .replace('</svg>', defs+'</svg>');
+    
+    var imgsrc = 'data:image/svg+xml;base64,'+ btoa(svgSrc);
+   
+    var DOMURL = window.URL || window.webkitURL || window;
+    
+    var image = new Image();
+    var svgBlob = new Blob([svgSrc], {type: 'image/svg+xml;charset=utf-8'});
+    var url = DOMURL.createObjectURL(svgBlob);
+
+     image.src = url; 
+    image.onload =   function() {
+        console.log("ready ",count)
+        context.clearRect(0, 0, canvas.width, canvas.height);     
+        context.drawImage(image, 0, 0);    
+        n.png = canvas.toDataURL("image/png");     
+        count--;
+        console.log(`${count} remaining`)
+        if (count==0) callBack();
+      }
+    
+    //isReady(image, n); 
+    
+    
+    console.log("loading "+ svgSrc)//.substring(0,50)+"...", svgBlob)
+  })
+    
+}
+
+
+
+function createMathPNGs(callBack) {
+  var mathNodes=d3.selectAll(".mathBox");
+  console.log(`exporting ${mathNodes.size()} formulas to png`)
+  var count=mathNodes.size();  
+  
+  mathNodes.each(function(d,i) {
+    var n=d.mathJaxed;
+    savePNG(d3.select(n.g.node().children[0]), function(d) {
+      console.log(d.length);
+      n.png=d;
+      count--;
+      console.log(`${count} remaining`)
+      if (count==0) callBack();
+    })    
+  })    
+}
+function prepareImageBlobs(mathNodes, callBack) {
+  console.log(`exporting ${mathNodes.length} formulas to png`)
+  var count=mathNodes.length;
+  mathNodes.forEach(function(n, i) {
+    savePNGBlob(d3.select(n.g.node().children[0]), function(d) {
+      console.log(d);
+      n.png=d;
+      count--;
+      console.log(`${count} remaining`)
+      if (count==0) callBack();
+    })    
+  })    
+}
+
+function savePNG(svgNode, callBack) {
+  
+    var pngScale=8;
+      var defs=d3.select("#MathJax_SVG_glyphs").node().outerHTML;
+      var svgSrc = svgNode
+      .attr("version", 1.1)
+      .attr("xmlns", "http://www.w3.org/2000/svg")
+      .node().outerHTML
+      .replace('</svg>', defs+'</svg>')
+  
+      
+     var imgsrc = 'data:image/svg+xml;base64,'+ btoa(svgSrc);
+   //  button.attr("href", "#"); 
+     var canvas = document.querySelector("canvas"),
+         context = canvas.getContext("2d");
+    
+     var image = new Image;
+     image.src = imgsrc;
+     image.onload = function() {
+         var w=image.width*pngScale;
+         var h=image.height*pngScale;
+         canvas.width=w;
+         canvas.height=h;         
+         context.drawImage(image, 0, 0,w,h);        
+         var canvasdata = canvas.toDataURL("image/png"); 
+         console.log(canvasdata.substring(0,30));
+         callBack(canvasdata);
+    };
+}
+function savePNGBlob(svgNode, callBack) {
+    var pngScale=4;
+      var defs=d3.select("#MathJax_SVG_glyphs").node().outerHTML;
+      var svgSrc = svgNode
+      .attr("version", 1.1)
+      .attr("xmlns", "http://www.w3.org/2000/svg")
+      .node().outerHTML
+      .replace('</svg>', defs+'</svg>')
+  
+      
+     var imgsrc = 'data:image/svg+xml;base64,'+ btoa(svgSrc);
+   //  button.attr("href", "#"); 
+     var canvas = document.querySelector("canvas"),
+         context = canvas.getContext("2d");
+    
+     var image = new Image;
+     image.src = imgsrc;
+     image.onload = function() {
+         var w=image.width*pngScale;
+         var h=image.height*pngScale;
+         canvas.width=w;
+         canvas.height=h;         
+         context.drawImage(image, 0, 0,w,h);    
+         canvas.toBlob(callBack, "image/png");
+    };
+}
+
+function getBase64(svgNode) {
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    var data = (new XMLSerializer()).serializeToString(svgNode);
+    var DOMURL = window.URL || window.webkitURL || window;
+
+    var img = new Image();
+    var svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+    var url = DOMURL.createObjectURL(svgBlob);
+
+     img.src = url; 
+ //   img.onload = function () {
+      ctx.drawImage(img, 0, 0);
+      DOMURL.revokeObjectURL(url);
+
+      var imgURI = canvas
+          .toDataURL('image/png')
+          .replace('image/png', 'image/octet-stream');
+
+      return imgURI;
+  
+}
 addToCodex("mathJaxed","transform", {
 	onBuild:function(i) {
 		i.ready=false;
@@ -324,7 +484,17 @@ addToCodex("mathJaxed","transform", {
 	onLayout:function(i) {
 		//console.log("layout", i.parent.datum.math, i.scale, i.style.scale);
 	   codex.transform.onLayout(i);
-	}
+	},
+     drawInPdf: function(i, doc, opacity) {            
+       var DOMURL = window.URL || window.webkitURL || window;
+       console.log(xy(i.style), i.box.actual);
+       var x=i.box.actual.x-  i.box.actual.width/2;
+       var y=i.box.actual.y-  i.box.actual.height/2;
+         // doc.rect(x-1,y-1,i.box.actual.width+2, i.box.actual.height+2).stroke();
+          doc.image(//DOMURL.createObjectURL(
+                     i.png//)//getBase64(i.g.node().children[0])
+                 ,x,y, {width:i.box.actual.width, height:i.box.actual.height})
+     }
 });
 
 function getFormulasJSON() {

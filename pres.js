@@ -34,6 +34,12 @@ function seededRndGenerator(seed) {
 }
 //********************************************//
 
+
+function IsNumeric(val) {
+    return Number(parseFloat(val))==val;
+}
+
+
 function importDefault(obj, def, def2, def3) {
 	for (key in def) {
 		if (!(key in obj)) {
@@ -141,6 +147,7 @@ function itemAndFrameFunctions(i) {
 	i.continue = i.root.continue;
 	i.addTo = function(id) {
 		i.root.addToSet(i, id);
+        return i;
 	}
    i.append=function (type, style, d) {
 	  return i.root.saveToBlocks(Item(i.mainItem || i, type, style, d));
@@ -596,6 +603,8 @@ function Item(parent, typeAndId, style, d) {
 				useAttr : function (attr, key1,key2,key3) {  useAttr(i.bgRect,attr,key1, key2, key3);},
   
 				useStyle :function (attr, key1,key2,key3) {useStyle(i.bgRect, attr,key1,key2,key3);},
+				useForPdf : function (doc, f, key1, key2, key3) { useForPdf (i.bgRect, doc, f, key1, key2, key3);},
+                useNumberForPdf: function (doc, f, key1, key2, key3) {useNumberForPdf (i, doc, f, key1, key2, key3);},
 				automatic : true //disable this flag if  background box cannot be computed at draw time. Call i.drawBackground(false) later on.
 		  };
 		  
@@ -859,7 +868,7 @@ function Item(parent, typeAndId, style, d) {
 		 i.fillUpWidthHeight();
          i.updateContainerBox();  
 		 
-       //call the actual drawing function (set line colors, set text, etc.)
+       //call the actual drawing function (draw lines, text, etc.)
 		 if (i.drawingFunction!=null) {
 	       i.drawingFunction(i, regular); 
 		 }			 
@@ -868,14 +877,14 @@ function Item(parent, typeAndId, style, d) {
 			  i.children[c].draw(regular);
 			  checkTree(i);
 		 }	
-		 //suffix order: make adjustments depending to children (e.g. for an array)
+		 //suffix order: make adjustments depending on children (e.g. for an array)
 		 if (i.drawingFunctionPostOrder!=null) {
 			 i.drawingFunctionPostOrder(i, regular); 
 		 }
 		 
 		 i.updateActualBox();
 		 //draw the background rectangle if necessary
-	    i.drawBackground(true); //automatic drawing, may be disabled         
+	     i.drawBackground(true); //automatic drawing, may be disabled         
 		 checkTree(i);
          //place the item at the correct coordinates
 		 i.layout();
@@ -1025,14 +1034,16 @@ function Item(parent, typeAndId, style, d) {
   
   
   i.toPdf = function(doc, opacity) {
+      if (!i.display) return;
 	  doc.save();
-	  if (i.style.x!=undefined && i.style.y!=undefined)
+       if (IsNumeric(i.style.x)  && IsNumeric(i.style.y) ) {
 		doc.translate(i.style.x, i.style.y);
+        if (i.tag=="tspan") console.log("translate")
+      }
       if ("opacity" in i.style) opacity*=i.style.opacity;
-    /*  doc.rect(-2,-2,4,4);
-      doc.opacity(opacity);
-      doc.stroke("blue");	  */
-	  //doc.text("item: "+i.id);
+	  if (i.bgRect) {
+        codex.rect.drawInPdf(i.bgRect,  doc, opacity);
+      }
 	  i.drawInPdf(i, doc, opacity);
 	  i.children.forEach(function (i) {i.toPdf(doc, opacity)});	   
 	  doc.restore();
@@ -1451,12 +1462,13 @@ frameManager = function(style, sozi)  {
 	}
 	
 	addMenu("Start", function() {fm.camera.goFirst()}, "Go to first frame")
-	addMenu("Export HTML", exportSingleHTML, "Export as a single HTML file without dependencies (including all scripts, images and math formulas).")
-    
-    addMenu("Export as PDF (incomplete)", function(){toPDF(fm)}, "Exports the slides as pdf, some differences may be visible.")
-	addMenu("Export graph coordinates", showGraph(fm), "Show coordinates")
+	addMenu("Export HTML", exportSingleHTML, "Export as a single HTML file without dependencies (including all scripts, images and math formulas).")    
+    addMenu("Export as PDF", function(){toPDF(fm, true)}, "[incomplete] Export the slides as pdf, some important differences may occur.")
+    addMenu("Export graph coordinates", showGraph(fm), "Click on a graph to copy the node coordinates, to be hard-coded for future use.")
 	addMenu("Clear Saved Formulas", clearLocalStorage, "Delete cached math formulas, to be recomputed with MathJax next time.")
-	fm.run=function() {
+	//addMenu("debug PDF", function(){toPDF(fm, false)}, "debug function for PDF generation")
+    
+    fm.run=function() {
 	   fm.nextOverlay();
        console.log("=========================");       
        console.log("===  Running !     ======");

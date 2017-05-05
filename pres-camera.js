@@ -14,6 +14,9 @@
 		cm.updateZoom();
 		return cm;
 	 }
+	 cm.isLastFrame=function () {
+       return  cm.cameraPositions.length == cm.frame;
+     }
 	 cm.switchFrame= function (delta)  {
 		cm.frame+=delta;
 		cm.frame = max(1, min(cm.cameraPositions.length, cm.frame));

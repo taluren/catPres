@@ -51,8 +51,28 @@
             .then("circle")    
               .then("g")
                 .decoration("background")
-                .append("svgtext", {text:"youpi"})
+                .append("svgtext", {text:"aa"})
                 .up()
+              .then("g")
+                .decoration("background")
+                .append("svgtext", {text:"MM"})
+                .up()
+              .then("g")
+                .decoration("background")
+                .append("svgtext", {text:"pM"})
+                .up()
+             .then("horizontalVector#v2", {size: 23})
+                .decoration("background", {fill:"red"})
+                .append("g")
+                  .decoration("background", {fill:"blue"})
+                  .append("svgtext", {text:"aa"}).up()
+                .then("g")
+                  .decoration("background")
+                  .append("svgtext", {text:"MM"}).up()
+                .then("g")
+                  .decoration("background")
+                  .append("svgtext", {text:"pM"}).up()
+            .up("#v2")  
                
             .then("g", {fill:"yellow"})
                .decoration("background")
@@ -60,15 +80,31 @@
               .then("circle", {x:13,y:0, r:12})
               .then("circle", {x:3,y:14, stroke:"blue"})
               .then("circle", {x:20,y:-20})     
+                .on([1], {r:20})
          .goto("#v")
            .append("rect",{w:22,h:12})
            .then("circle")
            .then("text")
-             .np(".|Hello")
-             .np(".|World");
+             .np(` 
+.|Hello
+.|World
+`)
+             .np(".|World")
           
-          
-          
+         fm.nextOverlay()
+          .frame("another")
+          .append("rect")
+          .then("text")
+            .np(".|Hello..")
+            .np("..world")          
+          .then("text")
+            .np("o|Hello..")
+            .np("..$x+y^2$")
+         .then("g")   
+           .append("path", {d:'M 0,2 L 100,16 Q 130,2 150,12 C 190,-4 200,20 300,15 L 0,9', stroke:"red"})   
+           .then("rect", {w:50,h:50,fill:"yellow"})
+         .up().then("graph")
+              .addLinks("1-2;1-4;1-5;1-9;1-10;4-5");
        
 		/*
 		fm.frame("Overlays")
@@ -186,5 +222,7 @@ fm.run();
 
 
   </script>
+  
+<canvas id="canvas"></canvas>
     </body>
 </html>

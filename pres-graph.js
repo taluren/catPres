@@ -218,8 +218,8 @@ addToCodex("freeGraph", "g", {
         console.log("Graph seed for "+i.id+" : ", i.datum.seed);
         var generator = seededRndGenerator(i.datum.seed);
         
-        var nodeBox= i.append("g");
-        var linkBox= i.append("g");
+        var linkBox= i.append("g#"+i.id+"-links");
+        var nodeBox= i.append("g#"+i.id+"-nodes");
         
         var nodeStyle = {};
         var linkStyle = {};

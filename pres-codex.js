@@ -44,14 +44,15 @@ var codex = {
           
             function run() {
               doc.circle(i.style.offsetx||0,i.style.offsety||0,i.style.r);       
-             i.useNumberForPdf(doc, "lineWidth", "strokeWidth");             
+              i.useNumberForPdf(doc, "lineWidth", "strokeWidth");             
             };            
-             if (i.style.fill) {
+             if (i.style.fill && i.style.fill!="none") {
                run();
                doc.fillColor(i.style.fill, opacity);
+               console.log("fill",i.id, i.style.fill, opacity);
                doc.fill();               
              }
-             if (i.style.stroke ) {
+             if (i.style.stroke&& i.style.stroke!="none" ) {
                run();
                doc.strokeColor(i.style.stroke, opacity);
                doc.stroke();
@@ -89,12 +90,12 @@ var codex = {
              doc.rect(i.style.offsetx-i.style.w/2,i.style.offsety-i.style.h/2,i.style.w,i.style.h);            
              i.useNumberForPdf(doc, "lineWidth", "strokeWidth");             
             };            
-             if (i.style.fill) {
+             if (i.style.fill && i.style.fill!="none") {
                run();
                doc.fillColor(i.style.fill, opacity);
                doc.fill();               
              }
-             if (i.style.stroke ) {
+             if (i.style.stroke&& i.style.stroke!="none" ) {
                run();
                doc.strokeColor(i.style.stroke, opacity);
                doc.stroke();
@@ -116,7 +117,25 @@ var codex = {
 		},
 		onLayout:function(i){
 			i.g.attr("transform", "translate("+xy(i.style)+")");
-		}
+		},
+        
+        drawInPdf: function(i, doc, opacity) {
+            function run() {
+               doc.path(i.style.d);            
+               i.useNumberForPdf(doc, "lineWidth", "strokeWidth");             
+            };            
+             if (i.style.fill && i.style.fill!="none") {
+               run();
+               doc.fillColor(i.style.fill, opacity);
+               doc.fill();               
+             }
+             if (i.style.stroke && i.style.stroke!="none") {
+               run();
+               doc.strokeColor(i.style.stroke, opacity);
+               doc.stroke();
+             }            
+              
+        }
 	},
 	svgtext: {
 		tag:"text",
@@ -153,16 +172,19 @@ var codex = {
 		},
         drawInPdf: function(i, doc, opacity) {            
             doc
-             .circle(0,0,5).stroke("#FFAAAA")          
+         /*
+          *draw help circles:*/
+           //   .circle(0,0,5).stroke("#FFAAAA")          
+          //go to top-left corner of the bounding box, this will serve as a reference point even if the text size is a bit different
              .translate(
                  i.box.actual.x-i.box.actual.width/2,     
-                 i.box.actual.y-i.box.actual.height/2 )
-             .circle(0,0,5).stroke("#AAAAFF"); 
+                 i.box.actual.y-i.box.actual.height/2+0.2125*i.box.actual.height) //0.2125 = fraction of margin included in the bounding box for svg objects on firefox
+           //  .circle(0,0,5).stroke("#AAAAFF"); 
             i.useNumberForPdf(doc, "fontSize", "size");            
             doc              
               .fillColor(i.style.color||"black",  opacity)
-             // .moveUp()
-              .text(i.style.text, i.style.dx, i.style.dy)
+              .text("",0,0) //clear any previous "continued" text   
+              .text(i.style.text,0,0); 
         }
 	},
 	
@@ -189,8 +211,7 @@ var codex = {
             
             doc              
               .fillColor(i.style.color||"black",  opacity)
-              //.moveUp()
-              .text(i.style.text, i.style.offsetx, i.style.offsety)
+              .text(i.style.text, {continued:true})
         }
 	},
 	svgimage: {
