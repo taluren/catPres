@@ -218,15 +218,39 @@ var codex = {
 		tag:"image",
         internalNode:false,
 		defaultStyle:{x:0,y:0, width:0, height:0},	
+        onBuild:  function(i,s) {
+          i.box.actual.type="real";          
+        } ,
 		onDraw: function(i) {	
 			i.useAttr("width");	
 			i.useAttr("height");
             i.g.attr("x", -i.style.width/2);
             i.g.attr("y", -i.style.height/2);
-		}
-		/*onLayout: function(i){			
-            i.g.attr("transform", "translate("+xy(i.style)+ ")");
-		}*/
+		},
+        drawInPdf: function (i,doc, opacity) {
+           console.warn("image is not supported")
+           //no opacity option for pdf images => threshold at 10%
+          /*  if (opacity<0.1) return;
+            var canvas = d3.select("canvas").node(),       
+                ctx = canvas.getContext("2d");
+            var img=new Image(i.g.attr("xlink:href"))
+             i.g.node();
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Copy the image contents to the canvas
+            ctx.drawImage(i.g.node(), 0, 0);
+
+            // Get the data-URL formatted image
+            var dataURL = canvas.toDataURL("image/png");
+            
+            var x=i.box.actual.x-  i.box.actual.width/2;
+            var y=i.box.actual.y-  i.box.actual.height/2;
+            // doc.rect(x-1,y-1,i.box.actual.width+2, i.box.actual.height+2).stroke();
+              doc.image(i.g.attr("xlink:href"),
+                    x,y, {width:i.box.actual.width, height:i.box.actual.height})
+    */
+        }
 	},
 	default: { //codex template:
 		tag:"g",  //tag of the element to add

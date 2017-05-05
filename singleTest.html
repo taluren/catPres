@@ -39,7 +39,9 @@
 		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
 		
 		 fm.frame("PDF test")
-          .append("circle")
+             .append("image#wiki", {maxHeight:100})
+               .url("https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg/1122px-Wikipedia-logo-v2.svg.png")
+               
           .then("horizontalVector#v")
             .append("circle")
             .then("rect", {w:20, h:15})
@@ -100,6 +102,9 @@
           .then("text")
             .np("o|Hello..")
             .np("..$x+y^2$")
+          .then("text")
+            .np("o|Hello..")
+            .np("..$x^2+\\frac1{\\frac 1y}$")
          .then("g")   
            .append("path", {d:'M 0,2 L 100,16 Q 130,2 150,12 C 190,-4 200,20 300,15 L 0,9', stroke:"red"})   
            .then("rect", {w:50,h:50,fill:"yellow"})

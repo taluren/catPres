@@ -388,6 +388,10 @@ function prepareImageBlobs(mathNodes, callBack) {
   })    
 }
 
+d3.select("body").append("canvas")
+  .attr("id", "exportToPng")
+  .style("display", "none");
+  
 function savePNG(svgNode, callBack) {
   
     var pngScale=8;
@@ -401,7 +405,7 @@ function savePNG(svgNode, callBack) {
       
      var imgsrc = 'data:image/svg+xml;base64,'+ btoa(svgSrc);
    //  button.attr("href", "#"); 
-     var canvas = document.querySelector("canvas"),
+     var canvas = document.querySelector("#exportToPng"),
          context = canvas.getContext("2d");
     
      var image = new Image;

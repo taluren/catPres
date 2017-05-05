@@ -44,4 +44,6 @@ addToCodex("image", "transform", {
 			console.log(i.down("svgimage").style);
 			
 		}
+		
+		
 });
