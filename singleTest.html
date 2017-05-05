@@ -89,7 +89,7 @@
            .then("text")
              .np(` 
 .|Hello
-.|World
+World
 `)
              .np(".|World")
           
@@ -102,7 +102,7 @@
           .then("text")
             .np("o|Hello..")
             .np("..$x+y^2$")
-          .then("text")
+          .then("text", {color:"darkgreen"})
             .np("o|Hello..")
             .np("..$x^2+\\frac1{\\frac 1y}$")
          .then("g")   

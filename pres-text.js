@@ -483,6 +483,9 @@ addToCodex("mathJaxed","transform", {
 		i.style.y=i.deltaY;
 		i.style.scale = i.scale;
 		codex.transform.onDraw(i);		
+        if ("color" in i.style &&  i.g.node().children.length)
+           i.g.node().children[0].setAttribute("color", i.style.color);
+        //i.useStyle("color"); 
 	//	}
 	},
 	onLayout:function(i) {
