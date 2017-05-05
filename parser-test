@@ -1,0 +1,79 @@
+/*
+ * Simple Arithmetics Grammar
+ * ==========================
+ *
+ * Accepts expressions like "2 * (3 + 4)" and computes their value.
+ */
+
+Expression
+  = (StringWithBlocks) 
+    
+Cell
+ = String 
+
+Line = head:Cell _ tail:('&'_ Cell _)*{
+   var result=head;
+   for (var i = 0; i < tail.length; i++) {
+       result.push({array:"nextcell"});
+       result=result.concat(tail[i][2]);
+   }
+   return result;
+}
+
+Array = head:Line _ tail:('\\\\'_ Line _)* {
+   var result=head;
+   for (var i = 0; i < tail.length; i++) {
+       result.push({array:"nextLine"});
+       result=result.concat(tail[i][2]);
+      }
+   return result;
+}
+
+Char "character"
+  = character//([a-z* \t\n\r+] / Spec1/Spec2/Spec3/Spec4)
+Spec1 
+  = '\\&'  {return '&'}
+Spec2
+   = "\\{"
+    {return "\x7B"}
+Spec3
+   = "\\}"
+    {return "\x7D"}
+Spec4
+   = "\\n"
+    {return ""}
+    
+escape_character = "\\"
+doublequote "double quote" = '"'
+singlequote "single quote" = "'"
+unescaped = [\x20-\x5B\x5D-\u10FFFF]
+HEXDIG = [0-9a-f]i
+openBrace = "{"
+closeBrace = "}"
+
+character =
+  unescaped
+  / escape_sequence
+special = "&" / "{" / "}"
+escape_sequence "escape sequence" = escape_character sequence:(
+     "backslash" {return "\\"} 
+   / special
+  )
+  { return sequence; }
+
+String "string" = all:character*  
+  {return [{string:all.join(" ")}]}
+  
+StringWithBlocks = 
+  first:Array opt:(openBrace StringWithBlocks closeBrace StringWithBlocks/"")?  
+  {var result =first;
+      if (opt) {
+        result.push({paren: opt[1]})
+        result=result.concat(opt[2])      
+      }
+      return result;
+  }
+  
+  
+_ "whitespace"
+  = [ \t\n\r]*
