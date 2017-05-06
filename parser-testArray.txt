@@ -1,0 +1,97 @@
+1st line: some special chars \$\//\#
+-|item
+ -|sub-item with math $1+1$
+ -#dash| \color:darkgreen{fancy} \bold{content}
+&
+next cell
+//
+next row
+...
+& last cell
+
+
+
+[
+   "1st line: some special chars $//#",
+   {
+      "newline": {
+         "indent": "-",
+         "id": ""
+      }
+   },
+   "item",
+   {
+      "newline": {
+         "indent": " -",
+         "id": ""
+      }
+   },
+   "sub-item with math ",
+   {
+      "math": "1+1"
+   },
+   "",
+   {
+      "newline": {
+         "indent": " -",
+         "id": "dash"
+      }
+   },
+   " ",
+   {
+      "param": {
+         "color": "darkgreen"
+      },
+      "id": "",
+      "inside": [
+         "fancy"
+      ]
+   },
+   " ",
+   {
+      "param": {
+         "weight": "bold"
+      },
+      "id": "",
+      "inside": [
+         "content"
+      ]
+   },
+   "",
+   {
+      "newline": null
+   },
+   "",
+   {
+      "array": "&"
+   },
+   "",
+   {
+      "newline": null
+   },
+   "next cell",
+   {
+      "newline": null
+   },
+   "",
+   {
+      "array": "//"
+   },
+   "",
+   {
+      "newline": null
+   },
+   "next row",
+   {
+      "newline": null
+   },
+   "...",
+   {
+      "newline": null
+   },
+   "",
+   {
+      "array": "&"
+   },
+   " last cell"
+]
