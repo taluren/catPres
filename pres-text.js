@@ -19,6 +19,64 @@ addToCodex("caption", "svgtext", {
 	 }
 }); 
 
+
+addToCodex("writer","g",  {
+	  
+	  onBuild: function(i) {
+		  i.isArray=false;
+		  i.currentParagraph=i.append("text");
+		  i.currentLine = i.currentParagraph.append("sweetTextLine")  
+		  i.openedSvgText = null;
+		  i.openedBags = [];
+		  i.writeParsedInput=function(a) {
+			  console.log("write "+a.length+" tokens");
+			  var token;
+			  while ((token= a.shift())!=null) {
+				  console.log(token);
+				  if (typeof token == "string") {
+					  if( !i.openedSvgText)
+						  i.openedSvgText = i.currentLine.append("svgtext")
+					  var x=i.openedSvgText.append("tspan", {text:token});
+					  i.openedBags.forEach(function (b) {
+						  b.add(x);						    
+					  })
+					  continue;
+				  }
+				  if (typeof token != "object") 
+					  console.error("invalid token type", token);
+				  
+				  if (token.array) {
+					  i.openedSvgText =null;
+					  i.currentLine.append("rect");
+				  }
+				  if (token.math) {
+					  i.openedSvgText =null;
+					  i.currentLine.append("circ");
+				  }
+				  if (token.newline) {
+					  i.openedSvgText = null;
+					  i.currentLine = i.currentParagraph.append("sweetTextLine");
+				  }
+				  if (token.inside) {
+					  var bag = itemBag();
+					  i.openedBags.push(bag);
+					  i.writeParsedInput(token.inside);
+					  i.openedBags.pop();
+					  if (token.param) 
+						 bag.set(token.param);
+				  }
+					
+				  
+			  }
+			  
+			  
+		  }
+		  
+		  
+		  
+	  }
+})
+
 addToCodex("text","verticalVector",  {
 		defaultStyle: {align:"left", layout:"dense", width:null, height:null} ,
 		onBuild:  function (i) {
