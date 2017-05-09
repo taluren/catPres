@@ -1,0 +1,85 @@
+Input=  String
+
+
+String = str:(content) {return str;}
+content = inside:contentUnit* {
+    var str="";
+    var out=[];
+    inside.forEach(function(unit) {
+      if (typeof unit=="string") {
+        str+=unit;
+      } else {
+        out.push(str);
+        out.push(unit);
+        str="";
+      }
+    });
+    out.push(str);
+    return out;
+  }
+contentUnit=
+    block
+    /mathBlock
+    /arrayToken
+    /newLineToken
+    /otherChar
+
+block = open:open str:content close:close {return {param:open.param, id:open.id, inside:str}}
+
+open= (escape b:paramStr id:maybeId openChar {return {param:b, id:id}})/(openChar {return {param:null, id:null}})
+
+maybeId = id/""
+id = "#" id:idChar* {return id.join("")}
+close=closeChar {return "[[close]]"} 
+openChar="{"
+closeChar="}" 
+paramStr=  _ s:paramSequence _ {return s} / _
+paramSequence = severalParamPairs / singleParamPair
+severalParamPairs = x:(keyValue/anyKeyword/keyNoValue) _ "," _ y:paramSequence {y[x[0]]=x[1]; return y}
+singleParamPair = x:(keyValue/anyKeyword/keyNoValue) {var  y={}; y[x[0]]=x[1]; return y}
+keyValue = a:(paramChar+) _ ":" _ b:paramValue {return [a.join(''), b]}
+keyNoValue = a:(paramChar+) {return [a.join(''), true]}
+paramValue = 
+ dquote b:((paramChar/" ")+) dquote {return b.join('')}
+ / b:((paramChar)+) {return b.join('')}
+paramChar=[a-zA-Z0-9_\[\]\-]
+idChar=[a-zA-Z0-9_]
+dquote='"'
+
+anyKeyword = 
+//weightKeyword = 
+  ("bold"/"textbf") {return ["weight","bold"]}
+//fontKeyword = 
+  / c:("sans"/"serif") {return ["font",c]}
+  
+//colorKeyword = 
+//  / c:([a-z]+) {return ["color", c.join('')]}
+//sizeKeyword = 
+//  / c:([0-9]+) {return ["size", c.join('')]}
+
+
+
+
+mathBlock = mathChar content:mathContent mathChar {return {math:content}}
+mathContent = math:((!mathChar) c:. {return c})* {return math.join('')} 
+mathChar= "$"
+
+arrayToken = c:arrayChar sp:_ {return {array:c, spaceAfter:sp}}
+arrayChar = ("&"/"//")
+
+newLineToken = indentNewLine / simpleNewLine
+
+indentNewLine = "\n" indent:(indentChar*) id:maybeId endOfIndent 
+  {return {newline:{indent:indent.join(''), id:id}}}
+indentChar=(!endOfIndent) (!simpleNewLine) c:otherChar {return c}
+endOfIndent = "|"
+simpleNewLine = "\n" sp:_ {return {newline:null, spaceAfter:sp}}
+
+otherChar = !open!close c:(escapedChar / simpleChar) {return c}
+simpleChar = !special c:. {return c} 
+escapedChar = escape  c:special {return c}
+escape = "\\"
+special = [#&]/openChar/closeChar/mathChar/arrayChar
+
+_ "space"= s:space* {return s.join('')}
+space =[ \t]

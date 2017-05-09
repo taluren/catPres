@@ -170,7 +170,7 @@ addToCodex("array", "box", {
 			if (more) {more(inside);}
 			i.currentColumn = c;
 			i.currentRow= r;
-			return cell;
+			return inside;
 	   }
 		
 		i.print= function (text, style, data) {

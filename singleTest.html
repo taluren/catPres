@@ -28,11 +28,13 @@
   <script src="./pres-graph.js"></script>
   <script src="./pres-image.js"></script>
   <script src="./pres-pdf.js"></script>
+  <script src="./parser.js"></script>
     <script src="./blob-stream.js"></script>
     <script src="./pdfkit.js"></script>
+    
 
   <script>
-     var p=
+/*     var p=
 
 [
    "1st line: some special chars $//#",
@@ -117,7 +119,7 @@
       "array": "&"
    },
    " last cell"
-]
+]*/
 
      window.addEventListener("load", function(event) {  
 	      
@@ -127,9 +129,21 @@
 		fm.frame("Writer test")
 		 
         .append("writer")
-		  .writeParsedInput(p);
+		  .write`
+		  hello
+          \color:blue{blue font}
+          \bold{bold font}          
+          \color:blue, bold#g{both}
+		  ...
+		  &  new cell with math:
+		  $1+1=2$ and \{}$x=\sqrt{b^2-4ac}$
+		  //  
+		  new line, quite long
+		  `;
 		
-		
+		fm.nextOverlay()
+		  .goto("#g")
+		    .set({color:"red"})
 		/*
 		fm.frame("Overlays")
            //Array: more details later. This one has rows align in the middle (all the same size), and two columns (one aligned left, another center of width 50)

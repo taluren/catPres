@@ -23,8 +23,12 @@ addToCodex("caption", "svgtext", {
 addToCodex("writer","g",  {
 	  
 	  onBuild: function(i) {
-		  i.currentArray = i.append("array");
-		  i.currentParagraph=i.currentArray.append("text");
+          if (!i.datum) i.datum={};          
+          if (!i.datum.cols) i.datum.cols="l";
+          if (!i.datum.rows) i.datum.rows="t"; 
+           
+		  i.currentArray = i.append("array", {}, {cols:i.datum.cols, rows:i.datum.rows});
+		  i.currentParagraph=i.currentArray.appendIn(0,0,"text");
 		  i.currentLine = i.currentParagraph.append("sweetTextLine")  
 		  i.openedSvgText = null;
 		  i.openedBags = [];
@@ -43,6 +47,11 @@ addToCodex("writer","g",  {
 					  })
 					
 		  }
+		  i.write = function (s) {
+            console.log(s.raw[0]);
+             var a=parser.parse(s.raw[0]);
+             i.writeParsedInput(a);
+          }
 		  i.writeParsedInput=function(a) {
 			  console.log("write "+a.length+" tokens");
 			  var token;
@@ -67,32 +76,54 @@ addToCodex("writer","g",  {
 						i.currentCoords[1]=0;
 					  }
 					  i.currentParagraph=i.currentArray
-					                      .appendIn(i.currentCoords[0], i.currentCoords[1], "text");
+					                      .appendIn(i.currentCoords[1], i.currentCoords[0], "text");
 	   			  i.currentLine = i.currentParagraph.append("sweetTextLine")  
 		  
 		//			  i.currentLine.append("rect");
 				  }
-				  if (token.math) {
+				  if ("math" in token) {
 					  i.openedSvgText =null;
-					  i.currentLine.append("circ");
+                      var x= i.currentLine.append("mathBox",{}, {math:token.math});
+
+                      i.addToBags(x);
+                      
+//					  i.currentLine.append("circ");
+                      continue;
 				  }
-				  if (token.newline) {
+				  if ("newline" in token) {
 					  i.openedSvgText = null;
 					  i.currentLine = i.currentParagraph.append("sweetTextLine");
+                      continue;
 				  }
-				  if (token.inside) {
-					  var bag = itemBag();
-					  i.openedBags.push(bag);
-					  i.writeParsedInput(token.inside);
-					  i.openedBags.pop();
-					  if (token.param) 
-						 bag.set(token.param);
+				  if ("inside" in token) {
+					  if (token.param && token.param.box) {
+                        var extra={};
+                        if ("array" in token.param) {
+                          if (typeof token.param.array=="String") {
+                             extra.cols=token.param.array;
+                          } else {
+                            if (token.param.cols) extra.cols=token.param.cols;
+                            if (token.param.rows) extra.cols=token.param.rows;
+                          }
+                        }
+           
+                        var x=i.currentLine.append("writer",{},extra)
+                        i.addToBags(x);
+                        x.writeParsedInput(token.inside);
+                      } else {
+                        var bag = itemBag();
+                        i.openedBags.push(bag);
+                        i.writeParsedInput(token.inside);
+                        i.openedBags.pop();
+                        if (token.param) 
+                          bag.set(token.param);
+                        if (token.id) 
+                          i.root.index[token.id]=bag;
+                      }
+                      continue;
 				  }
-				  if (token.params.box) {
-					  var x=i.currentLine.append("writer")
-					  i.addToBags(x, token.params);
-					  x.writeParsedInput(token.inside);
-				  }					
+					  
+				  			
 				  
 			  }
 			  

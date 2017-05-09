@@ -142,7 +142,8 @@ var codex = {
         internalNode:true,
 	    defaultStyle: {x:0,y:0, text:"", select:"none", wriggle:defaultWriggleThreshold} ,
 		onBuild:  function(i,s) {
-          i.box.actual.type="real";          
+          i.box.actual.type="real";    
+          i.g.style("white-space", "pre");
         } ,
 				
       onDraw: function (i) {checkTree(i)
