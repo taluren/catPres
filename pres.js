@@ -742,7 +742,7 @@ function Item(parent, typeAndId, style, d) {
     if (typeof value=="undefined")  {
        return i.box.actual[key];
     } else {
-      console.log ("redefine actual box", i.id, key, value)
+      //console.log ("redefine actual box", i.id, key, value)
       i.box.actual[key]=value;
       return i;
     }
@@ -845,7 +845,7 @@ function Item(parent, typeAndId, style, d) {
 			i.box.actual.height=i.box.container.height;			
 			i.box.actual.y=i.box.container.y;	
 	  }
-      if (["textBox", "svgtext"].indexOf(i.type)>-1) console.log(i.id+" updateActualBox ",i.box.actual)
+/*      if (["textBox", "svgtext"].indexOf(i.type)>-1) console.log(i.id+" updateActualBox ",i.box.actual)*/
 	  //"custom" -> do nothing
   }
   

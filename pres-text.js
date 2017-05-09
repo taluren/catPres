@@ -23,11 +23,26 @@ addToCodex("caption", "svgtext", {
 addToCodex("writer","g",  {
 	  
 	  onBuild: function(i) {
-		  i.isArray=false;
-		  i.currentParagraph=i.append("text");
+		  i.currentArray = i.append("array");
+		  i.currentParagraph=i.currentArray.append("text");
 		  i.currentLine = i.currentParagraph.append("sweetTextLine")  
 		  i.openedSvgText = null;
 		  i.openedBags = [];
+		  i.currentCoords=[0,0];
+		  i.checkIsArray= function() { //private
+			  if (i.currentArray) return;
+			  //todo: make this an item function
+			  i.currentArray = i.append("array")
+			  i.children.splice(1, i.children.indexOf(i.currentParagraph))
+			  i.currentArray.children.push(i.currentParagraph);
+			  
+		  }
+		  i.addToBags= function(j) {
+			    i.openedBags.forEach(function (b) {
+						  b.add(j);						    
+					  })
+					
+		  }
 		  i.writeParsedInput=function(a) {
 			  console.log("write "+a.length+" tokens");
 			  var token;
@@ -37,17 +52,25 @@ addToCodex("writer","g",  {
 					  if( !i.openedSvgText)
 						  i.openedSvgText = i.currentLine.append("svgtext")
 					  var x=i.openedSvgText.append("tspan", {text:token});
-					  i.openedBags.forEach(function (b) {
-						  b.add(x);						    
-					  })
+					  i.addToBags(x);
 					  continue;
 				  }
 				  if (typeof token != "object") 
 					  console.error("invalid token type", token);
 				  
 				  if (token.array) {
+					  i.checkIsArray();
 					  i.openedSvgText =null;
-					  i.currentLine.append("rect");
+					  if (token.array=="&") i.currentCoords[1]++;
+					  if (token.array=="//") {
+					   i.currentCoords[0]++;
+						i.currentCoords[1]=0;
+					  }
+					  i.currentParagraph=i.currentArray
+					                      .appendIn(i.currentCoords[0], i.currentCoords[1], "text");
+	   			  i.currentLine = i.currentParagraph.append("sweetTextLine")  
+		  
+		//			  i.currentLine.append("rect");
 				  }
 				  if (token.math) {
 					  i.openedSvgText =null;
@@ -65,7 +88,11 @@ addToCodex("writer","g",  {
 					  if (token.param) 
 						 bag.set(token.param);
 				  }
-					
+				  if (token.params.box) {
+					  var x=i.currentLine.append("writer")
+					  i.addToBags(x, token.params);
+					  x.writeParsedInput(token.inside);
+				  }					
 				  
 			  }
 			  
