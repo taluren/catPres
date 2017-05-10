@@ -34,92 +34,7 @@
     
 
   <script>
-/*     var p=
 
-[
-   "1st line: some special chars $//#",
-   {
-      "newline": {
-         "indent": "-",
-         "id": ""
-      }
-   },
-   "item",
-   {
-      "newline": {
-         "indent": " -",
-         "id": ""
-      }
-   },
-   "sub-item with math ",
-   {
-      "math": "1+1"
-   },
-   "",
-   {
-      "newline": {
-         "indent": " -",
-         "id": "dash"
-      }
-   },
-   " ",
-   {
-      "param": {
-         "color": "darkgreen"
-      },
-      "id": "",
-      "inside": [
-         "fancy"
-      ]
-   },
-   " ",
-   {
-      "param": {
-         "weight": "bold"
-      },
-      "id": "",
-      "inside": [
-         "content"
-      ]
-   },
-   "",
-   {
-      "newline": null
-   },
-   "",
-   {
-      "array": "&"
-   },
-   "",
-   {
-      "newline": null
-   },
-   "next cell",
-   {
-      "newline": null
-   },
-   "",
-   {
-      "array": "//"
-   },
-   "",
-   {
-      "newline": null
-   },
-   "next row",
-   {
-      "newline": null
-   },
-   "...",
-   {
-      "newline": null
-   },
-   "",
-   {
-      "array": "&"
-   },
-   " last cell"
-]*/
 
      window.addEventListener("load", function(event) {  
 	      
@@ -131,8 +46,8 @@
         .append("writer")
 		  .write`
 		  hello
-          \color:blue{blue font}
-          \bold{bold font}          
+          \color:blue{colored text}
+          \bold{bold text}          
           \color:blue, bold#g{both}
 		  ...
 		  &  new cell with math:
