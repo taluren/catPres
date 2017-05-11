@@ -784,7 +784,7 @@ function Item(parent, typeAndId, style, d) {
       var scale=(i.style.scale || 1);
       if (i.box.actual.typeX == "real" || i.box.actual.typeY=="real") {
         var bbox=false;
-        if (i.display) {
+        if (i.display && i.tag!="tspan") {
           try {
             bbox=shallowCopy(i.g.node().getBBox()) 
           } catch (e) {console.log(i.id+": bbox unavailable")};

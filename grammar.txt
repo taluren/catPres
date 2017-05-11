@@ -22,6 +22,7 @@ contentUnit=
     /mathBlock
     /arrayToken
     /newLineToken
+    /commentBlock
     /otherChar
 
 block = open:open str:content close:close {return {param:open.param, id:open.id, inside:str}}
@@ -64,22 +65,31 @@ mathBlock = mathChar content:mathContent mathChar {return {math:content}}
 mathContent = math:((!mathChar) c:. {return c})* {return math.join('')} 
 mathChar= "$"
 
-arrayToken = c:arrayChar sp:_ {return {array:c, spaceAfter:sp}}
+arrayToken = c:arrayChar indenter:indenter {return {array:c, indenter:indenter}}
 arrayChar = ("&"/"//")
 
-newLineToken = indentNewLine / simpleNewLine
+newLineToken = "\n" indenter:indenter {return {newline:true, indenter:indenter}}
 
-indentNewLine = "\n" indent:(indentChar*) id:maybeId endOfIndent 
-  {return {newline:{indent:indent.join(''), id:id}}}
-indentChar=(!endOfIndent) (!simpleNewLine) c:otherChar {return c}
+commentBlock = commentChar ((!'\n') .)* '\n'? {return ""}
+commentChar= "%"
+  
+indenter = fullIndenter/spaceIndenter
+
+fullIndenter = indent:(indentChar*) id:maybeId endOfIndent
+              {return {indent:indent.join(''), id:id, spaceAfter:null}}
+              
+              
+spaceIndenter = sp:_ {return {indent:null, id:"", spaceAfter:sp}}
+           
+indentChar=(! (endOfIndent/simpleNewLine/escape)) c:otherChar {return c}
 endOfIndent = "|"
-simpleNewLine = "\n" sp:_ {return {newline:null, spaceAfter:sp}}
+simpleNewLine = "\n" sp:_ {return {newline:{indent:null}, spaceAfter:sp}}
 
 otherChar = !open!close c:(escapedChar / simpleChar) {return c}
 simpleChar = !special c:. {return c} 
 escapedChar = escape  c:special {return c}
 escape = "\\"
-special = [#&]/openChar/closeChar/mathChar/arrayChar
+special = [#&]/openChar/closeChar/mathChar/arrayChar/commentChar
 
 _ "space"= s:space* {return s.join('')}
 space =[ \t]

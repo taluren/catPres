@@ -99,7 +99,7 @@
 		   .append("svg") 
 				.style("background", style.screenBackground)
 				.attr("viewBox", "-200 -150 400 300")
-				.call(cm.zoom)
+				//.call(cm.zoom)
 				.attr("height", "100%")
 				.attr("width", "100%")   
 				.style("position", "fixed")
@@ -107,6 +107,8 @@
 				.style("bottom", "0")
 				.style("left", "0")
 				.style("right", "0")/**/
+        if (style.zoom==true) 
+           cm.svg.call(cm.zoom)          
 		cm.holder=cm.svg.append("g")
 		
 		

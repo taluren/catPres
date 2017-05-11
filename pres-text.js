@@ -47,10 +47,53 @@ addToCodex("writer","g",  {
 					  })
 					
 		  }
+		  
+          i.currentIndent = "";
+          i.enumerateCount = [];
+          i.processIndentString= function(bullet) {
+            if (bullet==null)  //if no bullet is provided: indend as previous line, but don't draw any bullet
+              return i.currentIndent
+            bullet = bullet||"";//i.currentIndent||"";
+            while (i.enumerateCount.length<bullet.length) 
+              i.enumerateCount.push(0);
+                  
+            var reset=(bullet=="");
+            var out=[];
+            for (var p=0;p<bullet.length; p++) {
+                if (reset) 
+                  i.enumerateCount[p]=0;
+             
+                
+                if (bullet[p]=="a") {
+                  out.push("abcdefghijklmnopqrstuvwxyz"[i.enumerateCount[p]%26]);
+                }else  if (bullet[p]=="A") {
+                  out.push("ABCDEFGHIJKLMNOPQRSTUVWXYZ"[i.enumerateCount[p]%26]);
+                }else if (bullet[p]=="1") {
+                  out.push((i.enumerateCount[p]+1)+"");
+                }else if (bullet[p]=="i") {
+                  out.push(romanize(i.enumerateCount[p]+1).toLowerCase());
+                }else if (bullet[p]=="I") {
+                  out.push(romanize(i.enumerateCount[p]+1));
+                }else  out.push(bullet[p]);   
+                
+                if (bullet[p]!=" ") {
+                  i.enumerateCount[p]++;
+                  reset = true;
+                }
+            }
+            if (reset)
+              for (var p=out.length; p<i.enumerateCount.length; p++) {
+                  i.enumerateCount[p]=0;
+              }
+
+            i.currentIndent = Array(out.length+1).join(" ");           
+            return out;
+          }
 		  i.write = function (s) {
             console.log(s.raw[0]);
              var a=parser.parse(s.raw[0]);
              i.writeParsedInput(a);
+             return i;
           }
 		  i.writeParsedInput=function(a) {
 			  console.log("write "+a.length+" tokens");
@@ -58,6 +101,7 @@ addToCodex("writer","g",  {
 			  while ((token= a.shift())!=null) {
 				  console.log(token);
 				  if (typeof token == "string") {
+                      //print a regular string 
 					  if( !i.openedSvgText)
 						  i.openedSvgText = i.currentLine.append("svgtext")
 					  var x=i.openedSvgText.append("tspan", {text:token});
@@ -68,35 +112,37 @@ addToCodex("writer","g",  {
 					  console.error("invalid token type", token);
 				  
 				  if (token.array) {
+                      //array-control token: & and //
 					  i.checkIsArray();
 					  i.openedSvgText =null;
 					  if (token.array=="&") i.currentCoords[1]++;
 					  if (token.array=="//") {
-					   i.currentCoords[0]++;
+					    i.currentCoords[0]++;
 						i.currentCoords[1]=0;
 					  }
 					  i.currentParagraph=i.currentArray
 					                      .appendIn(i.currentCoords[1], i.currentCoords[0], "text");
-	   			  i.currentLine = i.currentParagraph.append("sweetTextLine")  
-		  
-		//			  i.currentLine.append("rect");
+                      i.currentLine = i.currentParagraph.append("sweetTextLine")  
+                      i.currentLine.setBullet(i.processIndentString(token.indenter.indent))
 				  }
 				  if ("math" in token) {
+                      //math formula token: $...$
 					  i.openedSvgText =null;
                       var x= i.currentLine.append("mathBox",{}, {math:token.math});
-
                       i.addToBags(x);
-                      
-//					  i.currentLine.append("circ");
                       continue;
 				  }
 				  if ("newline" in token) {
+                      //new line token: \n, maybe with a bullet command, e.g. "\n  -|"
 					  i.openedSvgText = null;
-					  i.currentLine = i.currentParagraph.append("sweetTextLine");
+					  i.currentLine = i.currentParagraph.append("sweetTextLine");               i.currentLine.setBullet(i.processIndentString(token.indenter.indent))  
+                        
                       continue;
 				  }
 				  if ("inside" in token) {
+                      //a complex command: \(params)#(id){..contents..}
 					  if (token.param && token.param.box) {
+                        //the token is "boxed" (open a new paragraph for it)
                         var extra={};
                         if ("array" in token.param) {
                           if (typeof token.param.array=="String") {
@@ -107,7 +153,9 @@ addToCodex("writer","g",  {
                           }
                         }
            
-                        var x=i.currentLine.append("writer",{},extra)
+                        var x=i.currentLine
+                                  .append("g"+(token.id?"#"+token.id:""))
+                                  .append("writer",{},extra)
                         i.addToBags(x);
                         x.writeParsedInput(token.inside);
                       } else {
@@ -122,16 +170,8 @@ addToCodex("writer","g",  {
                       }
                       continue;
 				  }
-					  
-				  			
-				  
 			  }
-			  
-			  
 		  }
-		  
-		  
-		  
 	  }
 })
 
@@ -146,6 +186,7 @@ addToCodex("text","verticalVector",  {
 				  var columns=i.datum.of || 1;
 				  i.style.x = 0;//((column-1)/columns*2-1)*170;
 			  }
+			  /*
 			  i.printBag = function(x) {
 				  var b=  itemBag(x?[x]:[]);
 				  b.print=function(s, style,d) { 
@@ -191,52 +232,20 @@ addToCodex("text","verticalVector",  {
 			  i.freeBox=function (content) {
 				  return i.printBag(i.getLast("sweetTextLine").freeBox(content));
 			  }
-			  
-              i.currentIndent = "";
-              var lineIndex=1;
+			  */
+              
+              /*var lineIndex=1;
               i.getLine= function(l) {
                   return i.down("#"+i.id+"/line"+l);
               }
               i.getLines= function(ll) {
                 if (ll=="") return itemBag([]);
-                if (typeof ll=="string") ll=ll.split(/\ *;\ */);             
-                return itemBag(ll.map(i.getLine));
-              }
-              var enumerateCount = [];
-              function processBullet(bullet) {
-                bullet = bullet||"";//i.currentIndent||"";
-                while (enumerateCount.length<bullet.length) 
-                  enumerateCount.push(0);
-					 
-                var reset=(bullet=="");
-                var out=[];
-                for (var p=0;p<bullet.length; p++) {
-                   if (reset) 
-                     enumerateCount[p]=0;
-                   
-                   if (bullet[p]=="a") {
-                      out.push("abcdefghijklmnopqrstuvwxyz"[enumerateCount[p]%26]);
-                   }else  if (bullet[p]=="A") {
-                      out.push("ABCDEFGHIJKLMNOPQRSTUVWXYZ"[enumerateCount[p]%26]);
-                   }else if (bullet[p]=="1") {
-                      out.push((enumerateCount[p]+1)+"");
-                   }else if (bullet[p]=="i") {
-                      out.push(romanize(enumerateCount[p]+1).toLowerCase());
-                   }else if (bullet[p]=="I") {
-                      out.push(romanize(enumerateCount[p]+1));
-                   }else  out.push(bullet[p]);   
-                   
-                   if (bullet[p]!=" ") {
-                      enumerateCount[p]++;
-                      reset = true;
-                   }
-                }
-                if (reset)
-                  for (var p=bullet.length; p<enumerateCount.length; p++) {
-                      enumerateCount[p]=0;
-                  }
-                return out;
-              }
+              */
+                //if (typeof ll=="string") ll=ll.split(/\ *;\ */);             
+                /*return itemBag(ll.map(i.getLine));
+              }*/
+                
+              /*
               i.nnl=function(bullet, style) {                
                   i.append("sweetTextLine#"+i.id+"/line"+(lineIndex++), style)
                     .append("bullet",{bullet:processBullet(bullet)}, style) ;
@@ -273,7 +282,8 @@ addToCodex("text","verticalVector",  {
                   i.getLast("sweetTextLine").print(b, ss.shift(),style,d);
                   return   i;                        
                   
-              }
+              }*/
+              
 		}
 	});
 	
@@ -286,11 +296,11 @@ addToCodex("sweetTextLine", "horizontalVector", {
               i.setBullet = function(bullet) {
                   i.append("bullet", {bullet:bullet});            
               }
-			  i.print=function(bag, s, style,d) {
+			/*  i.print=function(bag, s, style,d) {
 				   if (i.firstPrint && style && style.bullet) {
 						i.append("bullet", style);											
 					}
-					if (i.firstPrint) s=s.replace(/^ */,'');
+					if (i.firstPrint) s=s.replace(/^ * /,''); //extra space here
 					
 				   mathSplit= s.split("$");
 					var last=i;
@@ -317,7 +327,7 @@ addToCodex("sweetTextLine", "horizontalVector", {
 				  i.inner=null;
 				  content(b);
 				  return b;
-			  }
+			  }*/
 			  
 		} 
 			

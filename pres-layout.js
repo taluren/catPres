@@ -604,7 +604,6 @@ function layoutManager(str, horizontal) {
                        
 				child.each(function(i) {
 					i.style[l.kx] = child.style[l.kx];
-                    console.log("contains ",i.id, i.style[l.kx]);
 				})
 			})	
 		}

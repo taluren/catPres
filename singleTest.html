@@ -39,26 +39,35 @@
      window.addEventListener("load", function(event) {  
 	      
 		//create the "frame manager" with some parameters	
-		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
+		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json", zoom:true});
 		
 		fm.frame("Writer test")
 		 
         .append("writer")
-		  .write`
-		  hello
-          \color:blue{colored text}
-          \bold{bold text}          
-          \color:blue, bold#g{both}
-		  ...
-		  &  new cell with math:
-		  $1+1=2$ and \{}$x=\sqrt{b^2-4ac}$
-		  //  
-		  new line, quite long
-		  `;
+.write`
+1|Fancy text:
+ a|\color:blue{colored text}
+ a|\bold{bold text}          
+ a|\color:blue, bold#col{both}
+1|\box#g{}
+&1|new cell with math:
+ a|$1+1=2$ 
+ b|and \{}$x=\sqrt{b^2-4ac}$
+//1|new line, quite long... %with a comment
+&|reset indent
+//1| final line
+& 
+1|and final cell
+`
+      .goto("#g")
+         .decoration("border")
+         .append("graph",{}, {simulation:true})
+           .addLinks("1-2;2-5")
 		
 		fm.nextOverlay()
-		  .goto("#g")
+		  .goto("#col")
 		    .set({color:"red"})
+		    
 		/*
 		fm.frame("Overlays")
            //Array: more details later. This one has rows align in the middle (all the same size), and two columns (one aligned left, another center of width 50)
