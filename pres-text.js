@@ -20,6 +20,22 @@ addToCodex("caption", "svgtext", {
 }); 
 
 
+addToCodex("niceBox","vector",  {
+  defaultStyle: {width:300, titleBG:"#400060", contentBG:"#602080"},
+  onBuild:function(i) {
+    codex.vector.onBuild(i);
+    if (!i.datum) i.datum={};  
+    if (typeof i.datum == "string") i.datum={title: i.datum}       
+    i.title= i.append("writer").decoration("background", {fill:function() {return i.style.titleBG}})
+    i.content=i.append("writer").decoration("background", {fill:function() {return i.style.contentBG}})
+    i.title.box.bg.use="container"
+    i.content.box.bg.use="container"
+    i.title.write(i.datum.title);
+    i.write=i.content.write;    
+  }
+  
+})
+
 addToCodex("writer","g",  {
 	  
 	  onBuild: function(i) {
@@ -90,8 +106,10 @@ addToCodex("writer","g",  {
             return out;
           }
 		  i.write = function (s) {
-            console.log(s.raw[0]);
-             var a=parser.parse(s.raw[0]);
+             if (s instanceof Array)
+               s=s.raw[0]
+             console.log(s);
+             var a=parser.parse(s);
              i.writeParsedInput(a);
              return i;
           }

@@ -39,7 +39,12 @@
      window.addEventListener("load", function(event) {  
 	      
 		//create the "frame manager" with some parameters	
-		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json", zoom:true});
+		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
+		
+		
+        fm.frame("box")
+          .append("niceBox",{},"Hello")
+          .write("contents come here")
 		
 		fm.frame("Writer test")
 		 
