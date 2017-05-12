@@ -70,16 +70,7 @@ addToCodex("customBGBox", "g", {
     */
 })
 
-//same as box, but also override getLayoutBBox, i.e. inner contents should never be probed.
-addToCodex("blackbox", "box", {	
- onBuild: function(i){ 	
-	i.getLayoutBBox= function(kx, kwidth) {	  
-      if (!(kwidth in i)) i[kwidth] = i.style[kwidth];  
-	  return {x:i.style.x-i.width/2, y:i.style.y-i.height/2, width:i.width, height:i.height};	  
-   }
 
- }
-});
 
 //cell 
 addToCodex("cell", "g", {	
@@ -105,7 +96,7 @@ addToCodex("cell", "g", {
 });
 
 addToCodex("array", "box", {
-	defaultStyle:{width:null, height:null},
+	defaultStyle:{},
 	onBuild: function(i) {		
 		if (typeof i.datum== "string") {
 			i.datum={cols:i.datum}
@@ -195,40 +186,47 @@ addToCodex("array", "box", {
 	},
 	
     onRun: function (i) {
-        if (i.bgRect) i.bgRect.automatic=false; 
+        //if (i.bgRect) i.bgRect.automatic=false; 
         //don't draw background rectangle at normal time, let the parent trigger it instead.
+           
+       i.children.forEach(function(c) {
+            c.box.container.typeY="array";
+            c.box.container.typeX="array";
+       })
+       
     },
 		
 	onDraw: function(i) {
 	   i.vl.setBag(i.rowBag, true);
-		i.vl.setFixedDimensions(i.containerBox("height"));						
+	i.vl.setFixedDimensions(i.containerBox("height"));						
 	
 	   i.hl.setBag(i.colBag, true);
-		i.hl.setFixedDimensions(i.containerBox("width"));		
+	   i.hl.setFixedDimensions(i.containerBox("width"));		
 	   
 	},
    onDrawPostOrder: function(i) {
 		
 		i.vl.apply();
 		i.hl.apply();
-//before		i.style.width=i.hl.totalSize;
-//before		i.style.height=i.vl.totalSize;
 		i.actualBox("width",i.hl.totalSize);
 		i.actualBox("height",i.vl.totalSize);
 		
 		i.layout(2);
-		for (var ic =0; ic<i.children.length; ic++) {					
-			i.children[ic].drawBackground();
-		}	
-        i.drawBackground();
-        console.log(i.box.actual);
+        i.propagateContainerChange();
 	}
 })
 
 
 
 addToCodex("verticalVector", "customBGBox", {
-	defaultStyle:{width:null, height:null,  layout:"dense", align:"c"},
+	defaultStyle:{ layout:"dense", align:"c"},
+    onRun: function(i) {
+      console.log("onRun!")
+      i.children.forEach(function(c) {
+         console.log(c.box.container)
+         c.box.container.typeY="array";
+      })
+    },
 	onBuild: function(i) {
 		if (i.style.layout=="spread") {		  
 			i.lm = layoutManager("*n*", false);	
@@ -241,9 +239,9 @@ addToCodex("verticalVector", "customBGBox", {
 	onDraw: function(i) {
       i.lm.setBag(i.childBag());
 		
-		if (i.style.layout=="spread" && i.style.height==null) console.warn("Missing height for vertical layout in \"spread\" mode")
+		if (i.style.layout=="spread" && i.box.container.height==null) console.warn("Missing height for vertical layout in \"spread\" mode")
 			
-		i.lm.setFixedDimensions(i.style.height);							
+		i.lm.setFixedDimensions(i.box.container.height);							
 	
 	},
    onDrawPostOrder: function(i) {
@@ -260,12 +258,13 @@ addToCodex("verticalVector", "customBGBox", {
             b.align("x","width",i.style.align[0],0, i.actualBox("width"), false);
         }			
 		i.layout(1);
+        i.propagateContainerChange();
 	}
 })
 
 
 addToCodex("horizontalVector", "customBGBox", {
-	defaultStyle:{width:null, height:null, y:0, layout:"dense", align:"m"},
+	defaultStyle:{ y:0, layout:"dense", align:"m"},
 	onBuild: function(i) {
 		if (i.style.layout=="spread") {		  
 			i.lm = layoutManager("*n*", true);	
@@ -274,12 +273,18 @@ addToCodex("horizontalVector", "customBGBox", {
 			i.lm =layoutManager("n", true);
 		}		
 	},
+    
+    onRun: function(i) {
+      i.children.forEach(function(c) {
+         c.box.container.typeX="array";
+      })
+    },
 	
 	onDraw: function(i) {
-		if (i.style.layout=="spread" && i.style.width==null) console.warn("Missing width for horizontal layout in \"spread\" mode")
+		if (i.style.layout=="spread" && i.box.container.width==null) console.warn("Missing width for horizontal layout in \"spread\" mode")
 			
       i.lm.setBag(i.childBag());
-		i.lm.setFixedDimensions(i.style.width);							
+		i.lm.setFixedDimensions(i.box.container.width);							
 	
 	},
    onDrawPostOrder: function(i) {
@@ -296,13 +301,14 @@ addToCodex("horizontalVector", "customBGBox", {
 		}
 		
 		i.layout(1);
+        i.propagateContainerChange();
         
 	}
 })
 
 
-addToCodex("vector", "customBGBox", {
-	defaultStyle:{width:null, height:null,  layout:"dense", align:"c", direction:"v"},
+addToCodex("vector", "g", {
+	defaultStyle:{  layout:"dense", align:"c", direction:"v"},
 	onBuild: function(i) {
 		i.horizontal = (i.style.direction || "v")[0].toLowerCase() == "h";
 		if (i.horizontal)
@@ -310,6 +316,12 @@ addToCodex("vector", "customBGBox", {
 		else 
 			codex.verticalVector.onBuild(i);
 	},
+    onRun: function(i) {     
+        if (i.horizontal)
+            codex.horizontalVector.onRun(i);
+        else 
+            codex.verticalVector.onRun(i);
+    },
 	onDraw: function(i) {
 		if (i.horizontal)
 			codex.horizontalVector.onDraw(i);

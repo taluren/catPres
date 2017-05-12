@@ -437,7 +437,7 @@ addToCodex("freeGraph", "g", {
         
         
     },
-    onFirstRun : function(i) {
+    onRun : function(i) {
         if (i.datum.drag) {
             i.nodes().each(i.allowNodeDrag);
         }

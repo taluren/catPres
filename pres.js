@@ -1,4 +1,14 @@
 
+// breakpoint on warnings:
+if (false) {
+  var oldWarningFunction = console.warn;
+  console.warn = function () {
+      debugger;
+      oldWarningFunction.apply(console, arguments);
+  };
+}
+
+
 var alignDebug = false;
 var logNextFrame = false;
 /*style computation at save time:
@@ -275,7 +285,9 @@ function itemAndFrameFunctions(i) {
 			     i.history.push(importDefault({show:false}, s));
 			  i.showBefore=false;
 		  }
-	  }
+	  } else  {
+        i.remainingOverlays--;
+      }
 	  //if (i.tag=="text") console.log(s.anchor);
 	  
 	  var ov=i.history.length;
@@ -288,19 +300,8 @@ function itemAndFrameFunctions(i) {
 			
 		}
 	  i.history.push(s);  
-	//  console.log(i.history.length);
-   /*  if (i.fortrans) {
-		  if (!i.transitions[ov]) i.transitions[ov]={back:null, front:null};
-		  i.transitions[ov].front=i.fortrans;
-		  delete i.fortrans;
-	  }
-     if (i.backtrans) {
-		  if (!i.transitions[ov-1]) i.transitions[ov-1]={back:null, front:null};
-		  i.transitions[ov-1].back=i.backtrans;
-		  delete i.backtrans;
-	  }*/
-	  
-     if (i.savingFunctionPrefix) i.savingFunctionPrefix(i, s);
+
+      if (i.savingFunctionPrefix) i.savingFunctionPrefix(i, s);
       
 	  for (var c=0; c<i.children.length; c++) {
 		  i.children[c].save(copyExceptKeys(s, ["x", "y", "opacity", "margin","width", "height", "marginTop","marginBottom","marginLeft","marginRight","bg", "align","alignV", "model"]));
@@ -310,21 +311,23 @@ function itemAndFrameFunctions(i) {
 	  if (i.savingFunction) i.savingFunction(i, s);
 	  
 	  
-	  //run scheduled style for next overlay
 	  if (i.schedule) i.runSchedule();
 	  
   }
   
 }
 function useAttr(i,attr,key1, key2, key3) {
+   
 	key1 = key1 ||attr;  
 	if (key1 in i.style) {
 		i.g.attr(attr,i.style[key1]);		
+        if (attr=="y" && isNaN(i.style[key1])) stop(i);
 		return;
 	}	
 	if (key2!=null) {
 		if (key2 in i.style) {
-			i.g.attr(attr,i.style[key2]);		
+			i.g.attr(attr,i.style[key2]);	
+            if (attr=="y" && isNaN(i.style[key2])) stop(i);	
 			return;
 		} 
 		if (key3!=null && key3 in i.style) {
@@ -332,6 +335,7 @@ function useAttr(i,attr,key1, key2, key3) {
 			return;
 		}
 	}
+        if (attr=="y" && i.type!="svgtext") stop(i);
 	i.g.attr(attr,null);		
 }
 function useStyle(i,attr,key1,key2,key3) {
@@ -401,11 +405,12 @@ function FrameBase(frame, holder, transform, style) {
 	  children:[],	  
 	  inheritStyle:{},
 	  defaultStyle:codex.frame.defaultStyle,
-     id:"root",  
+      id:"root",  
 	  index:{},
 	  style:style,
 	  history:[],
-	  box:{container:{x:0, y:0, width:400, height:300}}
+	  box:{container:{x:0, y:0, width:400, height:300}},
+      remainingOverlays:1
   } 
   fb.root=fb;
   fb.index["root"] = fb;
@@ -470,6 +475,11 @@ function FrameBase(frame, holder, transform, style) {
 	  return i;	  
   }  
   
+  fb.minRemainingOverlays= function(howMuch) {
+      fb.remainingOverlays=Math.max(fb.remainingOverlays, howMuch+1); //number of time we must call save
+    
+  }
+  
   /*base frame is ready, run model to draw background, title, etc.*/
   frameStyleCatalog[fb.style.model||fb.defaultStyle.model](fb);
   fb.mainItem = fb.goto("#main")||fb;
@@ -525,10 +535,10 @@ function Item(parent, typeAndId, style, d) {
 		savingFunction:code.onSave,
 		savingFunctionPrefix:code.onSavePrefix,
 		layoutFunction:code.onLayout,
-		firstRunFunction:code.onFirstRun,
+		firstRunFunction:code.onRun,
 		datum:d,
 		schedule:[],
-		box:{container:{type:"inherit"}, 
+		box:{container:copyWithDefault(code.containerBox, {type:"inherit"}), 
              actual:{type:code.internalNode?"children":"real"}, 
              bg: {use:code.defaultBackground||"actual"}},
 		drawInPdf:code.drawInPdf ||function(){}
@@ -600,12 +610,12 @@ function Item(parent, typeAndId, style, d) {
 	  if (!i.bgRect) {
 		  i.bgRect={
 			    g:i.g.insert("rect", ":first-child").attr("class", "background"),				
-				useAttr : function (attr, key1,key2,key3) {  useAttr(i.bgRect,attr,key1, key2, key3);},
+				useAttr : function (attr, key1,key2,key3){useAttr(i.bgRect,attr,key1, key2, key3);},
   
-				useStyle :function (attr, key1,key2,key3) {useStyle(i.bgRect, attr,key1,key2,key3);},
-				useForPdf : function (doc, f, key1, key2, key3) { useForPdf (i.bgRect, doc, f, key1, key2, key3);},
-                useNumberForPdf: function (doc, f, key1, key2, key3) {useNumberForPdf (i, doc, f, key1, key2, key3);},
-				automatic : true //disable this flag if  background box cannot be computed at draw time. Call i.drawBackground(false) later on.
+				useStyle :function (attr, key1,key2,key3){useStyle(i.bgRect, attr,key1,key2,key3);},
+				useForPdf : function (doc, f, key1, key2, key3){useForPdf (i.bgRect, doc, f, key1, key2, key3);},
+                useNumberForPdf: function (doc, f, key1, key2, key3){useNumberForPdf (i.bgRect, doc, f, key1, key2, key3);},
+				automatic : true //disable this flag if background box cannot be computed at draw time. Call i.drawBackground(false) later on.
 		  };
 		  
 		  if (typeof codex=="string")
@@ -633,6 +643,7 @@ function Item(parent, typeAndId, style, d) {
         if (i.schedule == null) i.schedule = [];
 		if (typeof when=="number") {
             // .on(frame)
+            i.root.minRemainingOverlays(when);
             if (when ==0) {
               //apply now, schedule "revert" for next frame              
               i.schedule.push([1, -1, i.setAndKeep(style)])
@@ -641,6 +652,7 @@ function Item(parent, typeAndId, style, d) {
               i.schedule.push([when,when+1, style])
             }
         } else {
+            i.root.minRemainingOverlays(when[0]);
 			if (when.length==1) {
                 // .on([firstframe])
                 if (when[0]==0) 
@@ -755,27 +767,48 @@ function Item(parent, typeAndId, style, d) {
        defaultBG=i.box.actual
     else if (defaultBG == "container") 
        defaultBG=i.box.container    
-    console.log(defaultBG); 
+//    console.log(defaultBG); 
     return  copyWithDefault(i.box.bg, defaultBG); 
   }
   
   
   i.updateContainerBox =function() {
+      importDefault(i.box.container, {x:0, y:0, width:0, height:0});
+      if (!i.box.container.typeX) i.box.container.typeX=i.box.container.type;
+      if (!i.box.container.typeY) i.box.container.typeY=i.box.container.type;
 	  if (i.box.container.typeX == "inherit"  ) {
-		  i.box.container.width = i.parent.container.width;
-		  i.box.container.x = i.parent.container.x - i.style.x;
+		  i.box.container.width = i.parent.box.container.width;
+		  i.box.container.x = i.parent.box.container.x - i.style.x;
 	  } else if (i.box.container.typeX == "tight") {
 		  i.box.container.width = null;
 		  i.box.container.x = 0;
 	  }
 	  if (i.box.container.typeY == "inherit" ) {
-		  i.box.container.height = i.parent.container.height;
-		  i.box.container.y = i.parent.container.y - i.style.y;	  
+		  i.box.container.height = i.parent.box.container.height;
+		  i.box.container.y = i.parent.box.container.y - i.style.y;	  
 	  } else if (i.box.container.typeY == "tight") {
 		  i.box.container.height = null;
 		  i.box.container.y =0;		  
 	  }
-	  //"custom"-> do nothing
+	  
+      if ("width" in i.style) {
+        i.box.container.width=i.style.width;
+        i.box.container.x=0;        
+      }
+      if ("height" in i.style) {
+        i.box.container.height=i.style.height;
+        i.box.container.y=0;       
+        
+      }
+      if (i.id=="main")
+          console.log("updated Box", i.id, i.style,  i.box.container);
+      if (i.box.container.type!="inherit") {
+        //  console.log("updated Box", i.id, i.box.container);
+      } else if (i.box.container.width==null || i.box.container.height==null) {
+      //    console.log("updated Box", i.style, i.id, i.box.container);
+      }
+        
+	  //"custom", "array"-> do nothing
   }
   i.updateActualBox =function() {
       //todo include padding here.
@@ -807,12 +840,14 @@ function Item(parent, typeAndId, style, d) {
 			  var cy =i.children[c].box.actual.y + i.children[c].style.y;
 			  var cwh =i.children[c].box.actual.width/2;
 			  var chh =i.children[c].box.actual.height/2;
-			  left=min(left, cx-cwh);
-			  right=max(right, cx+cwh)
-			  top=min(top, cy-chh);
-			  bottom=max(bottom, cy+chh);
-              
-//              if (i.children.length>2) console.log(i.id, cx, i.children[c].box.actual.x, left, right);
+              if (i.children.typeX!="outside") {
+                left=min(left, cx-cwh);
+                right=max(right, cx+cwh)
+              }
+			  if (i.children.typeY!="outside") {
+                top=min(top, cy-chh);
+                bottom=max(bottom, cy+chh);
+              }              
 		  }
 		  if (i.box.actual.typeX == "children") {				  
 			  i.box.actual.width = right-left;
@@ -845,6 +880,28 @@ function Item(parent, typeAndId, style, d) {
 			i.box.actual.height=i.box.container.height;			
 			i.box.actual.y=i.box.container.y;	
 	  }
+	  
+	   if ("width" in i.style) {
+        var x=0;
+        if ("alignX" in i.style) {
+           if (i.style.alignX[0]=="c") x = i.box.actual.x;
+           if (i.style.alignX[0]=="l") x = i.box.actual.x+(i.box.actual.width-i.style.width)/2;
+           if (i.style.alignX[0]=="r") x = i.box.actual.x-(i.box.actual.width-i.style.width)/2;           
+        }
+        i.box.actual.x=x;  
+        i.box.actual.width=i.style.width;      
+      }
+      if ("height" in i.style) {
+        var y=0;
+        if ("alignY" in i.style) {
+           if (i.style.alignY[0]=="m") y = i.box.actual.y;
+           if (i.style.alignY[0]=="t") y = i.box.actual.y+(i.box.actual.height-i.style.height)/2;
+           if (i.style.alignY[0]=="b") y = i.box.actual.y-(i.box.actual.height-i.style.height)/2;           
+        }
+        i.box.actual.y=y;       
+        i.box.actual.height=i.style.height; 
+      }
+	  
 /*      if (["textBox", "svgtext"].indexOf(i.type)>-1) console.log(i.id+" updateActualBox ",i.box.actual)*/
 	  //"custom" -> do nothing
   }
@@ -853,6 +910,20 @@ function Item(parent, typeAndId, style, d) {
    * applied only if frame is different or "irregular" calls
    * 
    */ 	
+  
+  i.propagateContainerChange = function() {
+     i.updateContainerBox();
+     i.fillUpWidthHeight();
+     i.drawBackground(true);   
+     for (var c=0; c<i.children.length; c++) {
+         var j= i.children[c];
+         if (j.box.container.typeX=="inherit" || 
+             j.box.container.typeY=="inherit" ||
+             j.box.container.typeX=="array" || 
+             j.box.container.typeY=="array") 
+         j.propagateContainerChange();            
+    }        
+  }
   i.draw=function(regular) {	  
      i.shown=true;
 	 i.bbox=null;
@@ -864,9 +935,9 @@ function Item(parent, typeAndId, style, d) {
 //			 console.log("transition:"+i.type, i.trans);
 			 i.g = i.g.transition(transitionShop[i.trans].make().transObj);             
 		 }
-		 //compute width and height when defined as "fill" (now that the parent has been drawn)
-		 i.fillUpWidthHeight();
+		 //compute width and height when defined 
          i.updateContainerBox();  
+		 i.fillUpWidthHeight();
 		 
        //call the actual drawing function (draw lines, text, etc.)
 		 if (i.drawingFunction!=null) {
@@ -904,7 +975,7 @@ function Item(parent, typeAndId, style, d) {
         
         //  marginAndPadding(i.style.bg, "padding");
           var bbox=i.getBackgroundBBox();
-          console.log("DRAW BACKGROUND", i.id,  bbox);
+//          console.log("DRAW BACKGROUND", i.id,  bbox);
           //console.log(i.type, bbox)
           if (!bbox) return false;
           
@@ -938,41 +1009,34 @@ function Item(parent, typeAndId, style, d) {
 		  i.schedule=null;
 		
 	}
-	i.fillUpWidthHeight = function() {
-	 	if (i.style.width=="fill" && typeof parent.style.width =="number") {
-			i.style.width=parent.style.width;
-			//i.style.x=i.style.width/2;
+	i.fillUpWidthHeight = function() {	 	
+		if (i.style.w=="fill") {// && typeof parent.style.width =="number") {
+            if (isNaN(i.box.container.width)) stop(i);
+			i.style.w=i.box.container.width
+			i.style.x+=i.box.container.x;
+			i.box.container.x=0;
 		}
-		if (i.style.height=="fill" && typeof parent.style.height =="number") {
-			i.style.height=parent.style.height;
-			//i.style.y=i.style.height/2;			
-		}	
-		if (i.style.w=="fill" && typeof parent.style.width =="number") {
-			i.style.w=parent.style.width;
-			//i.style.x=i.style.w/2;
-		}
-		if (i.style.h=="fill" && typeof parent.style.height =="number") {
-			i.style.h=parent.style.height;
-			//i.style.y=i.style.h/2;			
+		if (i.style.h=="fill" ) {
+            if (isNaN(i.box.container.height)) stop(i);
+			i.style.h=i.box.container.height	
+            i.style.y+=i.box.container.y;	
+            i.box.container.y  =0; 
 		}	
 		if (i.style.r=="fill") {
 			var r=Infinity;
-			if (typeof parent.style.width =="number" ) {
-			//   i.style.x=parent.style.width/2;				
-				r=min(r, parent.style.width/2);
-			}
-			if (typeof parent.style.height=="number" ) {
-			//   i.style.y=parent.style.height/2;				
-				r=min(r, parent.style.height/2);
-			}
+            if (i.box.container.width!=null) {
+                r=min(r, i.box.container.width/2);
+                i.style.x+=i.box.container.x ;
+                i.box.container.x=0;
+            }
+            if (i.box.container.height!=null) {
+                r=min(r, i.box.container.height/2);
+                i.style.y+=i.box.container.y
+                i.box.container.y  =0; 
+            }
 			if (r<Infinity)
 				i.style.r=r;			
-		}	
-		//if (typeof i.style.width== "string") i.style.width*=1;
-		//if (typeof i.style.height== "string") i.style.height*=1;
-		//i.style.w=i.style.w*1;
-		//i.style.h=i.style.h*1;
-		
+		}			
   }
   
   i.useAttr= function (attr, key1,key2,key3) {
@@ -1327,6 +1391,7 @@ function itemBag (itemList) {
 }
 function stop(log) {
 	console.log("Error ", log);
+    debugger;
 	zzz.Zzzzz=zzz.zz;
 }
 
@@ -1336,8 +1401,10 @@ function checkTree(item) {
 		return;
 	}
 	if (item.tag!="tspan" && item.parent) {
-		if (!("x" in item.style) || isNaN(item.style.x)) stop(item);
-		if (!("y" in item.style) || isNaN(item.style.y)) stop(item);
+        if (!("x" in item.style) || isNaN(item.style.x)) stop(item);
+        if (!("y" in item.style) || isNaN(item.style.y)) stop(item);
+        if (("width" in item.style) && isNaN(item.style.width)) stop(item);
+        if (("height" in item.style) && isNaN(item.style.height)) stop(item);
 		
 	}
 	item.children.forEach(checkTree);
@@ -1377,12 +1444,15 @@ frameManager = function(style, sozi)  {
 		fm.camera.start(style);
 		
 	}
+	function completeCurrentFrame(leaveOne) {
+      while (fm.topF && fm.topF.remainingOverlays>(leaveOne?1:0)) {          
+            fm.nextOverlay({});        
+      } 
+    }
 	fm.frame=function(s, style, camera) {		
 	   if (!camera) camera={};
 		camera.mainFrame=true;
-		while (fm.topF && fm.topF.hasSchedule()) {			
-			fm.nextOverlay({});
-		} 
+	   completeCurrentFrame(true);
 	   fm.nextOverlay(camera);
 	   console.log("*****************prepare next frame*********************");
 		if (!sozi || camera) 
@@ -1469,7 +1539,7 @@ frameManager = function(style, sozi)  {
 	//addMenu("debug PDF", function(){toPDF(fm, false)}, "debug function for PDF generation")
     
     fm.run=function() {
-	   fm.nextOverlay();
+       completeCurrentFrame(false);
        console.log("=========================");       
        console.log("===  Running !     ======");
        console.log("=========================");

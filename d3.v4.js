@@ -7654,7 +7654,8 @@ function attrRemoveNS(fullname) {
 }
 
 function attrConstant(name, value) {
-  return function() {
+  return function() {    
+    if (name=="y" && isNaN(value)) debugger;
     this.setAttribute(name, value);
   };
 }

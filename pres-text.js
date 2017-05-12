@@ -20,8 +20,26 @@ addToCodex("caption", "svgtext", {
 }); 
 
 
+addToCodex("niceBox2","vector",  {
+  defaultStyle: {width:300, titleBG:"#400060", contentBG:"#602080"},
+  containerBox:{typeY:"tight"},
+  onBuild:function(i) {
+    codex.vector.onBuild(i);
+    if (!i.datum) i.datum={};  
+    if (typeof i.datum == "string") i.datum={title: i.datum}       
+    i.append("g").decoration("background", {fill:function() {return i.style.titleBG}}).append("circle")
+    i.append("g").decoration("background", {fill:function() {return i.style.titleBG}}).append("rect")
+    i.append("g").decoration("background", {fill:function() {return i.style.titleBG}}).append("circle")
+    i.children.forEach(function(n) {
+      n.box.bg.use="container"      
+    })
+  }
+  
+})
+
 addToCodex("niceBox","vector",  {
   defaultStyle: {width:300, titleBG:"#400060", contentBG:"#602080"},
+  containerBox:{typeY:"tight"},
   onBuild:function(i) {
     codex.vector.onBuild(i);
     if (!i.datum) i.datum={};  
@@ -30,8 +48,12 @@ addToCodex("niceBox","vector",  {
     i.content=i.append("writer").decoration("background", {fill:function() {return i.style.contentBG}})
     i.title.box.bg.use="container"
     i.content.box.bg.use="container"
+    /*
     i.title.write(i.datum.title);
     i.write=i.content.write;    
+    */ i.write=function(){};
+    i.title.append("g").append("circle")
+    i.content.append("g").append("rect")
   }
   
 })

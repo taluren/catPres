@@ -263,7 +263,7 @@ var codex = {
         onDrawPostOrder: null, // idem, but called after children
 		onSave: null,    //function called at saving time (suffix order), parameters: item, saved style 
         onSavePrefix: null,    //function called at saving time (prefix order), parameters: item, saved style         
-		onFirstRun: null, //called once in the whole simulation, at "frameManager.run()" time, before the first drawing.   
+		onRun: null, //called once in the whole simulation, at "frameManager.run()" time, before the first drawing.   
 		onLayout : function(i) {
 			i.g.attr("transform", "translate("+xy(i.style)+")");            
             i.useStyle("opacity");
@@ -280,7 +280,7 @@ addToCodex("transform", "g", {
 	defaultStyle:{wriggle:0},
 	onDraw: function (i) {			  	
 		},    
-  onLayout : function(i) {
+    onLayout : function(i) {
 			i.g.attr("transform", 
 			  "translate("+xy(i.style)+")"
 			  + (i.style.scale?"scale("+(typeof i.style.scale == "object" ? xy(i.style.scale) : i.style.scale)+")":"")

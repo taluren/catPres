@@ -12,7 +12,7 @@
     </head>
     <body>
 	 
-   <script src="./d3.v4.min.js"></script>
+   <script src="./d3.v4.js"></script>
    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG">
 </script>
   <script src="./pres.js"></script>
@@ -43,9 +43,45 @@
 		
 		
         fm.frame("box")
-          .append("niceBox",{},"Hello")
-          .write("contents come here")
-		
+          .append("niceBox2",{},"Hello")
+          
+          fm.frame("Overlays")
+           //Array: more details later. This one has rows align in the middle (all the same size), and two columns (one aligned left, another center of width 50)
+            .append("array#a", {}, {rows:"m1x", cols:"lc50"})
+               //add a decoration to the current element, this can be a border or a background
+                .decoration("border")
+                
+                //show some text 
+                .cell(1,0)
+                    .append("circle")
+                      .on(1, {fill:"red"}) 
+                      //on next overlay (and only then), the circle will be filled red
+                    
+                .up("array").cell(1,1)
+                    .append("circle")
+                    .on([2,3], {r:2})
+                     //from overlay n+2 to n+3, the radius will be smaller
+                .up("array").cell(1,2)
+                    .append("circle")
+                    .on([3], {opacity:0.5})
+                    //starting on overlay 3 and for the rest of  the frame, circle is transparent
+                .up("array").cell(1,3)
+                    .append("circle")
+                    .on([1], {fill:"yellow"})
+                    .on(2, {fill:"red"})
+                    // there can be several scheduled styles
+                    
+            .up("#root")
+               .append("caption", {text:"0"})       
+                    .on(1, {text:"1"})
+                    .on(2, {text:"2"})
+                    .on(3, {text:"3"})
+                    .on([4], {text:"4"})
+                    //show overlay index
+                    
+                    
+        fm.frame("all");        
+		/*
 		fm.frame("Writer test")
 		 
         .append("writer")
