@@ -40,9 +40,9 @@
 	      
 		//create the "frame manager" with some parameters	
 		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
-		
-		
-        fm.frame("box")
+		/*
+		*/
+  /*      fm.frame("box")
           .append("niceBox2",{},"Hello")
           
           fm.frame("Overlays")
@@ -80,8 +80,7 @@
                     //show overlay index
                     
                     
-        fm.frame("all");        
-		/*
+       */
 		fm.frame("Writer test")
 		 
         .append("writer")
@@ -94,20 +93,21 @@
 &1|new cell with math:
  a|$1+1=2$ 
  b|and \{}$x=\sqrt{b^2-4ac}$
-//1|new line, quite long... %with a comment
+//1|new row %with a comment
 &|reset indent
-//1| final line
-& 
+//1| final row, quite long...
+&
 1|and final cell
-`
+`      
+    
       .goto("#g")
          .decoration("border")
-         .append("graph",{}, {simulation:true})
+         .append("graph",{height:30}, {simulation:true})
            .addLinks("1-2;2-5")
 		
-		fm.nextOverlay()
+	/*	fm.nextOverlay()
 		  .goto("#col")
-		    .set({color:"red"})
+		    .set({color:"red"})*/
 		    
 		/*
 		fm.frame("Overlays")

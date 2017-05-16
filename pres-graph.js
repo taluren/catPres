@@ -448,7 +448,7 @@ addToCodex("graph", "freeGraph", {
  getBackgroundBBox: codex.box.getBackgroundBBox,
  getAnchoredBBox: codex.box.getAnchoredBBox, 
  onBuild: function(i){  
-   codex.blackbox.onBuild(i);
+//   codex.blackbox.onBuild(i);
    codex.freeGraph.onBuild(i);
  },
  onLoad: function(i) {   

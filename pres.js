@@ -424,7 +424,7 @@ function FrameBase(frame, holder, transform, style) {
       }
   }
   fb.draw=function(f, regular) {
-	  
+	  console.log("-----draw------- ", regular)
 	  for (var c=0; c<fb.children.length; c++) {
 		  fb.children[c].load(f, regular);
 	  }
@@ -739,7 +739,6 @@ function Item(parent, typeAndId, style, d) {
 		 for (var c=0; c<i.children.length; c++) {
 			  i.children[c].layout(layers-1);
 		 }	
-		  
 	  }
   }
   i.containerBox= function (key, value) {
@@ -800,8 +799,8 @@ function Item(parent, typeAndId, style, d) {
         i.box.container.y=0;       
         
       }
-      if (i.id=="main")
-          console.log("updated Box", i.id, i.style,  i.box.container);
+   /*   if (i.type=="cell")
+          console.log("updated Box", i.id, i.style,  i.box.container);*/
       if (i.box.container.type!="inherit") {
         //  console.log("updated Box", i.id, i.box.container);
       } else if (i.box.container.width==null || i.box.container.height==null) {
@@ -881,7 +880,7 @@ function Item(parent, typeAndId, style, d) {
 			i.box.actual.y=i.box.container.y;	
 	  }
 	  
-	   if ("width" in i.style) {
+	   if ("width" in i.style  && i.style.width!=null) {
         var x=0;
         if ("alignX" in i.style) {
            if (i.style.alignX[0]=="c") x = i.box.actual.x;
@@ -891,7 +890,7 @@ function Item(parent, typeAndId, style, d) {
         i.box.actual.x=x;  
         i.box.actual.width=i.style.width;      
       }
-      if ("height" in i.style) {
+      if ("height" in i.style && i.style.height!=null) {
         var y=0;
         if ("alignY" in i.style) {
            if (i.style.alignY[0]=="m") y = i.box.actual.y;
@@ -901,6 +900,7 @@ function Item(parent, typeAndId, style, d) {
         i.box.actual.y=y;       
         i.box.actual.height=i.style.height; 
       }
+      console.log(i.id+" updateActualBox ",i.box.actual)
 	  
 /*      if (["textBox", "svgtext"].indexOf(i.type)>-1) console.log(i.id+" updateActualBox ",i.box.actual)*/
 	  //"custom" -> do nothing

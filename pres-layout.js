@@ -10,42 +10,8 @@
 
 
 
-
-/***
- bounding boxes:
- 
- 
- .getBBox()          : bbox of DOM element, in its own relative coordinates
- .getParentBBox()    : bbox of DOM element, in its parent coordinates
-     *in bag
- .getBackgroundBBox(): logical area where the  background should be drawn, 
-								* may be larger (e.g. fixed size cells)
-								* may be smaller (e.g. with overflow)
-	  
- .getInnerBBox()     : union of getParentBBox's of the children 
- .getLayoutBBox()    : bbox of the elements that need to be rendered, 
-                        for layout purpose, ignoring self decoration
-								in parents coordinates
- .getAnchoredBBox()  : logical area used by the element around its anchor
-   
-
-
-
-**/ 
-
-//box: has known width and height (may be set up to drawPostOrder at the latest)
-//all children should "try" to fit in the [0,width]x[0,height] box.
-//does not override layoutBBox (for layout, a box bbox is the visible one)
 addToCodex("box", "g", {
-	/*getBackgroundBBox : function(i) {
-		if ( i.style.width == null || i.style.height==null) stop(["box dimensions are not set",i]);
-		return {x:-i.style.width/2, y:-i.style.height/2, width:i.style.width, height:i.style.height};
-	},	
-	getAnchoredBBox : function(i) {
-        stop("obsolete");
-		return {x:-i.style.width/2, y:-i.style.height/2, width:i.style.width, height:i.style.height};
-		//return {x:i.style.x, y:i.style.y, width:i.style.width+i.style.x, height:i.style.height+i.style.y};
-	}*/
+	containerBox:{type:"tight"}
 	
 	
 })
