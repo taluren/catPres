@@ -93,7 +93,7 @@ addToCodex("simpleNode", "g", {
 // otherwise, it uses all the parent's (graph's) visible nodes and links at each frame
 
 addToCodex("simulation", "g", {
-  defaultStyle:{active:true},
+  defaultStyle:{active:true, enforceContainerX:true, enforceContainerY:true},
   onBuild: function(i){      
      i.datum=i.datum || {};
      
@@ -117,10 +117,12 @@ addToCodex("simulation", "g", {
          var w=i.parent.style.width;
          var h=i.parent.style.height;         
          i.simulation.nodes().forEach(function(n) {
-            if (n.x>w/2)  n.vx-=(n.x-w/2)*alpha;                                      
-            if (n.x<-w/2) n.vx-=(n.x+w/2)*alpha;                                      
-            if (n.y>h/2)  n.vy-=(n.y-h/2)*alpha;                                      
-            if (n.y<-h/2) n.vy-=(n.y+h/2)*alpha;                                      
+            var wb=n.box.actual.width;
+            var hb=n.box.actual.width;
+            if (n.x>(w-wb)/2)  n.vx-=(n.x-(w-wb)/2)*alpha;                                      
+            if (n.x<-(w-wb)/2) n.vx-=(n.x+(w-wb)/2)*alpha;                                      
+            if (n.y>(h-hb)/2)  n.vy-=(n.y-(h-hb)/2)*alpha;                                      
+            if (n.y<-(h-hb)/2) n.vy-=(n.y+(h-hb)/2)*alpha;                                      
          });
     }
      var ticked = function() {              
@@ -140,8 +142,8 @@ addToCodex("simulation", "g", {
               .force("center", d3.forceCenter(0,0))
               .force("y", d3.forceY(0))
               .force("x", d3.forceX(0))    
-              .force("keepInBox", keepInBox)  
-              .force("momentum", keepMomentum)         
+              .force("momentum", keepMomentum)    
+              .force("keepInBox", keepInBox)       
               .alpha(1)
               .alphaMin(0.05)
               .stop()
@@ -209,7 +211,7 @@ addToCodex("simulation", "g", {
  *  in graph: dimensions are fixed
  */
 
-addToCodex("freeGraph", "g", {
+addToCodex("graph", "g", {
     defaultStyle:{rx:5,ry:2, x:0, y:0, width:150, height:150},
     onBuild: function(i) {
         i.datum = i.datum || {};
@@ -426,8 +428,8 @@ addToCodex("freeGraph", "g", {
 			  b.getLink = i.getLink;
 			  b.addNodes = i.addNodes;
 			  b.addLinks = i.addLinks;
-           b.getNodes = i.getNodes;
-           b.getLinks = i.getLinks;
+              b.getNodes = i.getNodes;
+              b.getLinks = i.getLinks;
 			  b.getNeighborLinks = i.getNeighborLinks;
 			  b.addLace = i.addLace;
 			  
@@ -444,18 +446,6 @@ addToCodex("freeGraph", "g", {
     }
 });
 /**/
-addToCodex("graph", "freeGraph", { 
- getBackgroundBBox: codex.box.getBackgroundBBox,
- getAnchoredBBox: codex.box.getAnchoredBBox, 
- onBuild: function(i){  
-//   codex.blackbox.onBuild(i);
-   codex.freeGraph.onBuild(i);
- },
- onLoad: function(i) {   
-   i.width=i.style.width;
-   i.height=i.style.height;  
- }
-});/**/
 
 
 addToCodex("laceGraph", "graph", {
