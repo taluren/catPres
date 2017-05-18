@@ -396,7 +396,7 @@ addToCodex("bullet","g",  {
 		i.style.width =i.width=i.style.bullet.length *20;
 		i.style.height = i.height=12;
 	//	codex.blackbox.onBuild(i);
-		i.append("rect", {x:0, y:0, opacity:0, w:i.width, h:1});
+		i.append("rect", {x:0, y:0, opacity:0, w:i.width, h:0.001, stroke:null});
         for (var p=0; p<i.bullet.length; p++) {
            var c = i.bullet[p];
            if (c==' ') continue;           

@@ -104,7 +104,17 @@
          .decoration("border")
          .append("graph",{height:30}, {simulation:true})
            .addLinks("1-2;2-5")
-		
+		    fm.frame("Lace")
+           .goto("#foreground")
+           .append("lace",{}, {size:41})
+                .nodes()                 
+                 .set(function(i,j) {return {x:(j-20)*9, r:3.5};})
+                 .on([1], function(i,j) {return {y:Math.sin(j/3)*60, fill:"#88"+(j*200/40+16).toString(16)+(255-j*200/40).toString(16)};})       
+                 .on([2], function(i,j) {return {y:Math.sin(j/3+1.5)*60};})
+                 .on([3], function(i,j) {return {y:Math.sin(j/3+3)*60};})
+         fm.nextOverlay()
+          //transitions
+          .goto("lace").set({transition:{duration:1000}})
 	/*	fm.nextOverlay()
 		  .goto("#col")
 		    .set({color:"red"})*/

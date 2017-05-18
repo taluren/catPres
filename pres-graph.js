@@ -114,8 +114,8 @@ addToCodex("simulation", "g", {
      
     } 
     var keepInBox=function(alpha) {
-         var w=i.parent.style.width;
-         var h=i.parent.style.height;         
+         var w=i.parent.style.width||i.parent.container.width;
+         var h=i.parent.style.height||i.parent.container.height;         
          i.simulation.nodes().forEach(function(n) {
             var wb=n.box.actual.width;
             var hb=n.box.actual.width;
@@ -139,7 +139,7 @@ addToCodex("simulation", "g", {
            .force("link", d3.forceLink())
               .force("collide",d3.forceCollide(10).iterations(2) )
               .force("charge", d3.forceManyBody().strength(-100))
-              .force("center", d3.forceCenter(0,0))
+          //    .force("center", d3.forceCenter(0,0))
               .force("y", d3.forceY(0))
               .force("x", d3.forceX(0))    
               .force("momentum", keepMomentum)    
