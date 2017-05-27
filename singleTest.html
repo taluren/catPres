@@ -40,196 +40,31 @@
 	      
 		//create the "frame manager" with some parameters	
 		fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
-		/*
-		*/
-  /*      fm.frame("box")
-          .append("niceBox2",{},"Hello")
-          
-          fm.frame("Overlays")
-           //Array: more details later. This one has rows align in the middle (all the same size), and two columns (one aligned left, another center of width 50)
-            .append("array#a", {}, {rows:"m1x", cols:"lc50"})
-               //add a decoration to the current element, this can be a border or a background
-                .decoration("border")
-                
-                //show some text 
-                .cell(1,0)
-                    .append("circle")
-                      .on(1, {fill:"red"}) 
-                      //on next overlay (and only then), the circle will be filled red
-                    
-                .up("array").cell(1,1)
-                    .append("circle")
-                    .on([2,3], {r:2})
-                     //from overlay n+2 to n+3, the radius will be smaller
-                .up("array").cell(1,2)
-                    .append("circle")
-                    .on([3], {opacity:0.5})
-                    //starting on overlay 3 and for the rest of  the frame, circle is transparent
-                .up("array").cell(1,3)
-                    .append("circle")
-                    .on([1], {fill:"yellow"})
-                    .on(2, {fill:"red"})
-                    // there can be several scheduled styles
-                    
-            .up("#root")
-               .append("caption", {text:"0"})       
-                    .on(1, {text:"1"})
-                    .on(2, {text:"2"})
-                    .on(3, {text:"3"})
-                    .on([4], {text:"4"})
-                    //show overlay index
-                    
-                    
-       */
-		fm.frame("Writer test")
-		 
-        .append("writer")
-.write`
-1|Fancy text:
- a|\color:blue{colored text}
- a|\bold{bold text}          
- a|\color:blue, bold#col{both}
-1|\box#g{}
-&1|new cell with math:
- a|$1+1=2$ 
- b|and \{}$x=\sqrt{b^2-4ac}$
-//1|new row %with a comment
-&|reset indent
-//1| final row, quite long...
-&
-1|and final cell
-`      
-    
-      .goto("#g")
-         .decoration("border")
-         .append("graph",{height:30}, {simulation:true})
-           .addLinks("1-2;2-5")
-		    fm.frame("Lace")
-           .goto("#foreground")
-           .append("lace",{}, {size:41})
-                .nodes()                 
-                 .set(function(i,j) {return {x:(j-20)*9, r:3.5};})
-                 .on([1], function(i,j) {return {y:Math.sin(j/3)*60, fill:"#88"+(j*200/40+16).toString(16)+(255-j*200/40).toString(16)};})       
-                 .on([2], function(i,j) {return {y:Math.sin(j/3+1.5)*60};})
-                 .on([3], function(i,j) {return {y:Math.sin(j/3+3)*60};})
-         fm.nextOverlay()
-          //transitions
-          .goto("lace").set({transition:{duration:1000}})
-	/*	fm.nextOverlay()
-		  .goto("#col")
-		    .set({color:"red"})*/
-		    
-		/*
-		fm.frame("Overlays")
-           //Array: more details later. This one has rows align in the middle (all the same size), and two columns (one aligned left, another center of width 50)
-            .append("array#a", {}, {rows:"m1x", cols:"lc50"})
-               //add a decoration to the current element, this can be a border or a background
-                .decoration("border")
-                
-                //show some text 
-                .print(".on(1, {fill:\"red\"})\\\\"+
-                ".on([2,3], {r:2})\\\\"+
-                ".on([3], {opacity:0.5})\\\\"+
-                ".on([1], {fill:\"yellow\"})\n.on(2, {fill:\"red\"})")
-                .cell(1,0)
-                    .append("circle")
-                      .on(1, {fill:"red"}) 
-                      //on next overlay (and only then), the circle will be filled red
-                    
-                .up("array").cell(1,1)
-                    .append("circle")
-                    .on([2,3], {r:2})
-                     //from overlay n+2 to n+3, the radius will be smaller
-                .up("array").cell(1,2)
-                    .append("circle")
-                    .on([3], {opacity:0.5})
-                    //starting on overlay 3 and for the rest of  the frame, circle is transparent
-                .up("array").cell(1,3)
-                    .append("circle")
-                    .on([1], {fill:"yellow"})
-                    .on(2, {fill:"red"})
-                    // there can be several scheduled styles
-               
-            .up("#root")
-               .append("caption", {text:"0"})       
-                    .on(1, {text:"1"})
-                    .on(2, {text:"2"})
-                    .on(3, {text:"3"})
-                    .on([4], {text:"4"})
-                    
-                    
-          addHelpLines(fm.goto("#a"));     
-//           fm.goto("#a").hl.debug=true;
-          fm.nextOverlay();
-          
-		 
-
-function fillDummyVector(v, debug) {
-v.append("circle")
-	.then("rect", {w:20, h:15})
-	.then("circle")
-	.then("g", {fill:"yellow"})
-	  .append("rect")
-	  .then("circle", {x:13,y:0, r:12})
-	  .then("circle", {x:3,y:14})
-	  .then("circle", {x:20,y:-20})              
-  v.append("rect",{w:22,h:12})
-	.then("circle")
-	
-  if (debug){
-	 addHelpLines(v);
-  }
-}
-
-fm.frame("vectors",{model:"emptyWithBG"})
-
-fillDummyVector(fm.append("horizontalVector", {x:-75, y:-30}), true);
-fillDummyVector(fm.append("horizontalVector", {x:-75, y:30,layout:"spread", width:150}));
-fillDummyVector(fm.append("verticalVector", {x:90}));
-fillDummyVector(fm.append("verticalVector", {x:50, height:200, layout:""}), true);
-
-addHelpLines(
-fm.frame("text",{model:"emptyWithBG"})
-.append("text")
-  .np("o|Hello\nblah")
-  .np(" bold",{weight:"bold"})
- .np(".|---"));
-
-fm.nextOverlay();
-
-
-fm.frame("array",{model:"emptyWithBG"})
-   .append("array")
-	  .appendIn(0,0,"circle",{r:3})
-	  .appendIn(1,0,"circle",{r:6})
-	  .appendIn(0,1,"circle",{r:4})
-	  .appendIn(1,1,"circle",{r:7}) 
-     .appendIn(1,1,"circle",{r:6}) 
-     .appendIn(1,1,"circle",{r:5, x:3}) 
-     .appendIn(1,1,"circle",{r:5, x:-8}) 
-     .appendIn(0,2,"circle",{r:5})
-	  .appendIn(1,2,"circle",{r:8}) 
-  
-   */
-
-
-//drawItemTree(fm.goto("#v"), {r:3, opacity:0.6}) 
-
-	
-	
-
-//add a regular frame with title "Text"
-/*	fm.frame("Text")
-//add a text element with label "t1"
-.append("text#t1", {width:200})
- //print in the text element.
- .np("Here is a simple paragraph with\n itemized list:")
- .np(".|An item")  // the "|" separates the bullet (here: ".") from the main text
- .np(".| another with some math: $\\delta=\\sqrt{\\left(x^{2}+y^2\\right)}$")
- //formulas in latex  are enclosed with $ $. backslashes need to be escaped
- .np(".|$\\alpha = \\frac{b \\pm \\sqrt{b^2-4ac}}{2a}$")
- 
-*/
+		fm.frame("Overlap")
+	   	.append("graph#G",{}, {simulation:true, directed:false})
+		var rnd= seededRndGenerator(0.1); 
+		function generateGraph(n1,n2, p) {
+		   fm.goto("#G").setNodeStyle({xMax:-30, xMin:-60})
+		   for (var i=0;i<n1;i++) 
+			  fm.goto("#G").addNode(i)
+		   fm.goto("#G").setNodeStyle({xMin:30, xMax:60})
+		   for (var j=0;j<n2;j++) 
+			    fm.goto("#G").addNode(n1+j)
+				 
+		   for (var i=0;i<n1;i++) {
+			  for (var j=0;j<n2;j++) {
+			     if (rnd.random()<p) {
+				    fm.goto("#G").addLink(i,j+n1);
+				  }
+			  }
+			}
+		}	 
+		generateGraph(5,5,0.3);
+		
+		
+		
+		
+   
 fm.run();
 });
 

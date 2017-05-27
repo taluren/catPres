@@ -95,3 +95,10 @@ function showGraph(fm, disable) {
 	}
 }
 
+function removeNull(a) {
+	for (x in a) {		
+		if (a.hasOwnProperty(x) && a[x] == null) delete a[x];
+	}
+	return a;
+	
+}

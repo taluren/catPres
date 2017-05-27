@@ -900,7 +900,7 @@ function Item(parent, typeAndId, style, d) {
         i.box.actual.y=y;       
         i.box.actual.height=i.style.height; 
       }
-      console.log(i.id+" updateActualBox ",i.box.actual)
+//      console.log(i.id+" updateActualBox ",i.box.actual)
 	  
 /*      if (["textBox", "svgtext"].indexOf(i.type)>-1) console.log(i.id+" updateActualBox ",i.box.actual)*/
 	  //"custom" -> do nothing

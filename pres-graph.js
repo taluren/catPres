@@ -116,13 +116,24 @@ addToCodex("simulation", "g", {
     var keepInBox=function(alpha) {
          var w=i.parent.style.width||i.parent.container.width;
          var h=i.parent.style.height||i.parent.container.height;         
+			
          i.simulation.nodes().forEach(function(n) {
-            var wb=n.box.actual.width;
-            var hb=n.box.actual.width;
-            if (n.x>(w-wb)/2)  n.vx-=(n.x-(w-wb)/2)*alpha;                                      
-            if (n.x<-(w-wb)/2) n.vx-=(n.x+(w-wb)/2)*alpha;                                      
+            var wb=n.box.actual.width/2;
+            var hb=n.box.actual.width/2;
+				var xMax=("xMax" in n.style)? n.style.xMax : w/2;
+				var xMin=("xMin" in n.style)? n.style.xMin : -w/2;
+				var yMax=("yMax" in n.style)? n.style.yMax : h/2;
+				var yMin=("yMin" in n.style)? n.style.yMin : -h/2;
+            if (n.x>xMax-wb)  n.vx-=(n.x-(xMax-wb))*alpha;
+				if (n.x<xMin+wb)  n.vx-=(n.x-(xMin+wb))*alpha;
+				if (n.y>yMax-hb)  n.vy-=(n.y-(yMax-hb))*alpha;
+				if (n.y<yMin+hb)  n.vy-=(n.y-(yMin+hb))*alpha;
+				
+				/*
+				if (n.x<-(w-wb)/2) n.vx-=(n.x+(w-wb)/2)*alpha;                                      
             if (n.y>(h-hb)/2)  n.vy-=(n.y-(h-hb)/2)*alpha;                                      
             if (n.y<-(h-hb)/2) n.vy-=(n.y+(h-hb)/2)*alpha;                                      
+				*/
          });
     }
      var ticked = function() {              
@@ -250,6 +261,7 @@ addToCodex("graph", "g", {
         }
         i.setNodeStyle=function(s) {
            nodeStyle = copyWithDefault(s, nodeStyle);
+			  console.log(nodeStyle);
            return i; 
         }        
         i.setLinkStyle=function(s) {
@@ -269,11 +281,12 @@ addToCodex("graph", "g", {
            }
            if (typeof x == "undefined") x= (generator.random()-0.5)*getComputed("width", i);
            if (typeof y == "undefined") y= (generator.random()-0.5)*getComputed("height", i);
-           nodeIndex[id] = nodeBox.append(d.nodeType + "#" + i.id + "/" +id, copyWithDefault(nodeStyle, {x:x, y:y}));
+           nodeIndex[id] = nodeBox.append(d.nodeType + "#" + i.id + "/" +id, removeNull(copyWithDefault(nodeStyle, {x:x, y:y})));
            nodeIndex[id].x=x;
            nodeIndex[id].y=y;
            
            nodeIndex[id].set({label:id});
+           nodeIndex[id].neighbors=[];
            return nodeIndex[id];           
         }
         i.addNodes = function(ids) {           
@@ -295,6 +308,8 @@ addToCodex("graph", "g", {
           }          
           var src= i.getOrAddNode(idSrc);
           var tgt= i.getOrAddNode(idTgt);
+			 src.neighbors.push(tgt);
+			 if (!i.datum.directed) tgt.neighbors.push(src);
           var linkId = idSrc+"-"+idTgt;
           linkIndex[linkId] = linkBox.append("link#"+i.id+"/"+linkId,shallowCopy(linkStyle),{source:src, target:tgt});
           return i.graphBag([linkIndex[linkId]]);
