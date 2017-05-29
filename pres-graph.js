@@ -269,7 +269,7 @@ addToCodex("graph", "g", {
            }
            if (typeof x == "undefined") x= (generator.random()-0.5)*getComputed("width", i);
            if (typeof y == "undefined") y= (generator.random()-0.5)*getComputed("height", i);
-           nodeIndex[id] = nodeBox.append(d.nodeType + "#" + i.id + "/" +id, copyWithDefault(nodeStyle, {x:x, y:y}));
+           nodeIndex[id] = nodeBox.append(d.nodeType + "#" + i.id + "/" +id, copyWithDefault(nodeStyle, {x:x, y:y, priority:-10}));
            nodeIndex[id].x=x;
            nodeIndex[id].y=y;
            
@@ -456,13 +456,13 @@ addToCodex("laceGraph", "graph", {
         if (d.d) {
             d.size=d.d.length;          
         } else {
-            importDefault(d, {size: 10})
+            importDefault(d, {size: 10, gap:15})
             d.d=d3.range(d.size);
         }
         
 		  var prevn= null;
         for (var x=0; x<d.size; x++) {
-			   i.addNode(x, (x-d.size/2)*15, 0).set({label:d.d[x]});
+			   i.addNode(x, (x-d.size/2)*d.gap, 0).set({label:d.d[x]});
             if (x>0) {
                 i.addLink((x-1)+"-"+x)
             }

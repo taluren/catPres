@@ -38,8 +38,8 @@ frameStyleCatalog.titleFrame = function (fs, style) {
 		fs
 		  .append("rect", {w:"fill", h:"fill", stroke:null, fill:"white"})
 		  .then("g#background",{})    
-		  .then("vector#main", { layout:"spread", size:20, color:"#008"})
-			 .append("svgtext#title",{size:30})			  
+		  .then("vector#main", {layout:"spread", size:20, color:"#008"})
+			 .append("writer#title",{size:30, align:"c"})			  
 			 .up()  
 		  .then("g#foreground",{})    	  
 		

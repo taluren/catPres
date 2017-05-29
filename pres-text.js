@@ -59,14 +59,15 @@ addToCodex("niceBox","vector",  {
 })
 
 addToCodex("writer","g",  {
-	  
+	  defaultStyle:{align:"left"},
 	  onBuild: function(i) {
-          if (!i.datum) i.datum={};          
+          if (!i.datum) i.datum={};       
+          console.log("align:", i.style.align)
           if (!i.datum.cols) i.datum.cols="l";
           if (!i.datum.rows) i.datum.rows="t"; 
            
 		  i.currentArray = i.append("array", {}, {cols:i.datum.cols, rows:i.datum.rows});
-		  i.currentParagraph=i.currentArray.appendIn(0,0,"text");
+		  i.currentParagraph=i.currentArray.appendIn(0,0,"text",{align:i.style.align||"l"});
 		  i.currentLine = i.currentParagraph.append("sweetTextLine")  
 		  i.openedSvgText = null;
 		  i.openedBags = [];
@@ -99,9 +100,7 @@ addToCodex("writer","g",  {
             var out=[];
             for (var p=0;p<bullet.length; p++) {
                 if (reset) 
-                  i.enumerateCount[p]=0;
-             
-                
+                  i.enumerateCount[p]=0;                
                 if (bullet[p]=="a") {
                   out.push("abcdefghijklmnopqrstuvwxyz"[i.enumerateCount[p]%26]);
                 }else  if (bullet[p]=="A") {
@@ -161,7 +160,7 @@ addToCodex("writer","g",  {
 						i.currentCoords[1]=0;
 					  }
 					  i.currentParagraph=i.currentArray
-					                      .appendIn(i.currentCoords[1], i.currentCoords[0], "text");
+					                      .appendIn(i.currentCoords[1], i.currentCoords[0], "text", {align:i.style.align||"l"});
                       i.currentLine = i.currentParagraph.append("sweetTextLine")  
                       i.currentLine.setBullet(i.processIndentString(token.indenter.indent))
 				  }

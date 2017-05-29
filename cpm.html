@@ -1,0 +1,105 @@
+
+
+
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Scaffold Filling</title>
+        <style>
+        </style>
+    </head>
+    <body>
+  
+<script src="./d3.v4.js"></script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG"></script>
+<script src="./pres.js"></script>
+<script src="./pres-misc.js"></script>
+<script src="./pres-camera.js"></script>
+<script src="./pres-codex.js"></script>
+<script src="./pres-menu.js"></script>
+<script src="./pres-layout.js"></script>
+<script src="./pres-text.js"></script>
+<script src="./pres-helpLines.js"></script>
+<script src="./pres-frameStyle.js"></script>
+<script src="./pres-transition.js"></script>
+<script src="./pres-graph.js"></script>
+<script src="./pres-image.js"></script>
+<script src="./pres-pdf.js"></script>
+<script src="./pres-writeParser.js"></script>
+<script src="./blob-stream.js"></script>
+<script src="./pdfkit.js"></script>
+<script>
+window.addEventListener("load", function(event) {  
+fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
+genecolors={
+  a: "rgba(167,122,105, 1)",
+  b: "rgba(246, 226, 127, 1)",
+  c: "rgba(226, 195, 145, 1)",
+  d: "rgba(168, 183, 171, 1)",
+  e: "rgba(155, 190, 199, 1)"
+}
+
+addToCodex("geneNode", "simpleNode", {
+   onDraw:function(i,s) {
+   
+     i.children[0].style.fill=(genecolors[i.style.label])
+     
+     codex.simpleNode.onDraw(i);
+   }
+   
+})
+
+
+  fm.frame("", {model:"titleFrame"})
+    .title`
+\size:20{Beyond Adjacency Maximization:}
+
+\size:26{\bold{Scaffold Filling}
+
+for New String Distances}
+`
+   .append("writer", {align:"c"}).write`
+   \color:black, size:13{Laurent Bulteau, CNRS – U-PEM
+   Joint work with Christian Komusiewicz and Guillaume Fertin
+   IRIF Seminar – 2017-06-20}`
+  
+  var original =      "abcdadbcdadcbabbc"
+  
+  
+  fm.frame("Motivation")
+    .append("writer").write`\bold, color:blue{Genome sequencing, in an ideal world}`
+    .then("box#anim", {height:100})
+   //  .decoration("background")
+     .append("graph",{},{nodeType:"geneNode"})
+       .addLace("l1",{dx:22},{d:original})
+         
+  var reads =    
+  [[0,2],[8,2],[3,3],[10,2],[13,4], [5,4],[12,2],[1,4],[9,3]]
+   .map(function(ss, i) {      
+      return fm.goto("graph")
+       .addLace("ss"+i,{dx:22,y:10, x:(ss[0]-(original.length-ss[1])/2)*22},{d:original.substring(ss[0], ss[0]+ss[1])})
+   }) 
+   
+  fm.nextOverlay() ;
+   
+  reads.forEach(function(read,i) {
+    read.set({y:8*i+10, transition:{duration:2500}})
+  })
+   
+  fm.frame("Models")
+  
+  fm.frame("Maximizing k-mers")
+  
+  fm.frame("Minimizing the breakpoint distance")
+  
+  
+  
+
+fm.run();
+});
+</script>
+<canvas id="canvas"></canvas>
+</body>
+</html>

@@ -256,7 +256,7 @@ var codex = {
 	default: { //codex template:
 		tag:"g",  //tag of the element to add
         internalNode:true, //may have children
-		defaultStyle: {x:0, y:0, wriggle:defaultWriggleThreshold}, //default values for this node and its descendants  
+		defaultStyle: {x:0, y:0, wriggle:defaultWriggleThreshold, priority:0}, //default values for this node and its descendants  
 		onBuild:  null, //function to be called once, at build time ("append"), parameter: item
 		onLoad: null, 
 		          //function called at drawing time, before children (prefix order), parameter: item

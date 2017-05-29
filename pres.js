@@ -304,7 +304,7 @@ function itemAndFrameFunctions(i) {
       if (i.savingFunctionPrefix) i.savingFunctionPrefix(i, s);
       
 	  for (var c=0; c<i.children.length; c++) {
-		  i.children[c].save(copyExceptKeys(s, ["x", "y", "opacity", "margin","width", "height", "marginTop","marginBottom","marginLeft","marginRight","bg", "align","alignV", "model"]));
+		  i.children[c].save(copyExceptKeys(s, ["x", "y", "opacity", "margin","width", "height", "marginTop","marginBottom","marginLeft","marginRight","bg", "align","alignV", "model", "priority"]));
 	  }	
 	  processTransition(i);
 	  
@@ -415,8 +415,13 @@ function FrameBase(frame, holder, transform, style) {
   fb.root=fb;
   fb.index["root"] = fb;
   fb.title=function(s) {
-		fb.goto("#title")
-		  .set({text:s});
+        console.log(s);
+		var t=fb.goto("#title");
+        if (t.write) 
+          t.write(s);
+        else 
+		  t.set({text:s});
+        return fb;
   }
   fb.firstRun = function () {    
       for (var c=0; c<fb.children.length; c++) {
@@ -689,6 +694,7 @@ function Item(parent, typeAndId, style, d) {
      - calls specific loading function
   */
   i.firstRun = function () {    
+      i.childIndex=i.parent.children.indexOf(i);
       if (i.firstRunFunction) i.firstRunFunction(i);
       for (var c=0; c<i.children.length; c++) {
           i.children[c].firstRun();
@@ -900,8 +906,10 @@ function Item(parent, typeAndId, style, d) {
         i.box.actual.y=y;       
         i.box.actual.height=i.style.height; 
       }
-      console.log(i.id+" updateActualBox ",i.box.actual)
-	  
+
+      
+      
+      
 /*      if (["textBox", "svgtext"].indexOf(i.type)>-1) console.log(i.id+" updateActualBox ",i.box.actual)*/
 	  //"custom" -> do nothing
   }
@@ -944,8 +952,14 @@ function Item(parent, typeAndId, style, d) {
 	       i.drawingFunction(i, regular); 
 		 }			 
 		 //recursive call to children
+         var sortedChildren=
+            i.children.map(function(e, j) {
+              return { index: j, priority:e.style.priority||0, node: e};
+            }).sort(function(a, b) {
+               return (a.priority==b.priority ? a.index-b.index : a.priority-b.priority)
+            });
          for (var c=0; c<i.children.length; c++) {
-			  i.children[c].draw(regular);
+			  sortedChildren[c].node.draw(regular);
 			  checkTree(i);
 		 }	
 		 //suffix order: make adjustments depending on children (e.g. for an array)
@@ -1449,12 +1463,16 @@ frameManager = function(style, sozi)  {
             fm.nextOverlay({});        
       } 
     }
-	fm.frame=function(s, style, camera) {		
-	   if (!camera) camera={};
-		camera.mainFrame=true;
-	   completeCurrentFrame(true);
-	   fm.nextOverlay(camera);
-	   console.log("*****************prepare next frame*********************");
+	fm.frame=function(s, style, camera) {
+       //if (s.raw) s=s.raw;
+//        console.log(String.raw(s), typeof s);
+        if (!camera) camera={};
+        camera.mainFrame=true;
+        completeCurrentFrame(true);
+        fm.nextOverlay(camera);
+        console.log("*****************prepare next frame*********************");
+        if (!style) style={};
+        if (typeof style == "string") style={model:style};
 		if (!sozi || camera) 
 			fm.topF = makeFreeBox(fm.camera, fm.f, style)
 		else 
