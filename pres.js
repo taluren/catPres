@@ -97,7 +97,12 @@ function copyWithDefault(obj, def) {
 function shallowCopy(obj) {
 	return copyWithDefault(obj,{});
 }
-
+function onlyXY(i) {
+   return {x:i.x, y:i.y}; 
+}
+function midPoint(i,j) {
+  return {x:(i.x+j.x)/2, y:(i.y+j.y)/2};
+}
 function xy(a,b) {
   if (typeof b == "undefined") 
     return a.x+","+a.y; 
@@ -533,6 +538,7 @@ function Item(parent, typeAndId, style, d) {
 		showBefore:true,
 		showAfter:true,	
 		shown:false,
+        orderedChildren : false,
         internalNode:code.internalNode,
 		drawingFunction:code.onDraw,
 		drawingFunctionPostOrder:code.onDrawPostOrder,
@@ -695,9 +701,22 @@ function Item(parent, typeAndId, style, d) {
   */
   i.firstRun = function () {    
       i.childIndex=i.parent.children.indexOf(i);
+      if (i.style.priority) {
+        i.parent.orderedChildren=true;
+      }
+        
       if (i.firstRunFunction) i.firstRunFunction(i);
       for (var c=0; c<i.children.length; c++) {
           i.children[c].firstRun();
+      }
+      
+      if (i.orderedChildren) {
+          i.orderedChildren =
+            i.children.map(function(e, j) {
+              return { index: j, priority:e.style.priority||0, node: e};
+            }).sort(function(a, b) {
+               return (a.priority==b.priority ? a.index-b.index : a.priority-b.priority)
+            }).map(function(n){return n.node});        
       }
   }
   i.load=function(f, regular) {
@@ -726,8 +745,10 @@ function Item(parent, typeAndId, style, d) {
      
      i.g.style("display", i.display?null:"none");
 	  i.updateContainerBox();
-     for (var c=0; c<i.children.length; c++) {
-          i.children[c].load(f, regular);
+      
+     var sortedChildren=i.orderedChildren || i.children;
+     for (var c=0; c<sortedChildren.length; c++) {
+          sortedChildren[c].load(f, regular);
      }
   }
   
@@ -776,7 +797,19 @@ function Item(parent, typeAndId, style, d) {
     return  copyWithDefault(i.box.bg, defaultBG); 
   }
   
-  
+  i.setFixedBoundingBox = function(box) {
+    if (("x" in box) &&  ("width" in box)) {
+       i.box.container.typeX=i.box.actual.typeX="custom";
+       i.box.container.x=i.box.actual.x=box.x;
+       i.box.container.width=i.box.actual.width=box.width;
+    }
+    if (("y" in box) &&  ("height" in box)) {
+       i.box.container.typeY=i.box.actual.typeY="custom";
+       i.box.container.y=i.box.actual.y=box.y;
+       i.box.container.height=i.box.actual.height=box.height;
+    }
+    return i;
+  }
   i.updateContainerBox =function() {
       importDefault(i.box.container, {x:0, y:0, width:0, height:0});
       if (!i.box.container.typeX) i.box.container.typeX=i.box.container.type;
@@ -952,14 +985,10 @@ function Item(parent, typeAndId, style, d) {
 	       i.drawingFunction(i, regular); 
 		 }			 
 		 //recursive call to children
-         var sortedChildren=
-            i.children.map(function(e, j) {
-              return { index: j, priority:e.style.priority||0, node: e};
-            }).sort(function(a, b) {
-               return (a.priority==b.priority ? a.index-b.index : a.priority-b.priority)
-            });
+         var sortedChildren=i.orderedChildren || i.children;
+            
          for (var c=0; c<i.children.length; c++) {
-			  sortedChildren[c].node.draw(regular);
+			  sortedChildren[c].draw(regular);
 			  checkTree(i);
 		 }	
 		 //suffix order: make adjustments depending on children (e.g. for an array)
@@ -1136,7 +1165,8 @@ function itemBag (itemList) {
 	"use strict";
 	var b= {
 		items:itemList||[],
-		style:{}
+		style:{},
+		isItemBag:true
 	}
 	b.size=function() {
 		return b.items.length;
@@ -1398,6 +1428,13 @@ function itemBag (itemList) {
 	b.setWidthToActual = function (kx, kwidth) {
 	  b.style[kwidth] = b.actualBox(kwidth);
 	  return b;
+   }
+   b.saveAs = function(id) {
+     b.items[0].root.index[id]=b; 
+     return b;
+   }
+   b.intersect = function(otherBag) {
+     return b.filter(function(i) {return otherBag.items.indexOf(i)>-1} )
    }
 	
 	return b;

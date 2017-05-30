@@ -38,13 +38,15 @@ genecolors={
   b: "rgba(246, 226, 127, 1)",
   c: "rgba(226, 195, 145, 1)",
   d: "rgba(168, 183, 171, 1)",
-  e: "rgba(155, 190, 199, 1)"
+  e: "rgba(155, 190, 199, 1)"  ,
+  "?": "#ebe"
 }
 
-addToCodex("geneNode", "simpleNode", {
+
+addToCodex("geneNode", "faddingNode", {
    onDraw:function(i,s) {
    
-     i.children[0].style.fill=(genecolors[i.style.label])
+     i.down("circle").style.fill=(genecolors[i.style.label])
      
      codex.simpleNode.onDraw(i);
    }
@@ -65,31 +67,109 @@ for New String Distances}
    Joint work with Christian Komusiewicz and Guillaume Fertin
    IRIF Seminar – 2017-06-20}`
   
-  var original =      "abcdadbcdadcbabbc"
   
   
+  
+  var original =  "abcdadbcdadcbabbc"
+   
   fm.frame("Motivation")
-    .append("writer").write`\bold, color:blue{Genome sequencing, in an ideal world}`
-    .then("box#anim", {height:100})
-   //  .decoration("background")
-     .append("graph",{},{nodeType:"geneNode"})
-       .addLace("l1",{dx:22},{d:original})
-         
+    //animation title
+    .append("writer#top", {align:"c"}).write`\bold, color:blue{Genome sequencing, in an ideal world}`
+    
+    //graph and box
+    .then("g", {})
+     .append("graph#g",{height:null},{nodeType:"geneNode" })
+     .setFixedBoundingBox({y:60, height:140})
+     
+    //base lace   
+  var base=fm.goto("#g").addLace("l1",{dx:22},{d:original})
+      
+    //read laces  
   var reads =    
-  [[0,2],[8,2],[3,3],[10,2],[13,4], [5,4],[12,2],[1,4],[9,3]]
+  [[0,2],[8,2],[3,3],[13,4],[10,2], [5,4],[12,2],[1,4],[9,4]]
    .map(function(ss, i) {      
-      return fm.goto("graph")
-       .addLace("ss"+i,{dx:22,y:10, x:(ss[0]-(original.length-ss[1])/2)*22},{d:original.substring(ss[0], ss[0]+ss[1])})
+      return fm.goto("#g")
+       .addLace("ss"+i,{dx:22,y:0, x:(ss[0]-(original.length-ss[1])/2)*22},{d:original.substring(ss[0], ss[0]+ss[1])})
    }) 
-   
+
   fm.nextOverlay() ;
-   
+    //show reads
   reads.forEach(function(read,i) {
-    read.set({y:8*i+10, transition:{duration:2500}})
+     var y=8*i+20;
+    read.set({y:y, transition:{duration:y*12}})
+    read.getSubgraphLinks().set({transition:{duration:y*12}})
   })
+    //fade base
+  base.set({fadding:0.3, transition:{duration:1000}})
+      .getSubgraphLinks().set({opacity:0.3, transition:{duration:1000}})  
+      
+  fm.nextOverlay() ;
+    //show overlap
+  var extraLinks=
+  [[0,1,7,0], [2,0,7,2],[2,1,7,3],[2,2,5,0],[1,0,5,3],[1,1,8,0],[4,0,8,1],[4,1,8,2],[6,0,8,3],[3,0,6,1]  ]
+    .map(function(xlink) {
+       return {source:reads[xlink[0]].get(xlink[1]), target:reads[xlink[2]].get(xlink[3])};
+    })
+    console.log(extraLinks)
+  fm.goto("#g")
+      .pushLinkStyle({strokeWidth:6, stroke:"green"})
+      .addLinks(extraLinks) 
+      .saveAs("extraLinks")
+      .popLinkStyle()
    
-  fm.frame("Models")
+     
+  fm.nextOverlay() ;
+    //show result
+  result=fm.goto("#g").addLace("l2",{y:120, dx:22},{d:original})
+   
+ 
+  fm.nextOverlay() 
+    .goto("#top").write("\n...and in practice...")
+  result.hide();
+   fm.goto("#extraLinks").hide();
+  errors=
+     fm.goto("#g").getNodes(
+       [[0,1,"c"],[3,1,"e"], [8,0,"b"],[8,2,"a"]] 
+          .map(function(err){
+          return reads[err[0]].get(err[1])
+                    .set({label:err[2], stroke:"red", strokeWidth:2});    })  
+      )
+  fm.nextOverlay() 
+  fm.goto("#g").getNeighborLinks(errors).intersect(fm.goto("#extraLinks")).set({stroke:"red", opacity:0.3}) 
+  fm.goto("#extraLinks").show();
+  fm.nextOverlay() 
+  result.show();
+  result.get(1).hide()
+  result.get(9).hide()
+  result.get(10).hide()
+  result.get(11).hide()
+  fm.goto("#g").addNode("?", result.get(1))  
+    .goto("#g").addNode("?", result.get(10))
   
+  fm.nextOverlay() 
+    .append("writer", {align:"c"})
+      .write`Assembling noisy reads based on overlap 
+      may always leave gaps: 
+      Can we do anything more in silico?`
+  fm.nextOverlay() 
+    .append("writer", {align:"c"})
+      .write`\bold{Idea:} use a known genome from a close species to fill-in the gaps`
+  
+  fm.frame("Modelisation")
+    .append("writer")
+     .write`
+-| A \bold{genome} is a string. Characters are interpreted as genes
+-| A \bold{scaffold} is an ordered list of strings called \bold{contigs}
+-| A \bold{completion} of a scaffold is a concatenation of the contigs 
+ using arbitrary intermediate strings
+     `
+     
+  .then("titleBox", {contfentBG:"#ddd"})
+    .title("Scaffold Filling Problem")
+    .content`
+    Given a (reference) genome $G$ and a scaffold $S$, 
+    find a completion $S^*$ of $S$ minimizing $d(S^*, G)$ 
+    for some string  distance $d()$`
   fm.frame("Maximizing k-mers")
   
   fm.frame("Minimizing the breakpoint distance")

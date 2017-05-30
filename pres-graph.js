@@ -40,6 +40,7 @@ addToCodex("laceLink", "path", {
     }
 })
 
+//link: draw a straight link or a bezier curve (give srcTangent and tgtTangent vectors for a curve)
 addToCodex("link", "path", {
 	defaultStyle:{fill:"none"},
    onBuild: function(i) {    
@@ -76,7 +77,11 @@ addToCodex("link", "path", {
 })
 
 addToCodex("simpleNode", "g", {
-   defaultStyle:{cursor:"pointer", fill:"#ddd", r:8, stroke:"none", wriggle:0},
+   //dragPriority: 
+  //  -1: node position is reset at every frame change, even if dragged
+  //   0: node position is reset only if coordinates change
+  //   1: once dragged, the node stays where it is dropped, even on coordinate change
+   defaultStyle:{cursor:"pointer", fill:"#ddd", r:8, stroke:"none", wriggle:0, dragPriority:0},
    onBuild: function(i) {
       i.append("circle");
       i.caption = i.append("caption");      
@@ -84,9 +89,33 @@ addToCodex("simpleNode", "g", {
    },
    onDraw: function(i) {
       i.caption.style.text = i.style.label;
+   },
+   onLoad:function(i) {
+      if (i.lastLoad && i.style.dragPriority <= 0) {
+       if (i.style.dragPriority<0 || i.lastLoad.x!= i.style.x || i.lastLoad.y!=i.style.y) {
+         i.x=i.style.x;
+         i.y=i.style.y;
+       }
+     }     
+     i.lastLoad={x:i.style.x, y:i.style.y};
+     
+     
+  
    }
 })
 
+addToCodex("faddingNode", "simpleNode", {
+   defaultStyle:{fadding:1},
+   onBuild: function(i) {
+      i.bg=i.append("circle", {fill:"white", stroke:"none"});
+      codex.simpleNode.onBuild(i);        
+   },
+   onSavePrefix:function(i) {
+     i.children.forEach(function(n) {
+       if (n!=i.bg) n.set({opacity:i.style.fadding})
+     })
+   }
+})
 //simulation may have datum with
 // - nodes
 // - links
@@ -126,8 +155,10 @@ addToCodex("simulation", "g", {
          });
     }
      var ticked = function() {              
+              console.log("tick");
               i.simulation.nodes().forEach(function(n) {
                     n.set({x:n.x, y:n.y})
+                    if (n.id=="graph-84/ss4:3") console.log(xy(n), xy(n.style));
               });
               if (i.shown) {
                  //console.log("draw");
@@ -177,6 +208,7 @@ addToCodex("simulation", "g", {
      }
   },
   onLoad: function(i, show, focus) {
+    coonsole.log("simulation load")
      if (i.style.active && i.differentFrameLoaded && i.display) {       
        var nodes = i.datum.nodes || i.parent.nodes().filterShown().items;
        var links = i.datum.links || i.parent.links().filterShown().items;
@@ -207,8 +239,6 @@ addToCodex("simulation", "g", {
  *    - seed = used to generate seemingly random positions (default= random value)
  *    - drag = allow nodes to be dragged by the mouse (default= true)
  *    - simulation = run force simulation (same as calling i.simulation(), default= false)
- //*  in freeGraph: dimensions are free (it should adapt to inline/arrays/etc depending on its actual size. Does not behave well with simulations.
- *  in graph: dimensions are fixed
  */
 
 addToCodex("graph", "g", {
@@ -221,13 +251,15 @@ addToCodex("graph", "g", {
         var generator = seededRndGenerator(i.datum.seed);
         
         var linkBox= i.append("g#"+i.id+"-links");
-        var nodeBox= i.append("g#"+i.id+"-nodes");
+        var nodeBox= i.append("g#"+i.id+"-nodes", {priority:-10});
         
         var nodeStyle = {};
         var linkStyle = {};
         
+        var linkStyleStack=[];
+        var nodeStyleStack=[];
         //links must be before the nodes according to the DOM, but they must be after in the item hierarchy (loading/drawing a link depends on its endpoints)
-        linkBox.g.lower();        
+       // linkBox.g.lower();        
         
         
         i.nodes= function() {
@@ -255,6 +287,15 @@ addToCodex("graph", "g", {
         i.setLinkStyle=function(s) {
            linkStyle = copyWithDefault(s, linkStyle); 
            return i;
+        }     
+        i.pushLinkStyle=function(s) {
+           linkStyleStack.push(linkStyle);
+           linkStyle = copyWithDefault(s, linkStyle); 
+           return i;
+        } 
+        i.popLinkStyle=function() {
+           linkStyle = linkStyleStack.pop(); 
+           return i;
         }
         //reLayout: to be called each time the node coordinates have changed to update the graph layout
         i.reLayout = function() {
@@ -262,14 +303,22 @@ addToCodex("graph", "g", {
           nodeBox.layout(1); //recursively update nodes' transform attributes (no redrawing)
         }
         //add node with given id. If x and y are undefined, use random position instead
+        //instead of x,y, a single object with x and y coordinates may be used
         i.addNode = function(id, x, y) {
            if (id in importedCoords) {
              x=importedCoords[id].x;
              y=importedCoords[id].y;
            }
+           if (typeof x=="object" && ("y" in x) && ("x" in x)) {
+             y=x.y;
+             x=x.x;
+           } else if (typeof x=="object" && ("style" in x)) {
+             y=x.style.y;
+             x=x.style.x;
+           }
            if (typeof x == "undefined") x= (generator.random()-0.5)*getComputed("width", i);
            if (typeof y == "undefined") y= (generator.random()-0.5)*getComputed("height", i);
-           nodeIndex[id] = nodeBox.append(d.nodeType + "#" + i.id + "/" +id, copyWithDefault(nodeStyle, {x:x, y:y, priority:-10}));
+           nodeIndex[id] = nodeBox.append(d.nodeType + "#" + i.id + "/" +id, copyWithDefault(nodeStyle, {x:x, y:y}));
            nodeIndex[id].x=x;
            nodeIndex[id].y=y;
            
@@ -281,17 +330,37 @@ addToCodex("graph", "g", {
            splitIds(ids).map(function(n) {return i.addNode(n)});
            return i;           
         }
-        //return the node with a given id o(creates one if necessary)
+        //return the node with a given id (or creates one if necessary)
         i.getOrAddNode = function(id) {
+           if (typeof id=="object") {
+             
+              if (i.nodes().items.indexOf(id)!=-1) return id;
+              console.error("id is not a valid node", id);
+           }
            return nodeIndex[id] || i.addNode(id);
         }
 		  
         //add a link from src to tgt, or with one parameter "src-tgt"
         i.addLink = function(idSrc, idTgt) {
+          
           if (typeof idTgt == "undefined") {
-            var s = idSrc.split(/\ *\-\ */);
-            idSrc=s[0];
-            idTgt=s[1];
+            console.log(idSrc);
+            if (idSrc instanceof Array) {
+              idTgt=idSrc[1];
+              idSrc=idSrc[0];
+            } else if (typeof idSrc== "object") {
+              idTgt=idSrc.target;
+              idSrc=idSrc.source;
+              console.log(idTgt)
+              
+            } else {
+              var s = idSrc.split(/\ *\-\ */);
+              idSrc=s[0];
+              idTgt=s[1];
+            }
+            if (typeof idSrc=="undefined" ||typeof idTgt=="undefined") {
+              console.error("cannot add link with ", idSrc, idTgt);
+            }
           }          
           var src= i.getOrAddNode(idSrc);
           var tgt= i.getOrAddNode(idTgt);
@@ -319,10 +388,14 @@ addToCodex("graph", "g", {
         }
         //returns a node by id
         i.getNode = function(id) {
+           if (typeof id=="object") {
+             return id;
+           }
            return nodeIndex[id+""];
         }
         //returns a bag of nodes
         i.getNodes = function(ids) {
+          if (typeof ids=="object" && ids.isItemBag) return ids;
            return i.graphBag(splitIds(ids).map(i.getNode))           
         }
         i.getNeighborLinks = function(ids) {
@@ -420,8 +493,8 @@ addToCodex("graph", "g", {
               b.nodes = i.nodes;
               b.links = i.links;
               b.then = i.then;
-				  b.setNodeStyle = i.setNodeStyle
-				  b.setLinkStyle = i.setLinkStyle
+              b.setNodeStyle = i.setNodeStyle
+              b.setLinkStyle = i.setLinkStyle
 			  b.addNode = i.addNode;
 			  b.addLink = i.addLink;
 			  b.getNode = i.getNode;
@@ -429,9 +502,17 @@ addToCodex("graph", "g", {
 			  b.addNodes = i.addNodes;
 			  b.addLinks = i.addLinks;
               b.getNodes = i.getNodes;
-              b.getLinks = i.getLinks;
+              b.popLinkStyle = i.popLinkStyle;
+              b.pushLinkStyle = i.pushLinkStyle;
+            /*  b.getLinks = i.getLinks;
+              b.getLinks = i.getLinks;*/
 			  b.getNeighborLinks = i.getNeighborLinks;
 			  b.addLace = i.addLace;
+              
+              b.getSubgraphLinks = function() {
+                return  i.graphBag(i.links().filter(function(l){return b.items.indexOf(l.source)>=0 || b.items.indexOf(l.target)>=0}))
+              }
+              
 			  
 			  return b;
 		  }

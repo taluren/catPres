@@ -37,6 +37,32 @@ addToCodex("niceBox2","vector",  {
   
 })
 
+addToCodex("titleBox","vector",  {
+  defaultStyle: {width:300, titleBG:"#400060", contentBG:"#cbd"},
+  containerBox:{typeY:"tight"},
+  onBuild:function(i) {
+    codex.vector.onBuild(i);
+    if (!i.datum) i.datum={};  
+    var title = i.append("writer", {color:"#eed", size:16}).decoration("background", {fill:function() {return i.style.titleBG}})
+    var content = i.append("writer").decoration("background", {fill:function() {return i.style.contentBG}})
+    i.children.forEach(function(n) {
+      n.box.bg.use="container"      
+    })
+    i.title=function(str){//, style){ 
+      title.write(str); 
+      //if (style) title.set(style);
+      return i;
+      
+    };
+    i.content=function(str){//, style){ 
+      content.write(str); 
+      //if (style) content.set(style);
+    return i;
+      
+    };    
+  }
+  
+})
 addToCodex("niceBox","vector",  {
   defaultStyle: {width:300, titleBG:"#400060", contentBG:"#602080"},
   containerBox:{typeY:"tight"},
