@@ -162,21 +162,64 @@ for New String Distances}
 -| A \bold{scaffold} is an ordered list of strings called \bold{contigs}
 -| A \bold{completion} of a scaffold is a concatenation of the contigs 
  using arbitrary intermediate strings
+-| Two genomes are \bold{equivalent} if they use the same multi-set 
+of letters
      `
      
-  .then("titleBox", {contfentBG:"#ddd"})
+  .then("titleBox")
     .title("Scaffold Filling Problem")
     .content`
     Given a (reference) genome $G$ and a scaffold $S$, 
-    find a completion $S^*$ of $S$ minimizing $d(S^*, G)$ 
-    for some string  distance $d()$`
+    find a completion $S^*$ of $S$, equivalent to $G$, and
+    minimizing $d(S^*, G)$ for some string distance $d()$`
     
     
   fm.frame("Distances between genome")
-   .append("writer").write(`
-What distance function $d()$ should we use?
+   .append("writer").write`
+*|Distance between different species:
+   Consider \bold{large-scale rearrangements}: edit distances are useless
+*|Some distances \bold{forbid repeated letters}: 
+   They may yield efficient algorithms, with strong restriction on the data
+   [Munoz et al., 2010] 
+*|Trade-off between computation speed and biological relevance
+   ` 
+  fm.frame("Distances between genome")
+.append("titleBox", {width:390})
+ .title("Number of common adjacencies")
+ .content`
+Adjacencies of $S$: multiset of length-2 substrings $S[i] S[i+1]$
+Common adjacencies of $S_1$ and $S_2$ = intersection of the adjacencies 
+of $S_1$ and $S_2$.  `
 
-  `
+ .then("writer").write`
+ &$S_1$: aabcaabcbd &   & $S_2$: abcbaabcad//
+ Adjacencies: &
+aa   bc 
+aa   bd
+ab   ca
+ab   cb
+bc
+&   &
+aa   bc
+ab   bc
+ab   ca
+ad   cb
+ba
+ `
+  fm.frame("Distances between genome")
+.append("titleBox", {width:390})
+ .title("Number of common $k$-mers")
+ .content`
+$k$-mers of $S$: multiset of length-$k$ substrings $S[i]\ldots S[i+k-1]$
+Common $k$-mers of $S_1$ and $S_2$ = intersection of the $k$-mers
+of $S_1$ and $S_2$.  `
+
+.then("titleBox", {width:390})
+ .title("String Breakpoint")
+ .content`Given a permutation $\pi:|S_1|\rightarrow |S_2|$, with $S_1[i]=S_2[\pi_i]$ 
+ Breakpoint: index $i$ such that $\pi_{i+1}\neq \pi_i +1$
+ Breakpoint distance: minimal number of breakpoints over all $\pi$
+ `
   fm.frame("Maximizing k-mers")
   
   fm.frame("Minimizing the breakpoint distance")
