@@ -53,6 +53,40 @@ addToCodex("geneNode", "faddingNode", {
    
 })
 
+addToCodex("filler", "rect", {
+  defaultStyle:{stroke:"white", opacity:0, h:1,w:1}   
+})
+addToCodex("annotatedString", "g", {
+   //defaultStyle: {dx:10, dy:0},
+   onBuild: function (i) {
+     i.length=0;
+     var bg = i.append("g");
+     var front = i.append("g");
+     if (!i.datum) i.datum={dx:10};
+     if (typeof i.datum!="object") i.datum={dx:i.datum};
+     var h=15;
+     
+     i.print = function(s) {
+       for (var j=0; j<s.length; j++) {
+         front.append("svgtext", {x:i.datum.dx*i.length, y:4, text:s[j]})
+         i.length++;
+       }
+       i.appendRect("",{opacity:0}, [0, i.length-1])
+       return i;
+     }
+     i.appendRect = function(id, style, d) {
+       var mid = (d[0]+d[1])/2;
+       var w= d[1]-d[0]+0.8;
+       var rect= bg.append("rect"+(id?"#"+id:""), {x:i.datum.dx*mid, y:0, w:w*i.datum.dx, h:h})
+                .set(style)
+        rect.appendRect=i.appendRect;
+        rect.print=i.print;
+        return rect;
+     }
+   }
+   
+})
+
 
   fm.frame("", {model:"titleFrame"})
     .title`
@@ -157,8 +191,7 @@ for New String Distances}
   
   fm.frame("Modelisation")
     .append("writer")
-     .write`
--| A \bold{genome} is a string. Characters are interpreted as genes
+     .write`-| A \bold{genome} is a string. Characters are interpreted as genes
 -| A \bold{scaffold} is an ordered list of strings called \bold{contigs}
 -| A \bold{completion} of a scaffold is a concatenation of the contigs 
  using arbitrary intermediate strings
@@ -174,16 +207,16 @@ of letters
     minimizing $d(S^*, G)$ for some string distance $d()$`
     
     
-  fm.frame("Distances between genome")
+  fm.frame("Distances between genomes")
    .append("writer").write`
 *|Distance between different species:
    Consider \bold{large-scale rearrangements}: edit distances are useless
 *|Some distances \bold{forbid repeated letters}: 
    They may yield efficient algorithms, with strong restriction on the data
-   [Munoz et al., 2010] 
+   [Muñoz et al., 2010] 
 *|Trade-off between computation speed and biological relevance
    ` 
-  fm.frame("Distances between genome")
+  fm.frame("Distances between genomes")
 .append("titleBox", {width:390})
  .title("Number of common adjacencies")
  .content`
@@ -191,22 +224,64 @@ Adjacencies of $S$: multiset of length-2 substrings $S[i] S[i+1]$
 Common adjacencies of $S_1$ and $S_2$ = intersection of the adjacencies 
 of $S_1$ and $S_2$.  `
 
- .then("writer").write`
- &$S_1$: aabcaabcbd &   & $S_2$: abcbaabcad//
- Adjacencies: &
+ .then("writer",{align:"c"}).write`
+ \array:c{
+ $S_1$ &\box#gap{}&$S_2$ //
+\box#S1{}& &
+\box#S2{} // 
 aa   bc 
-aa   bd
+\color:gray{aa}   \color:gray{bd}
 ab   ca
 ab   cb
 bc
-&   &
+&  & 
 aa   bc
 ab   bc
 ab   ca
-ad   cb
-ba
+\color:gray{ad}   cb
+\color:gray{ba}}
+Common adjacencies = 7
  `
-  fm.frame("Distances between genome")
+ .goto("#gap").append("filler",{w:20})
+ .goto("#S1").append("annotatedString")
+    .print("aabcaabcbd")
+    .appendRect("",{},[0,1]).on([1], {show:false})
+    .appendRect("",{},[4,5]).on([1], {show:false})
+ .goto("#S2").append("annotatedString")
+    .print("abcbaabcad")
+    .appendRect("",{},[4,5]).on([1], {show:false})
+fm.nextOverlay() 
+ .goto("#S1").down("annotatedString")
+    .appendRect("",{},[1,2]).on([1], {show:false})
+    .appendRect("",{},[5,6]).on([1], {show:false})
+  .goto("#S2").down("annotatedString")
+    .appendRect("",{},[0,1]).on([1], {show:false})
+    .appendRect("",{},[5,6]).on([1], {show:false})
+fm.nextOverlay() 
+ .goto("#S1").down("annotatedString")
+    .appendRect("",{},[2,3]).on([1], {show:false})
+    .appendRect("",{},[6,7]).on([1], {show:false})
+  .goto("#S2").down("annotatedString")
+    .appendRect("",{},[1,2]).on([1], {show:false})
+    .appendRect("",{},[6,7]).on([1], {show:false})
+
+fm.nextOverlay() 
+ .goto("#S1").down("annotatedString")
+    .appendRect("",{},[8,9]).on([1], {show:false})    
+fm.nextOverlay() 
+ .goto("#S1").down("annotatedString")
+    .appendRect("",{},[3,4]).on([1], {show:false})    
+ .goto("#S2").down("annotatedString")
+    .appendRect("",{},[7,8]).on([1], {show:false})
+fm.nextOverlay() 
+ .goto("#S1").down("annotatedString")
+    .appendRect("",{},[7,8])
+ .goto("#S2").down("annotatedString")
+    .appendRect("",{},[2,3])
+
+
+
+  fm.frame("Distances between genomes")
 .append("titleBox", {width:390})
  .title("Number of common $k$-mers")
  .content`
@@ -214,17 +289,121 @@ $k$-mers of $S$: multiset of length-$k$ substrings $S[i]\ldots S[i+k-1]$
 Common $k$-mers of $S_1$ and $S_2$ = intersection of the $k$-mers
 of $S_1$ and $S_2$.  `
 
-.then("titleBox", {width:390})
+ .then("writer",{align:"c"}).write`
+ \array:c{
+ $S_1$ &\box#gap{}&$S_2$ //
+\box#S1{}& &
+\box#S2{} // 
+aab   bca
+\color:gray{aab}   bcb 
+abc   \color:gray{caa}
+abc   \color:gray{cbd}
+&   &
+aab   bca
+abc   bcb
+abc   \color:gray{cad}
+\color:gray{baa}   \color:gray{cba}}
+Common 3-mers = 5
+ `
+ .goto("#gap").append("filler",{w:20})
+ .goto("#S1").append("annotatedString")
+    .print("aabcaabcbd")
+    .appendRect("",{},[0,2]).on([1], {show:false})
+    .appendRect("",{},[4,6]).on([1], {show:false})
+ .goto("#S2").append("annotatedString")
+    .print("abcbaabcad")
+    .appendRect("",{},[4,6]).on([1], {show:false})
+fm.nextOverlay() 
+ .goto("#S1").down("annotatedString")
+    .appendRect("",{},[1,3]).on([1], {show:false})
+    .appendRect("",{},[5,7]).on([1], {show:false})
+  .goto("#S2").down("annotatedString")
+    .appendRect("",{},[0,2]).on([1], {show:false})
+    .appendRect("",{},[5,7]).on([1], {show:false})
+fm.nextOverlay() 
+ .goto("#S2").down("annotatedString")
+    .appendRect("",{},[3,5]).on([1], {show:false})    
+
+ fm.nextOverlay() //bca
+ .goto("#S1").down("annotatedString")
+    .appendRect("",{},[2,4]).on([1], {show:false})    
+  .goto("#S2").down("annotatedString")
+    .appendRect("",{},[6,8]).on([1], {show:false})
+
+fm.nextOverlay() //bcb
+ .goto("#S1").down("annotatedString")
+    .appendRect("",{},[6,8]).on([1], {show:false})    
+  .goto("#S2").down("annotatedString")
+    .appendRect("",{},[1,3]).on([1], {show:false}) 
+fm.nextOverlay() //caa 
+ .goto("#S1").down("annotatedString")
+    .appendRect("",{},[3,5]).on([1], {show:false})    
+fm.nextOverlay() //cad 
+ .goto("#S2").down("annotatedString")
+    .appendRect("",{},[7,9]).on([1], {show:false})    
+fm.nextOverlay() //cba 
+ .goto("#S2").down("annotatedString")
+    .appendRect("",{},[2,4]).on([1], {show:false})    
+fm.nextOverlay() //cbd 
+ .goto("#S1").down("annotatedString")
+    .appendRect("",{},[7,9])
+
+    
+ fm.frame("Distances between genomes")
+.append("titleBox", {width:390})
  .title("String Breakpoint")
- .content`Given a permutation $\pi:|S_1|\rightarrow |S_2|$, with $S_1[i]=S_2[\pi_i]$ 
+ .content`Given a permutation $\pi:[|S_1|]\rightarrow [|S_2|]$, with $S_1[i]=S_2[\pi_i]$ 
  Breakpoint: index $i$ such that $\pi_{i+1}\neq \pi_i +1$
  Breakpoint distance: minimal number of breakpoints over all $\pi$
  `
+ .then("graph#g",{height:null})
+    .pushLinkStyle({stroke:"none"})
+    .setNodeStyle({dragAxis:{x:1,y:0}})
+ var l1=fm.goto("#g").addLace("l1",{dx:22, fill:"white"},{d:"aabcaabcbd"});
+ var l2=fm.goto("#g").addLace("l2",{dx:22, y:60, fill:"white"},{d:"abcbaabcad"});
+ 
+ fm.nextOverlay();
+    l1.get([0,1,2,3,4]).frameNodes("",{margin:2})
+    l1.get([5,6,7,8]).frameNodes("",{margin:2})
+    l1.get([9]).frameNodes("",{margin:2}) 
+    l2.get([0,1,2,3]).frameNodes("",{margin:2})
+    l2.get([4,5,6,7,8]).frameNodes("",{margin:2})
+    l2.get([9]).frameNodes("",{margin:2})
+  fm.goto("#g").popLinkStyle().pushLinkStyle({srcTangent:{x:0,y:20}, tgtTangent:{x:0,y:-20}})
+  
+  var pi=[4,5,6,7,8,0,1,2,3,9];
+  pi.forEach(function (j,i) {
+    fm.goto("#g").addLink(l1.get(i),l2.get(j));
+  })
+  
+ fm.nextOverlay()
+  .append("writer").write`Also known as MCSP: NP-hard to compute`;
+  fm.frame("Example")
+   .append("writer").write`
+\bold{Scaffold:} &abcb  (?)  aa  (?)  b  (?)  d //
+\bold{Reference:} &$G=$ aabcaabcbd//
+\bold{Missing genes:} & a, c //
+     `
+       
+     fm.nextOverlay().append("writer#w", {}, {cols:"lc"})
+       .write`
+       &$S_1$ = abcb\bold, color:red{c}aa\bold, color:red{a}bd & 
+       $S_2$ = abcbaab\bold, color:red{c}\bold, color:red{a}d //Common adjacencies with $G$:&\color:green{9}&7 //`
+     fm.nextOverlay().goto("#w")
+       .write`Common adjacencies with $G$:&\color:green{9}&7 //`
+     fm.nextOverlay().goto("#w")
+       .write`Common 3-mers with $G$:&4&\color:green{5} //`
+       
+     fm.nextOverlay().goto("#w")
+       .write`Breakpoints with $G$:&4&\color:green{2} //`
+       
   fm.frame("Maximizing k-mers")
   
   fm.frame("Minimizing the breakpoint distance")
   
   
+
+
   
 
 fm.run();

@@ -1,7 +1,10 @@
 Input=  String
 
+//Global string: always assume that it starts with '\n'; 
+//remove empty lines and start reading
+String = skipStartEmptyLines str:(content) {return str;}
 
-String = str:(content) {return str;}
+//content aggregates contentUnits: successive characters are joined into strings
 content = inside:contentUnit* {
     var str="";
     var out=[];
@@ -17,6 +20,9 @@ content = inside:contentUnit* {
     out.push(str);
     return out;
   }
+
+// Main unit of the parser: can be single character, a  new line, 
+// a whole block with header and parenthesis, etc.
 contentUnit=
     block
     /mathBlock
@@ -25,19 +31,23 @@ contentUnit=
     /commentBlock
     /otherChar
 
+//a block such as \header{..anything..}
 block = open:open str:content close:close {return {param:open.param, id:open.id, inside:str}}
 
+//deals with the opening part of a block: "\params #id{"
 open= (escape b:paramStr id:maybeId openChar {return {param:b, id:id}})/(openChar {return {param:null, id:null}})
 
+//optional id, of the form #id
 maybeId = id/""
 id = "#" id:idChar* {return id.join("")}
-close=closeChar {return "[[close]]"} 
+
 openChar="{"
-closeChar="}" 
+
+//sequence of parameters
 paramStr=  _ s:paramSequence _ {return s} / _
 paramSequence = severalParamPairs / singleParamPair
-severalParamPairs = x:(keyValue/anyKeyword/keyNoValue) _ "," _ y:paramSequence {y[x[0]]=x[1]; return y}
-singleParamPair = x:(keyValue/anyKeyword/keyNoValue) {var  y={}; y[x[0]]=x[1]; return y}
+severalParamPairs = x:(keyValue/someKeyword/keyNoValue) _ "," _ y:paramSequence {y[x[0]]=x[1]; return y}
+singleParamPair = x:(keyValue/someKeyword/keyNoValue) {var  y={}; y[x[0]]=x[1]; return y}
 keyValue = a:(paramChar+) _ ":" _ b:paramValue {return [a.join(''), b]}
 keyNoValue = a:(paramChar+) {return [a.join(''), true]}
 paramValue = 
@@ -46,45 +56,53 @@ paramValue =
 paramChar=[a-zA-Z0-9_\[\]\-]
 idChar=[a-zA-Z0-9_]
 dquote='"'
-
-anyKeyword = 
-//weightKeyword = 
+//recognize some keywords automaticaly
+someKeyword = 
   ("bold"/"textbf") {return ["weight","bold"]}
-//fontKeyword = 
   / c:("sans"/"serif") {return ["font",c]}
   
-//colorKeyword = 
-//  / c:([a-z]+) {return ["color", c.join('')]}
-//sizeKeyword = 
-//  / c:([0-9]+) {return ["size", c.join('')]}
 
+//deals with closing side of a block
+close=closeChar {return "[[close]]"} 
+closeChar="}" 
 
+//blocks are complete.
 
+//other unit: math content: $...$
 
 mathBlock = mathChar content:mathContent mathChar {return {math:content}}
 mathContent = math:((!mathChar) c:. {return c})* {return math.join('')} 
 mathChar= "$"
 
-arrayToken = c:arrayChar indenter:indenter {return {array:c, indenter:indenter}}
+//array tokens, with & and //
+//ignore new lines between character and rest of the text
+arrayToken = c:arrayChar indenter:newParagraphIndenter {return {array:c, indenter:indenter}}
 arrayChar = ("&"/"//")
+
+//new line
 
 newLineToken = "\n" indenter:indenter {return {newline:true, indenter:indenter}}
 
+//comment (starts with %)
 commentBlock = commentChar ((!'\n') .)* '\n'? {return ""}
 commentChar= "%"
   
+//indents and skipping empty lines  
+newParagraphIndenter = skipEmptyLines  indenter:indenter {return indenter}
+skipEmptyLines = (_ '\n')*
+skipStartEmptyLines =  ('\n' _  & '\n')*  ('\n' !fullIndenter)?
 indenter = fullIndenter/spaceIndenter
 
 fullIndenter = indent:(indentChar*) id:maybeId endOfIndent
               {return {indent:indent.join(''), id:id, spaceAfter:null}}
-              
-              
+                          
 spaceIndenter = sp:_ {return {indent:null, id:"", spaceAfter:sp}}
            
 indentChar=(! (endOfIndent/simpleNewLine/escape)) c:otherChar {return c}
 endOfIndent = "|"
 simpleNewLine = "\n" sp:_ {return {newline:{indent:null}, spaceAfter:sp}}
 
+//basic characters
 otherChar = !open!close c:(escapedChar / simpleChar) {return c}
 simpleChar = !special c:. {return c} 
 escapedChar = escape  c:special {return c}

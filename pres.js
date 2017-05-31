@@ -103,6 +103,17 @@ function onlyXY(i) {
 function midPoint(i,j) {
   return {x:(i.x+j.x)/2, y:(i.y+j.y)/2};
 }
+function projection(point,origin,unitAxis) {
+   var scal=(point.x-origin.x)*unitAxis.x+(point.y-origin.y)*unitAxis.y;
+  return {x:origin.x+scal*unitAxis.x,  y:origin.y+scal*unitAxis.y};
+}
+function keepFOnAxis(point,target, unitAxis) {  
+ // console.log(point,target, unitAxis) 
+   var scal=(target.dx)*unitAxis.x+(target.dy)*unitAxis.y;
+  // console.log(scal);
+   point.fx += scal*unitAxis.x; 
+   point.fy += scal*unitAxis.y;
+}
 function xy(a,b) {
   if (typeof b == "undefined") 
     return a.x+","+a.y; 
@@ -715,7 +726,7 @@ function Item(parent, typeAndId, style, d) {
             i.children.map(function(e, j) {
               return { index: j, priority:e.style.priority||0, node: e};
             }).sort(function(a, b) {
-               return (a.priority==b.priority ? a.index-b.index : a.priority-b.priority)
+               return (a.priority==b.priority ? a.index-b.index : b.priority-a.priority)
             }).map(function(n){return n.node});        
       }
   }
@@ -1172,7 +1183,9 @@ function itemBag (itemList) {
 		return b.items.length;
 	}
 	b.get = function(x) {
-		return b.items[x];
+      if (x instanceof Array) 
+         return itemBag(x.map(b.get));
+	  return b.items[x];
 	}
 	b.concat = function(b2) {
 		return itemBag(b.items.concat(b2.items));
@@ -1550,6 +1563,7 @@ frameManager = function(style, sozi)  {
           if (typeof x != "undefined") return x;
           i--;          
         }
+        console.error(selector+ " is not found")
        
 	}
 	fm.currentFrame = function() {

@@ -82,8 +82,8 @@ addToCodex("array", "box", {
 		i.rowBag=itemBag();
 		i.colBag=itemBag();
 		i.fillCellsUpToDimension=function(c,r, nowarning) {
-			if (!nowarning && (i.colBag.size()<=c || i.rowBag.size()<=r))
-				console.warn("The array is being extended to have column "+c+" and row "+r+".");
+		/*	if (!nowarning && (i.colBag.size()<=c || i.rowBag.size()<=r))
+				console.warn("The array is being extended to have column "+c+" and row "+r+".");*/
 			//console.log("fill up to ",c,r);
 			while (i.colBag.size()<=c) {
 				i.colBag.add(itemBag())
@@ -92,9 +92,9 @@ addToCodex("array", "box", {
 			while (i.rowBag.size()<=r) {
 				i.rowBag.add(itemBag())
 			};
-			i.colBag.each(function(b) {
+			i.colBag.each(function(b, colIndex) {
 				while (b.size()<i.rowBag.size()) {
-					var newCell = i.append("cell");
+					var newCell = i.append("cell#"+i.id+"/"+b.size()+"-"+colIndex);
 					newCell.cell = i.cell;
 					newCell.appendIn = i.appendIn;
 					newCell.print = i.print;
@@ -189,7 +189,7 @@ addToCodex("verticalVector", "customBGBox", {
     onRun: function(i) {
       console.log("onRun!")
       i.children.forEach(function(c) {
-         console.log(c.box.container)
+//         console.log(c.box.container)
          c.box.container.typeY="array";
       })
     },

@@ -154,7 +154,7 @@ addToCodex("writer","g",  {
           }
 		  i.write = function (s) {
              if (s instanceof Array)
-               s=s.raw[0]
+               s='\n'+s.raw[0]
              console.log(s);
              var a=parser.parse(s);
              i.writeParsedInput(a);
@@ -206,11 +206,11 @@ addToCodex("writer","g",  {
 				  }
 				  if ("inside" in token) {
                       //a complex command: \(params)#(id){..contents..}
-					  if (token.param && token.param.box) {
+					  if (token.param && (token.param.box || token.param.array)) {
                         //the token is "boxed" (open a new paragraph for it)
                         var extra={};
                         if ("array" in token.param) {
-                          if (typeof token.param.array=="String") {
+                          if (typeof token.param.array=="string") {
                              extra.cols=token.param.array;
                           } else {
                             if (token.param.cols) extra.cols=token.param.cols;

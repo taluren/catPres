@@ -40,6 +40,38 @@ addToCodex("laceLink", "path", {
     }
 })
 
+addToCodex("autoFrame", "rect", {
+   defaultStyle:{margin:1},
+   onDraw: function(i) {
+          var left=Infinity, right=-Infinity, top=Infinity, bottom=-Infinity;
+          var margin=i.style.margin;
+          for (var c=0; c<i.datum.length; c++) {
+              if (!i.datum[c].style.show) continue;
+              var cx =i.datum[c].box.actual.x + i.datum[c].style.x;
+              var cy =i.datum[c].box.actual.y + i.datum[c].style.y;
+              var cwh =i.datum[c].box.actual.width/2;
+              var chh =i.datum[c].box.actual.height/2;
+              left=min(left, cx-cwh);
+              right=max(right, cx+cwh)
+              top=min(top, cy-chh);
+              bottom=max(bottom, cy+chh);
+          }               
+          left-=margin;
+          right+=margin;
+          top-=margin;
+          bottom+=margin;
+          if (left==Infinity) right=left=0;
+          if (top==Infinity) top =bottom=0;
+           
+          i.style.w = right-left;
+          i.style.x = (left+right)/2;
+          i.style.h= bottom-top
+          i.style.y = (top+bottom)/2;  
+          codex.rect.onDraw(i);
+          i.layout(0);     
+  }
+})
+
 //link: draw a straight link or a bezier curve (give srcTangent and tgtTangent vectors for a curve)
 addToCodex("link", "path", {
 	defaultStyle:{fill:"none"},
@@ -250,8 +282,9 @@ addToCodex("graph", "g", {
         console.log("Graph seed for "+i.id+" : ", i.datum.seed);
         var generator = seededRndGenerator(i.datum.seed);
         
+        var bgBox = i.append("g#"+i.id+"-bg",{priority:-10});
         var linkBox= i.append("g#"+i.id+"-links");
-        var nodeBox= i.append("g#"+i.id+"-nodes", {priority:-10});
+        var nodeBox= i.append("g#"+i.id+"-nodes", {priority:10});
         
         var nodeStyle = {};
         var linkStyle = {};
@@ -299,6 +332,7 @@ addToCodex("graph", "g", {
         }
         //reLayout: to be called each time the node coordinates have changed to update the graph layout
         i.reLayout = function() {
+          bgBox.draw(false);  // update links drawing (change path coordinates, not regular)
           linkBox.draw(false);  // update links drawing (change path coordinates, not regular)
           nodeBox.layout(1); //recursively update nodes' transform attributes (no redrawing)
         }
@@ -321,6 +355,7 @@ addToCodex("graph", "g", {
            nodeIndex[id] = nodeBox.append(d.nodeType + "#" + i.id + "/" +id, copyWithDefault(nodeStyle, {x:x, y:y}));
            nodeIndex[id].x=x;
            nodeIndex[id].y=y;
+           nodeIndex[id].nodeId=id;
            
            nodeIndex[id].set({label:id});
            return nodeIndex[id];           
@@ -342,7 +377,7 @@ addToCodex("graph", "g", {
 		  
         //add a link from src to tgt, or with one parameter "src-tgt"
         i.addLink = function(idSrc, idTgt) {
-          
+          console.log(idSrc)
           if (typeof idTgt == "undefined") {
             console.log(idSrc);
             if (idSrc instanceof Array) {
@@ -364,8 +399,10 @@ addToCodex("graph", "g", {
           }          
           var src= i.getOrAddNode(idSrc);
           var tgt= i.getOrAddNode(idTgt);
-          var linkId = idSrc+"-"+idTgt;
+          console.log(src)
+          var linkId = src.nodeId+"-"+tgt.nodeId;
           linkIndex[linkId] = linkBox.append("link#"+i.id+"/"+linkId,shallowCopy(linkStyle),{source:src, target:tgt});
+          console.log( linkIndex[linkId] );
           return i.graphBag([linkIndex[linkId]]);
         }
         //add links from a ;-separated list
@@ -456,11 +493,20 @@ addToCodex("graph", "g", {
                 if (!d3.event.active) simulation.runAlways();
                 d.fx = d.x;
                 d.fy = d.y;
+              } else {
+                if (typeof d.x== "undefined") d.x=d.style.x;
+                if (typeof d.y== "undefined") d.y=d.style.y; 
+                d.fx=d.x;
+                d.fy=d.y;
               }
           }        
-          function dragged(d) {           
-              d.fx = d3.event.x;
-              d.fy = d3.event.y;
+          function dragged(d) {   
+              if (d.style.dragAxis) {
+                keepFOnAxis(d, d3.event, d.style.dragAxis)
+              } else {                            
+                d.fx = d3.event.x;
+                d.fy = d3.event.y;
+              }
               if (!simulation) {
                 d.x=d.fx;
                 d.y=d.fy;
@@ -511,6 +557,14 @@ addToCodex("graph", "g", {
               
               b.getSubgraphLinks = function() {
                 return  i.graphBag(i.links().filter(function(l){return b.items.indexOf(l.source)>=0 || b.items.indexOf(l.target)>=0}))
+              }
+              var oldGet=b.get;
+              b.get=function(x) {
+                if (x instanceof Array) return i.graphBag(oldGet(x).items);
+                return oldGet(x);
+              }
+              b.frameNodes= function(id, style) {
+                bgBox.append("autoFrame"+(id?"#"+id:""),style, b.items);
               }
               
 			  
