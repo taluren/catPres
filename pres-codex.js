@@ -1,5 +1,6 @@
  
 function addToCodex(type, base,  details) {
+    if (base  && !(base in codex)) stop("Unknown to codex: "+base)
 	codex[type]=details;
 	base=codex[base] || codex.default;
 	importDefault(codex[type], base);	

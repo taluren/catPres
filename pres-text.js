@@ -88,7 +88,6 @@ addToCodex("writer","g",  {
 	  defaultStyle:{align:"left"},
 	  onBuild: function(i) {
           if (!i.datum) i.datum={};       
-          console.log("align:", i.style.align)
           if (!i.datum.cols) i.datum.cols="l";
           if (!i.datum.rows) i.datum.rows="t"; 
           if (!i.datum.pauseLevel) i.datum.pauseLevel=0; 
@@ -168,7 +167,7 @@ addToCodex("writer","g",  {
           }
 		  i.writeParsedInput=function(a, styleStack) {
               styleStack=styleStack||[];
-			  console.log("write "+a.length+" tokens");
+//			  console.log("write "+a.length+" tokens");
 			  var token;
 			  while ((token= a.shift())!=null) {
 //				  console.log(token);
@@ -822,7 +821,8 @@ MathJaxImport = function(useMathJax, callBackFunction) {
     if (typeof knownData=="string") {
 		console.error("Using string for math input is Deprecated");
       try{
-        d3.json(knownData, runWithData) ; 
+        //d3.json(knownData, runWithData) ; 
+        runWithData(null, knownData);
       } catch (e) {
         runWithData(e, null);
       }
@@ -846,7 +846,7 @@ MathJaxImport = function(useMathJax, callBackFunction) {
 		  var svg=null;
 		  if (mathToSvg) mathToSvg.svgs.forEach(function(s) {
 			  if (s.math == d.datum.math) svg = s.svg; 
-		  });
+		  });          
 		  if (svg) {
 			  useMathSvg(d, svg);
 		  } else if (useMathJax) {

@@ -13,7 +13,7 @@
     <body>
   
 <script src="./d3.v4.js"></script>
-<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG"></script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG" async></script>
 <script src="./pres.js"></script>
 <script src="./pres-misc.js"></script>
 <script src="./pres-camera.js"></script>
@@ -450,7 +450,7 @@ Color-coding + Dynamic Programming Algorithm \pause{}
 -|Compute missing $k$-mers from $G$  \pause{}\pause{}\pause{}
 \color:brown, size:10{An optimal solution uses $\ell$ of them, but we cannot enumerate all $ {n \choose \ell}$ subsets} \pause{}
 -|Color-code those $k$-mers with $\ell$ colors \pause{}
-\color:brown, size:10{One coloring among $f(\ell)$ separates the optimal subsets}      `
+\color:brown, size:10{One coloring among $f(\ell)$ separates the new $k$-mers}      `
 
 
 
@@ -493,11 +493,12 @@ Color-coding + Dynamic Programming Algorithm \pause{}
       .then("annotatedString#s2")
          .print(missing)
         
-     .then("writer").on([0-4], {show:false}).write("Optimal:")     
-     .then("annotatedString#opt").on([0-4], {show:false})
+     .then("writer").on([0,3], {show:false}).write("Optimal:")     
+     .then("annotatedString#opt").on([0,3], {show:false})
          .print(opt)
-         .appendRect("", {fill:"#f88", stroke:"none"},[3,3])
-         .appendRect("", {fill:"#f88", stroke:"none"},[11,11])
+         .appendRect("", {fill:"#aaf", stroke:"none"},[3,3])
+         //.appendRect("", {fill:"#f88", stroke:"none"},[8,6])
+         .appendRect("", {fill:"#aaf", stroke:"none"},[11,11])
      
  fm.nextOverlay()
    .goto("#hv").append("graph#ckm", {height:150, width:200, active:false},{nodeType:"rectNode", simulation:true})
@@ -509,13 +510,13 @@ Color-coding + Dynamic Programming Algorithm \pause{}
     
     //.simulation().set({active:false})
    function colora(i) {
-     return ["#aaf","#faa","#afa","#dda","#a00999"][i%5];
+     return ["#aaf","#faa","#afa","#dda","#d019d9"][i%5];
    }
    function colorb(i) {
-     return ["#aaf","#faa","#afa","#dda","#a00999"][Math.floor(i/2)%5];
+     return ["#aaf","#faa","#afa","#dda","#d019d9"][Math.floor(i/2)%5];
    }
    function colorc(i) {
-     return ["#aaf","#faa","#afa","#dda","#a00999"][Math.floor(i/3)%5];
+     return ["#aaf","#faa","#afa","#dda","#a019d9"][Math.floor(i/3)%5];
    }
    
    //find common kmers g -- s and g--opt
@@ -538,15 +539,19 @@ Color-coding + Dynamic Programming Algorithm \pause{}
     else {       
        //not found in s, is it in opt?       
        if (commonOpt>-1) {
-         n.on([3], {color: "red"}) 
+         n.on([4,7], {color: "#880000", weight:"bold"}) 
          
-         fm.goto("#opt").appendRect("",{showOn:3, opacity:0.2, fill:"black", stroke:"none",offsety:(commonOpt%3-1)*2}, [commonOpt, commonOpt+2])
+         fm.goto("#opt").appendRect("",{showOn:4, opacity:0.2, fill:"black", stroke:"none",offsety:(commonOpt%3-1)*2}, [commonOpt, commonOpt+2])
+           
+       } else {
+         n.on([4,7],{ opacity:0.5})
        }
        
-       n.on(4, {fill: colora(i)})  
-        .on(5, {fill: colorb(i)})   
-        .on([6], {fill: colorc(i)})   
-       
+       n.on(5, {fill: colora(i)})  
+        .on(6, {fill: colorb(i)})   
+        .on(7, {fill: colorc(i)})          
+        .on([8], {fill: colora(i), y:(i%5-2)*20})  
+        
     }
        
  })

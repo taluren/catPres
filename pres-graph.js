@@ -108,6 +108,25 @@ addToCodex("link", "path", {
     }
 })
 
+addToCodex("emptyNode", "g", {
+   //dragPriority: 
+  //  -1: node position is reset at every frame change, even if dragged
+  //   0: node position is reset only if coordinates change
+  //   1: once dragged, the node stays where it is dropped, even on coordinate change
+   defaultStyle:{cursor:"pointer",  wriggle:0, dragPriority:0},
+   
+   onLoad:function(i) {
+     console.log(i.lastLoad)
+      if (i.lastLoad && i.style.dragPriority <= 0) {
+       if (i.style.dragPriority<0 || i.lastLoad.x!= i.style.x || i.lastLoad.y!=i.style.y) {
+         i.x=i.style.x;
+         i.y=i.style.y;
+       }
+     }     
+     i.lastLoad={x:i.style.x, y:i.style.y};
+  
+   }
+})
 addToCodex("rectNode", "emptyNode", {
    defaultStyle:{fill:"#ddd", w:14, h:10, stroke:"none"},
    onBuild: function(i) {
@@ -127,24 +146,6 @@ addToCodex("simpleNode", "emptyNode", {
    },
    onDraw: function(i) {
       i.caption.style.text = i.style.label;
-   }
-})
-addToCodex("emptyNode", "g", {
-   //dragPriority: 
-  //  -1: node position is reset at every frame change, even if dragged
-  //   0: node position is reset only if coordinates change
-  //   1: once dragged, the node stays where it is dropped, even on coordinate change
-   defaultStyle:{cursor:"pointer",  wriggle:0, dragPriority:0},
-   
-   onLoad:function(i) {
-      if (i.lastLoad && i.style.dragPriority <= 0) {
-       if (i.style.dragPriority<0 || i.lastLoad.x!= i.style.x || i.lastLoad.y!=i.style.y) {
-         i.x=i.style.x;
-         i.y=i.style.y;
-       }
-     }     
-     i.lastLoad={x:i.style.x, y:i.style.y};
-  
    }
 })
 addToCodex("faddingNode", "simpleNode", {
@@ -388,9 +389,7 @@ addToCodex("graph", "g", {
 		  
         //add a link from src to tgt, or with one parameter "src-tgt"
         i.addLink = function(idSrc, idTgt) {
-          console.log(idSrc)
           if (typeof idTgt == "undefined") {
-            console.log(idSrc);
             if (idSrc instanceof Array) {
               idTgt=idSrc[1];
               idSrc=idSrc[0];
@@ -410,10 +409,8 @@ addToCodex("graph", "g", {
           }          
           var src= i.getOrAddNode(idSrc);
           var tgt= i.getOrAddNode(idTgt);
-          console.log(src)
           var linkId = src.nodeId+"-"+tgt.nodeId;
           linkIndex[linkId] = linkBox.append("link#"+i.id+"/"+linkId,shallowCopy(linkStyle),{source:src, target:tgt});
-          console.log( linkIndex[linkId] );
           return i.graphBag([linkIndex[linkId]]);
         }
         //add links from a ;-separated list

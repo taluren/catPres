@@ -120,8 +120,7 @@ addToCodex("array", "box", {
 			return i.colBag.get(c).get(r);
 		}
 		i.appendIn=function(c,r,type, style, data, more) {
-            console.log("**** appendIn  **** ", c,r, type);	
-			console.log(i);
+//            console.log("**** appendIn  **** ", c,r, type);	
 			var cell= i.cell(c,r);
 			var inside =cell.append(type,style, data);
 			if (more) {more(inside);}
