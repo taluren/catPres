@@ -158,7 +158,9 @@ for New String Distances}
    
  
   fm.nextOverlay() 
-    .goto("#top").write("\n...and in practice...")
+    .goto("#top").write`
+    
+    ...and in practice...`
   result.hide();
    fm.goto("#extraLinks").hide();
   errors=
@@ -204,12 +206,12 @@ of letters
     .content`
     Given a (reference) genome $G$ and a scaffold $S$, 
     find a completion $S^*$ of $S$, equivalent to $G$, and
-    minimizing $d(S^*, G)$ for some string distance $d()$`
+    optimizing some measure of similarity $d(S^*, G)$`
     
     
-  fm.frame("Distances between genomes")
+  fm.frame("Measuring genome similarity")
    .append("writer").write`
-*|Distance between different species:
+*|Comparing different species:
    Consider \bold{large-scale rearrangements}: edit distances are useless
 *|Some distances \bold{forbid repeated letters}: 
    They may yield efficient algorithms, with strong restriction on the data
@@ -224,39 +226,45 @@ Adjacencies of $S$: multiset of length-2 substrings $S[i] S[i+1]$
 Common adjacencies of $S_1$ and $S_2$ = intersection of the adjacencies 
 of $S_1$ and $S_2$.  `
 
- .then("writer",{align:"c"}).write`
+ .then("writer#w",{align:"c"}).write`
  \array:c{
  $S_1$ &\box#gap{}&$S_2$ //
 \box#S1{}& &
 \box#S2{} // 
-aa   bc 
-\color:gray{aa}   \color:gray{bd}
-ab   ca
-ab   cb
-bc
-&  & 
-aa   bc
-ab   bc
-ab   ca
-\color:gray{ad}   cb
-\color:gray{ba}}
-Common adjacencies = 7
+\color:gray{
+\on:[0], color:blue{aa}   \on:[4], color:blue{bc}
+\on:[0], color:black{aa}   \on:[5], color:black{bd}
+\on:[1], color:blue{ab}   \on:[6], color:blue{ca}
+\on:[1], color:blue{ab}   \on:[7], color:blue{cb}
+\on:[4], color:blue{bc}   
+&   &
+\on:[0], color:blue{aa}   \on:[4], color:blue{bc}
+\on:[1], color:blue{ab}   \on:[4], color:blue{bc}
+\on:[1], color:blue{ab}   \on:[6], color:blue{ca}
+\on:[2], color:black{ad}   \on:[7], color:blue{cb}
+\on:[3], color:black{ba}  }}
  `
  .goto("#gap").append("filler",{w:20})
- .goto("#S1").append("annotatedString")
+ .goto("#S1").append("annotatedString")//aa
     .print("aabcaabcbd")
     .appendRect("",{},[0,1]).on([1], {show:false})
     .appendRect("",{},[4,5]).on([1], {show:false})
  .goto("#S2").append("annotatedString")
     .print("abcbaabcad")
     .appendRect("",{},[4,5]).on([1], {show:false})
-fm.nextOverlay() 
+fm.nextOverlay() //ab
  .goto("#S1").down("annotatedString")
     .appendRect("",{},[1,2]).on([1], {show:false})
     .appendRect("",{},[5,6]).on([1], {show:false})
   .goto("#S2").down("annotatedString")
     .appendRect("",{},[0,1]).on([1], {show:false})
     .appendRect("",{},[5,6]).on([1], {show:false})
+fm.nextOverlay() //ad
+  .goto("#S2").down("annotatedString")
+    .appendRect("",{},[8,9]).on([1], {show:false})
+fm.nextOverlay() //ba
+  .goto("#S2").down("annotatedString")
+    .appendRect("",{},[3,4]).on([1], {show:false})
 fm.nextOverlay() 
  .goto("#S1").down("annotatedString")
     .appendRect("",{},[2,3]).on([1], {show:false})
@@ -278,7 +286,9 @@ fm.nextOverlay()
     .appendRect("",{},[7,8])
  .goto("#S2").down("annotatedString")
     .appendRect("",{},[2,3])
-
+fm.nextOverlay()
+  .goto("#w")
+    .write`Common adjacencies = 7`;
 
 
   fm.frame("Distances between genomes")
@@ -289,21 +299,22 @@ $k$-mers of $S$: multiset of length-$k$ substrings $S[i]\ldots S[i+k-1]$
 Common $k$-mers of $S_1$ and $S_2$ = intersection of the $k$-mers
 of $S_1$ and $S_2$.  `
 
- .then("writer",{align:"c"}).write`
+ .then("writer#w",{align:"c"}).write`
  \array:c{
  $S_1$ &\box#gap{}&$S_2$ //
 \box#S1{}& &
 \box#S2{} // 
-aab   bca
-\color:gray{aab}   bcb 
-abc   \color:gray{caa}
-abc   \color:gray{cbd}
+\color:gray{
+\on:[0], color:blue{aab}   \on:[3], color:blue{bca}
+\on:[0], color:black{aab}   \on:[4], color:blue{bcb}
+\on:[1], color:blue{abc}   \on:[5], color:black{caa}
+\on:[1], color:blue{abc}   \on:[8], color:black{cbd}
 &   &
-aab   bca
-abc   bcb
-abc   \color:gray{cad}
-\color:gray{baa}   \color:gray{cba}}
-Common 3-mers = 5
+\on:[0], color:blue{aab}   \on:[3], color:blue{bca}
+\on:[1], color:blue{abc}   \on:[4], color:blue{bcb}
+\on:[1], color:blue{abc}   \on:[6], color:black{cad}
+\on:[2], color:black{baa}   \on:[7], color:black{cba}}
+}
  `
  .goto("#gap").append("filler",{w:20})
  .goto("#S1").append("annotatedString")
@@ -348,6 +359,9 @@ fm.nextOverlay() //cbd
  .goto("#S1").down("annotatedString")
     .appendRect("",{},[7,9])
 
+fm.nextOverlay()
+  .goto("#w")
+    .write`Common 3-mers = 5`;
     
  fm.frame("Distances between genomes")
 .append("titleBox", {width:390})
@@ -378,6 +392,8 @@ fm.nextOverlay() //cbd
   
  fm.nextOverlay()
   .append("writer").write`Also known as MCSP: NP-hard to compute`;
+  
+  
   fm.frame("Example")
    .append("writer").write`
 \bold{Scaffold:} &abcb  (?)  aa  (?)  b  (?)  d //
@@ -386,20 +402,160 @@ fm.nextOverlay() //cbd
      `
        
      fm.nextOverlay().append("writer#w", {}, {cols:"lc"})
-       .write`
-       &$S_1$ = abcb\bold, color:red{c}aa\bold, color:red{a}bd & 
-       $S_2$ = abcbaab\bold, color:red{c}\bold, color:red{a}d //Common adjacencies with $G$:&\color:green{9}&7 //`
-     fm.nextOverlay().goto("#w")
-       .write`Common adjacencies with $G$:&\color:green{9}&7 //`
-     fm.nextOverlay().goto("#w")
-       .write`Common 3-mers with $G$:&4&\color:green{5} //`
+       .write`     &
+       $S_1$ = abcb\bold, color:red{c}aa\bold, color:red{a}bd  & 
+       $S_2$ = abcbaab\bold, color:red{c}\bold, color:red{a}d  //
+       \pause{}Common adjacencies with $G$:&\color:green{9}&7//
+       \pause{}Common 3-mers with $G$:&4&\color:green{5}//
+       \pause{}Breakpoints with $G$:&4&\color:green{2}//
+     `
        
-     fm.nextOverlay().goto("#w")
-       .write`Breakpoints with $G$:&4&\color:green{2} //`
        
+
+  fm.frame("Parameters")
+ .append("writer").write`       
+.|Some definitions:
+ -|\bold{Parameter:} quantity $k$ depending on the instance, 
+  a "good" parameter is small for "real-life" instances
+ -|\bold{FPT algorithm:} exact algorithm running in time $f(k)n^{O(1)}$
+ 
+ \pause{}
+.|Possible parameters:
+ -|\color:blue{$t$}: Number of missing characters
+ -|\color:blue{$d$}: Maximum occurence of any character
+ -|\color:blue{$\ell$}: New adjacencies or $k$-mers  
+ -|\color:blue{$b$}: Breakpoints
+`
+
+  fm.frame("Results")
+   .append("writer").write`       
+|\bold{Earlier results:}
+.| Length-1 contigs, common adjacencies:
+ -| NP-hard [Jiang et al., '11]
+ -| FPT for $\ell$ [Bulteau et al., '15]
+.| Any contigs, common adjacencies:
+ -| NP-hard with 2 contigs [Jiang et al. '16]
+ -| FPT for $\ell, d$ [Jiang et al. '16]
+
+|\bold{Our results:}
+.|Any contigs, common $k$-mers:
+ -|FPT for $\ell, t$
+ 
+`
+
   fm.frame("Maximizing k-mers")
   
-  fm.frame("Minimizing the breakpoint distance")
+   .append("writer").write`
+Color-coding + Dynamic Programming Algorithm \pause{}
+-|Compute missing $k$-mers from $G$  \pause{}\pause{}\pause{}
+\color:brown, size:10{An optimal solution uses $\ell$ of them, but we cannot enumerate all $ {n \choose \ell}$ subsets} \pause{}
+-|Color-code those $k$-mers with $\ell$ colors \pause{}
+\color:brown, size:10{One coloring among $f(\ell)$ separates the optimal subsets}      `
+
+
+
+ var g="baabcdabccdbabcdabc";  
+ 
+ var s="bca bccd baa abdcbcb";  
+ var opt="bcaabccdbaadabdcbcb";  
+ var gkmers=[], skmers=[], optkmers=[];
+ for (var i=0; i<g.length-2; i++) gkmers.push(g.substring(i,i+3));
+ for (var i=0; i<s.length-2; i++) {
+   var sm=s.substring(i,i+3);
+ //  if (sm.indexOf(" ")==-1) 
+ skmers.push(sm);
+ }
+ for (var i=0; i<s.length-2; i++) {
+   var optm=opt.substring(i,i+3);
+ //  if (sm.indexOf(" ")==-1) 
+   optkmers.push(optm);
+ }
+ var missing=""; var sp=s.split('');
+ for (var i=0;i<g.length; i++) {
+   var find=sp.indexOf(g[i])
+   console.log(find)
+   if (find==-1) 
+     missing+=g[i]+" ";
+   else sp[find] = "-";
+ }
+ console.log(sp,g, missing);
+ fm.append("horizontalVector#hv")
+     .append("vector#left")
+       .append("writer").write("Reference:")
+       .then("annotatedString#g")
+        .print(g)
+       .then("writer").write("Scaffold:")
+      .then("annotatedString#s")
+        .print(s)
+        
+       .then("writer").write("To insert:")
+     
+      .then("annotatedString#s2")
+         .print(missing)
+        
+     .then("writer").on([0-4], {show:false}).write("Optimal:")     
+     .then("annotatedString#opt").on([0-4], {show:false})
+         .print(opt)
+         .appendRect("", {fill:"#f88", stroke:"none"},[3,3])
+         .appendRect("", {fill:"#f88", stroke:"none"},[11,11])
+     
+ fm.nextOverlay()
+   .goto("#hv").append("graph#ckm", {height:150, width:200, active:false},{nodeType:"rectNode", simulation:true})
+     .setNodeStyle({w:28, h:15})
+    fm.goto("#ckm")
+     .simulation().simulation
+       .force("charge", null)
+       .force("collide").radius(15)
+    
+    //.simulation().set({active:false})
+   function colora(i) {
+     return ["#aaf","#faa","#afa","#dda","#a00999"][i%5];
+   }
+   function colorb(i) {
+     return ["#aaf","#faa","#afa","#dda","#a00999"][Math.floor(i/2)%5];
+   }
+   function colorc(i) {
+     return ["#aaf","#faa","#afa","#dda","#a00999"][Math.floor(i/3)%5];
+   }
+   
+   //find common kmers g -- s and g--opt
+   gkmers.forEach(function(m, i) {
+    var common=skmers.indexOf(m);
+    if (common>-1) skmers[common]+=" ";
+    var commonOpt=optkmers.indexOf(m);
+    if (commonOpt>-1) optkmers[commonOpt]+=" ";
+    
+    var n=
+     fm.goto("#ckm")
+       .addNode(i)
+       .set({label:m, fill:"#fff"})
+    if (common>-1)  {
+       n.on([1], {fill:"#ddd"})
+        .on([2], {show:false})        
+       fm.goto("#s").appendRect("",{showOn:1, opacity:0.2, fill:"black", stroke:"none",offsety:(common%3-1)*2}, [common, common+2])
+       fm.goto("#g").appendRect("",{showOn:1, opacity:0.2, fill:"black", stroke:"none",offsety:(i%3-1)*2}, [i, i+2])
+    }
+    else {       
+       //not found in s, is it in opt?       
+       if (commonOpt>-1) {
+         n.on([3], {color: "red"}) 
+         
+         fm.goto("#opt").appendRect("",{showOn:3, opacity:0.2, fill:"black", stroke:"none",offsety:(commonOpt%3-1)*2}, [commonOpt, commonOpt+2])
+       }
+       
+       n.on(4, {fill: colora(i)})  
+        .on(5, {fill: colorb(i)})   
+        .on([6], {fill: colorc(i)})   
+       
+    }
+       
+ })
+ 
+  
+ fm.nextOverlay();
+ fm.nextOverlay();
+ 
+ fm.frame("Minimizing the breakpoint distance")
   
   
 

@@ -108,12 +108,18 @@ addToCodex("link", "path", {
     }
 })
 
-addToCodex("simpleNode", "g", {
-   //dragPriority: 
-  //  -1: node position is reset at every frame change, even if dragged
-  //   0: node position is reset only if coordinates change
-  //   1: once dragged, the node stays where it is dropped, even on coordinate change
-   defaultStyle:{cursor:"pointer", fill:"#ddd", r:8, stroke:"none", wriggle:0, dragPriority:0},
+addToCodex("rectNode", "emptyNode", {
+   defaultStyle:{fill:"#ddd", w:14, h:10, stroke:"none"},
+   onBuild: function(i) {
+      i.append("rect");
+      i.caption = i.append("caption");              
+   },
+   onDraw: function(i) {
+      i.caption.style.text = i.style.label;
+   }
+})
+addToCodex("simpleNode", "emptyNode", {
+   defaultStyle:{fill:"#ddd", r:8, stroke:"none"},
    onBuild: function(i) {
       i.append("circle");
       i.caption = i.append("caption");      
@@ -121,7 +127,15 @@ addToCodex("simpleNode", "g", {
    },
    onDraw: function(i) {
       i.caption.style.text = i.style.label;
-   },
+   }
+})
+addToCodex("emptyNode", "g", {
+   //dragPriority: 
+  //  -1: node position is reset at every frame change, even if dragged
+  //   0: node position is reset only if coordinates change
+  //   1: once dragged, the node stays where it is dropped, even on coordinate change
+   defaultStyle:{cursor:"pointer",  wriggle:0, dragPriority:0},
+   
    onLoad:function(i) {
       if (i.lastLoad && i.style.dragPriority <= 0) {
        if (i.style.dragPriority<0 || i.lastLoad.x!= i.style.x || i.lastLoad.y!=i.style.y) {
@@ -130,12 +144,9 @@ addToCodex("simpleNode", "g", {
        }
      }     
      i.lastLoad={x:i.style.x, y:i.style.y};
-     
-     
   
    }
 })
-
 addToCodex("faddingNode", "simpleNode", {
    defaultStyle:{fadding:1},
    onBuild: function(i) {
@@ -240,7 +251,7 @@ addToCodex("simulation", "g", {
      }
   },
   onLoad: function(i, show, focus) {
-    coonsole.log("simulation load")
+    console.log("simulation load")
      if (i.style.active && i.differentFrameLoaded && i.display) {       
        var nodes = i.datum.nodes || i.parent.nodes().filterShown().items;
        var links = i.datum.links || i.parent.links().filterShown().items;

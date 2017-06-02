@@ -261,17 +261,43 @@ function itemAndFrameFunctions(i) {
 		  
   }
   
-  i.set=function(s) {
+  function parseOnValue(s) {
+    if (typeof s!="string")
+       return s;
+    if (isNaN(s)) {
+      var match;
+      if (match=s.match(/[\[](\d+),(\d+)[\]]/)) {         
+       return [+match[1],+match[2]]
+      }
+      if (match=s.match(/[\[](\d+)[\]]/)) {         
+       return [+match[1]]
+      }
+    } else {
+       return +s;
+    }
+  }
+  i.set=function(s) {     
+      if (typeof s== "undefined") return i;
+      if ("on" in s) { 
+        var when=parseOnValue(s.on);
+        delete s.on;
+        i.on(when, s);
+        return;  
+      }
 	  for (var k in s) {
 		  if (s[k]==null) {
 			  delete i.style[k];
 		  }
-		  else 
-			  i.style[k]=s[k];		 		  
+		  else {
+              if (k=="showOn") {
+                i.style.show=false;
+                i.on(parseOnValue(s[k]),{show:true})
+              } else 
+                i.style[k]=s[k];		 		  
+          }
 	  } 
      return i;		 	  
   }
-  
   i.hasSchedule = function() {
 	  if (i.schedule) {//console.log (i.schedule); 
 	    return i.schedule.length;}
@@ -540,7 +566,7 @@ function Item(parent, typeAndId, style, d) {
 		tag:tag,
 		id:id,
 		g:parent.g.append(tag).attr("class",type),
-		style:(style||{}),
+		style:style||{},
 		defaultStyle:code.defaultStyle || {},
 		children:[],
 		history:[],
@@ -571,7 +597,7 @@ function Item(parent, typeAndId, style, d) {
   if (i.parent.children.length>0) i.parent.children[i.parent.children.length-1].nextSibling=i;
   i.parent.children.push(i);
   i.g.datum(i);
-  itemAndFrameFunctions(i);  
+  itemAndFrameFunctions(i); 
   
   i.getLast=function (type) {
 	 for (var c=i.children.length-1; c>=0; c--) {
@@ -951,6 +977,7 @@ function Item(parent, typeAndId, style, d) {
         i.box.actual.height=i.style.height; 
       }
 
+      
       
       
       

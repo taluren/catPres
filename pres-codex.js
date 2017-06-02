@@ -206,6 +206,7 @@ var codex = {
 				i.saveG.html(i.style.text);
 		},	
 		onLayout:function(i) {			
+           i.useStyle("fill-opacity", "opacity");
 		},
         drawInPdf: function(i, doc, opacity) {
             i.useNumberForPdf(doc, "fontSize", "size");

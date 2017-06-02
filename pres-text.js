@@ -91,6 +91,7 @@ addToCodex("writer","g",  {
           console.log("align:", i.style.align)
           if (!i.datum.cols) i.datum.cols="l";
           if (!i.datum.rows) i.datum.rows="t"; 
+          if (!i.datum.pauseLevel) i.datum.pauseLevel=0; 
            
 		  i.currentArray = i.append("array", {}, {cols:i.datum.cols, rows:i.datum.rows});
 		  i.currentParagraph=i.currentArray.appendIn(0,0,"text",{align:i.style.align||"l"});
@@ -160,16 +161,23 @@ addToCodex("writer","g",  {
              i.writeParsedInput(a);
              return i;
           }
-		  i.writeParsedInput=function(a) {
+          function applyStyles(x, styles, pause) {
+              //if (pause) x.set({showOn:[pause]});
+              if (pause) x.set({on:[0,pause-1], opacity:0});
+              styles.forEach(function(s){x.set(s)});                
+          }
+		  i.writeParsedInput=function(a, styleStack) {
+              styleStack=styleStack||[];
 			  console.log("write "+a.length+" tokens");
 			  var token;
 			  while ((token= a.shift())!=null) {
-				  console.log(token);
+//				  console.log(token);
 				  if (typeof token == "string") {
                       //print a regular string 
 					  if( !i.openedSvgText)
 						  i.openedSvgText = i.currentLine.append("svgtext")
 					  var x=i.openedSvgText.append("tspan", {text:token});
+                      applyStyles(x, styleStack, i.datum.pauseLevel);
 					  i.addToBags(x);
 					  continue;
 				  }
@@ -188,24 +196,35 @@ addToCodex("writer","g",  {
 					  i.currentParagraph=i.currentArray
 					                      .appendIn(i.currentCoords[1], i.currentCoords[0], "text", {align:i.style.align||"l"});
                       i.currentLine = i.currentParagraph.append("sweetTextLine")  
-                      i.currentLine.setBullet(i.processIndentString(token.indenter.indent))
+                      var x=i.currentLine.setBullet(i.processIndentString(token.indenter.indent))
+                      applyStyles(x, styleStack, i.datum.pauseLevel);
+                    
 				  }
 				  if ("math" in token) {
                       //math formula token: $...$
 					  i.openedSvgText =null;
                       var x= i.currentLine.append("mathBox",{}, {math:token.math});
+                      applyStyles(x, styleStack, i.datum.pauseLevel);
                       i.addToBags(x);
                       continue;
 				  }
 				  if ("newline" in token) {
                       //new line token: \n, maybe with a bullet command, e.g. "\n  -|"
 					  i.openedSvgText = null;
-					  i.currentLine = i.currentParagraph.append("sweetTextLine");               i.currentLine.setBullet(i.processIndentString(token.indenter.indent))  
+					  i.currentLine = i.currentParagraph.append("sweetTextLine");          
+                      var x=i.currentLine.setBullet(i.processIndentString(token.indenter.indent))
+                      applyStyles(x, styleStack, i.datum.pauseLevel);
                         
                       continue;
 				  }
 				  if ("inside" in token) {
                       //a complex command: \(params)#(id){..contents..}
+                      if (token.param.pause) {
+                         i.datum.pauseLevel++; 
+                         i.root.minRemainingOverlays(i.datum.pauseLevel);
+                         delete token.param.pause;
+                      }
+                    
 					  if (token.param && (token.param.box || token.param.array)) {
                         //the token is "boxed" (open a new paragraph for it)
                         var extra={};
@@ -221,15 +240,22 @@ addToCodex("writer","g",  {
                         var x=i.currentLine
                                   .append("g"+(token.id?"#"+token.id:""))
                                   .append("writer",{},extra)
+                        styleStack.push(copyExceptKeys(token.param,["array", "box"]))
+                        applyStyles(x, styleStack, i.datum.pauseLevel);
+                        styleStack.pop();
                         i.addToBags(x);
+                        //styleStack.push()
                         x.writeParsedInput(token.inside);
+                        //styleStack.pop();
                       } else {
                         var bag = itemBag();
+                        styleStack.push(token.param)
                         i.openedBags.push(bag);
-                        i.writeParsedInput(token.inside);
+                        i.writeParsedInput(token.inside, styleStack);
                         i.openedBags.pop();
-                        if (token.param) 
-                          bag.set(token.param);
+                        styleStack.pop();
+                        /*if (token.param) 
+                          bag.set(token.param);*/
                         if (token.id) 
                           i.root.index[token.id]=bag;
                       }
@@ -359,7 +385,7 @@ addToCodex("sweetTextLine", "horizontalVector", {
 			  codex.horizontalVector.onBuild(i);
 			  i.firstPrint=true;;
               i.setBullet = function(bullet) {
-                  i.append("bullet", {bullet:bullet});            
+                  return i.append("bullet", {bullet:bullet});            
               }
 			/*  i.print=function(bag, s, style,d) {
 				   if (i.firstPrint && style && style.bullet) {
