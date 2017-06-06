@@ -51,6 +51,10 @@ function IsNumeric(val) {
 
 
 function importDefault(obj, def, def2, def3) {
+    checkType(obj, ["object"])
+    checkType(def, ["object"])
+    checkType(def2, ["object", "undefined"])
+    checkType(def3, ["object","undefined"])
 	for (key in def) {
 		if (!(key in obj)) {
 			obj[key] = def[key];
@@ -72,6 +76,7 @@ function importDefault(obj, def, def2, def3) {
 }
 
 function copyExceptKeys(s, keys) {
+    checkType(s, ["object"])
 	var out={};
 	for (key in s) {
 		if (keys.indexOf(key)==-1) {
@@ -81,6 +86,8 @@ function copyExceptKeys(s, keys) {
    return out;		
 }
 function copyWithDefault(obj, def) {
+    checkType(obj, ["undefined", "object"])
+    checkType(def, ["undefined", "object"])
 	out={};
 	if (!obj) obj={};
 	for (key in obj) {
@@ -491,10 +498,17 @@ function FrameBase(frame, holder, transform, style) {
 	  if (blockIds.indexOf(blockId) != -1) console.error("set "+blockId+" already open");
 	  blockIds.push(blockId);		  
 	  openBlocks[blockId]=itemBag([]);
+      fb.index[blockId] = openBlocks[blockId];
 	  return this;
   }
   fb.addToSet=function (item, blockId) {
+     /* if (blockIds.indexOf(blockId) == -1) fb.open(blockId);
 	  openBlocks[blockId].add(i);
+	  */
+      if (! (blockId in fb.index))  
+        fb.index[blockId]=itemBag([item])
+      else 
+        fb.index[blockId].add(item);
 	  return this;
   }
   fb.continue = function(blockId) {
@@ -511,7 +525,6 @@ function FrameBase(frame, holder, transform, style) {
 		  if (j==-1) console.error("set "+blockId+" not open");
         blockIds.splice(j, 1);
 	  }
-	  fb.index[blockId] = openBlocks[blockId]
 	  delete openBlocks[blockId];
 	  return this;
   }
@@ -1238,6 +1251,7 @@ function itemBag (itemList) {
 		for (var x=0;x<b.items.length; x++) {
 			b.items[x].addTo(id);
 		}
+		return b;
 	}
 	b.up= function(selector) {
 		return b.items[0].up(selector);
@@ -1564,7 +1578,13 @@ frameManager = function(style, sozi)  {
 	fm.logXY= function(layers) {
 	 	for (i=0;i<fm.frames.length;i++) fm.frames[i].logXY("|", layers);		
 	}
-   fm.nextOverlay=function(camera) {			
+   fm.nextOverlays=function(n) {    
+     for (var i=0;i<n; i++ ) {
+       fm.nextOverlay(); 
+     }
+     return fm;
+   }
+   fm.nextOverlay=function(camera) {    		
 		if (!camera) camera={};
 		importDefault(camera, {mainFrame:false});
 		

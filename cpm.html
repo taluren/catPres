@@ -13,7 +13,7 @@
     <body>
   
 <script src="./d3.v4.js"></script>
-<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG" async></script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG" ></script>
 <script src="./pres.js"></script>
 <script src="./pres-misc.js"></script>
 <script src="./pres-camera.js"></script>
@@ -41,6 +41,8 @@ genecolors={
   e: "rgba(155, 190, 199, 1)"  ,
   "?": "#ebe"
 }
+
+var color5Bags = ["#aaf","#faa","#afa","#dda","#d019d9"];
 
 
 addToCodex("geneNode", "faddingNode", {
@@ -76,7 +78,7 @@ addToCodex("annotatedString", "g", {
      }
      i.appendRect = function(id, style, d) {
        var mid = (d[0]+d[1])/2;
-       var w= d[1]-d[0]+0.8;
+       var w= Math.abs(d[1]-d[0]+0.8);
        var rect= bg.append("rect"+(id?"#"+id:""), {x:i.datum.dx*mid, y:0, w:w*i.datum.dx, h:h})
                 .set(style)
         rect.appendRect=i.appendRect;
@@ -445,13 +447,14 @@ fm.nextOverlay()
 
   fm.frame("Maximizing k-mers")
   
-   .append("writer").write`
-Color-coding + Dynamic Programming Algorithm \pause{}
+   .append("writer").write`Color-coding + Dynamic Programming Algorithm`
+   .then("writer#p1").write`\pause{} 
 -|Compute missing $k$-mers from $G$  \pause{}\pause{}\pause{}
 \color:brown, size:10{An optimal solution uses $\ell$ of them, but we cannot enumerate all $ {n \choose \ell}$ subsets} \pause{}
 -|Color-code those $k$-mers with $\ell$ colors \pause{}
-\color:brown, size:10{One coloring among $f(\ell)$ separates the new $k$-mers}      `
-
+\color:brown, size:10{One coloring among $f(\ell)$ separates the new $k$-mers}   
+ `
+   .then("writer#p2")
 
 
  var g="baabcdabccdbabcdabc";  
@@ -488,13 +491,13 @@ Color-coding + Dynamic Programming Algorithm \pause{}
       .then("annotatedString#s")
         .print(s)
         
-       .then("writer").write("To insert:")
+     .then("writer").write("To insert:")
      
-      .then("annotatedString#s2")
+     .then("annotatedString#s2")
          .print(missing)
         
-     .then("writer").on([0,3], {show:false}).write("Optimal:")     
-     .then("annotatedString#opt").on([0,3], {show:false})
+     .then("writer").addTo("optBag").on([0,3], {show:false}).write("Optimal:")     
+     .then("annotatedString#opt").addTo("optBag").on([0,3], {show:false})
          .print(opt)
          .appendRect("", {fill:"#aaf", stroke:"none"},[3,3])
          //.appendRect("", {fill:"#f88", stroke:"none"},[8,6])
@@ -509,14 +512,15 @@ Color-coding + Dynamic Programming Algorithm \pause{}
        .force("collide").radius(15)
     
     //.simulation().set({active:false})
+   function mainBagIndex(i) { return i%5}
    function colora(i) {
-     return ["#aaf","#faa","#afa","#dda","#d019d9"][i%5];
+     return color5Bags[ mainBagIndex(i)];
    }
    function colorb(i) {
-     return ["#aaf","#faa","#afa","#dda","#d019d9"][Math.floor(i/2)%5];
+     return color5Bags[Math.floor(i/2)%5];
    }
    function colorc(i) {
-     return ["#aaf","#faa","#afa","#dda","#a019d9"][Math.floor(i/3)%5];
+     return color5Bags[Math.floor(i/3)%5];
    }
    
    //find common kmers g -- s and g--opt
@@ -550,16 +554,70 @@ Color-coding + Dynamic Programming Algorithm \pause{}
        n.on(5, {fill: colora(i)})  
         .on(6, {fill: colorb(i)})   
         .on(7, {fill: colorc(i)})          
-        .on([8], {fill: colora(i), y:(i%5-2)*20})  
+        .on([8], {fill: colora(i), y:( mainBagIndex(i)-2)*20})  
+        .addTo("nodeBag"+( mainBagIndex(i)));
         
     }
        
  })
- 
+fm.nextOverlays(8)
+  .goto("#optBag").hide()
+  .goto("#p1").hide()
   
- fm.nextOverlay();
- fm.nextOverlay();
+fm.nextOverlay()
+  .goto("#p2") .write`
+  For all \size:12{
+*|$i\leq $ number of contigs 
+*|$T' \subseteq T$
+*|$C$ subset of colors
+*|$s$ length-$(k-1)$ string}
+&
+\color:blue{$\mathbf{Q[i, T',C,s]} \Leftrightarrow \exists$ a filling }\size:12{
+*|of the first $i$ contigs, that
+*|uses exactly the letters in $T'$,
+*|creates adjacencies with colors $C$
+*|ends with the suffix $s$}`
+   
+fm.nextOverlay()
+  .goto("#s")
+    .appendRect("",{fill:"yellow", stroke:"none"}, [0,8])
+fm.nextOverlay()
+  .goto("#s2")
+    .appendRect("",{fill:"yellow", stroke:"none"}, [2,2])
+fm.nextOverlay()
+  .goto("#ckm")
+    .nodes().set({opacity:0.4})
+  .goto("#nodeBag1").set({opacity:1})
+  .goto("#nodeBag4").set({opacity:1})
+fm.nextOverlay()
+  .goto("#left")
+  .append("writer").write`$s=$ da`
+fm.nextOverlay()
+  .goto("#left")
+  .append("annotatedString")
+    .print("bcabccda")
+    .appendRect("",{fill:colora(1), stroke:"none", opacity:0.7, rx:5, ry:2},[2,4])
+    .appendRect("",{fill:colora(4), stroke:"none", opacity:0.7, rx:5, ry:2},[5,7])
+    .appendRect("",{fill:"yellow", stroke:"none", opacity:1,h:10},[3,2])
+    .appendRect("",{fill:"yellow", stroke:"none", opacity:1, h:10},[7,7])
+  
  
+
+  fm.frame("Maximizing k-mers")
+   .append("writer").write`
+Some remarks/improvements:
+*|Take $s$ only as factors of reference genome, of length $<k$
+ >|$|\Sigma|^k \rightarrow nk$
+*|$T$ may contain strings rather than single letters
+*|We must insert at most $t$ elements from $T$, 
+with extra constraints ("pick at most one in such bag")
+  |use color-coding on elements of $T$, with $t$ colors
+ >|FPT for $\ell$ and $t<|T|$
+*|Overall: $O(n^2 m k^3 \ell 8.16^\ell |T| 5.44^t)$
+
+    
+   
+   `
  fm.frame("Minimizing the breakpoint distance")
   
   

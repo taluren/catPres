@@ -116,7 +116,6 @@ addToCodex("emptyNode", "g", {
    defaultStyle:{cursor:"pointer",  wriggle:0, dragPriority:0},
    
    onLoad:function(i) {
-     console.log(i.lastLoad)
       if (i.lastLoad && i.style.dragPriority <= 0) {
        if (i.style.dragPriority<0 || i.lastLoad.x!= i.style.x || i.lastLoad.y!=i.style.y) {
          i.x=i.style.x;
@@ -396,7 +395,6 @@ addToCodex("graph", "g", {
             } else if (typeof idSrc== "object") {
               idTgt=idSrc.target;
               idSrc=idSrc.source;
-              console.log(idTgt)
               
             } else {
               var s = idSrc.split(/\ *\-\ */);

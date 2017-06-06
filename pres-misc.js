@@ -95,3 +95,10 @@ function showGraph(fm, disable) {
 	}
 }
 
+
+function checkType(i, t) {
+   if (t.indexOf(typeof i)==-1) {
+     console.error("Wrong type, should be "+t+" for: ", i);
+     debugger;
+   }
+}
