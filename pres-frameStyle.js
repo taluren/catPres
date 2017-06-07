@@ -75,6 +75,25 @@ frameStyleCatalog.cat = function (fs, style) {
 		  .then("g#foreground",{})
 		  
 	}
+frameStyleCatalog.catST = function (fs, style) {	    
+		fs.set()	
+		  .append("rect", {w:"fill", h:"fill", stroke:null, fill:"white"})			 
+		  .then("g", {x:160,y:130, opacity:0.2})
+			  .append("circle#paw", {r:9, x: 12, y:0, fill:"#ECECEC", stroke:null})
+			  .then("circle", {r:5, x: 23, y:-10, fill:"#ECECEC", stroke:null})
+			  .then("circle", {r:5, x: 28, y:0, fill:"#ECECEC", stroke:null})
+			  .then("circle", {r:5, x: 23, y:10, fill:"#ECECEC", stroke:null})
+			  .up()
+		  .then("g#background",{})      	
+		  .then("rect", {w:"fill", y:-113, h: 30, fill:"#DDD", stroke:null})
+		  .then("rect", {w:"fill", y:-135, h: 30, fill:"#400060", stroke:null})
+		  
+		  .then("svgtext#title",{x:-195,y:-130, size:17, color:"#eed", anchor:"left"})
+		  .then("svgtext#subtitle",{x:-185,y:-105, size:13, color:"#602080", anchor:"left"})
+		  .then("vector#main", {layout:"spread", align:"c",  height:240, x:0, y:25})
+		  .then("g#foreground",{})
+		  
+	}
 
 	
     

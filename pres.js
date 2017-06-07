@@ -472,6 +472,26 @@ function FrameBase(frame, holder, transform, style) {
 		  t.set({text:s});
         return fb;
   }
+  fb.subtitle=function(s) {
+      console.log(s);
+		
+		var st=fb.index["subtitle"];
+		if (!st) {
+	   	var t=fb.goto("#title");
+        if (t.write) 
+           t.write("\n\\size:14{"+s+"}");
+        else  
+           console.log("Subtitle cannot be printed in this frame style");			  
+			return fb;
+		}
+		st.show();
+      if (st.write) 
+        st.write(s);
+      else 
+		  st.set({text:s});
+      return fb;
+  }
+  
   fb.firstRun = function () {    
       for (var c=0; c<fb.children.length; c++) {
           fb.children[c].firstRun();

@@ -186,7 +186,6 @@ addToCodex("array", "box", {
 addToCodex("verticalVector", "customBGBox", {
 	defaultStyle:{ layout:"dense", align:"c"},
     onRun: function(i) {
-      console.log("onRun!")
       i.children.forEach(function(c) {
 //         console.log(c.box.container)
          c.box.container.typeY="array";

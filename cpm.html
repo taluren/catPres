@@ -379,18 +379,20 @@ fm.nextOverlay()
  var l2=fm.goto("#g").addLace("l2",{dx:22, y:60, fill:"white"},{d:"abcbaabcad"});
  
  fm.nextOverlay();
+ 
+ fm.goto("#g").popLinkStyle().pushLinkStyle({srcTangent:{x:0,y:20}, tgtTangent:{x:0,y:-20}})
+  
+  var pi=[4,5,6,7,8,0,1,2,3,9];
+  pi.forEach(function (j,i) {
+    fm.goto("#g").addLink(l1.get(i),l2.get(j));
+  })
+ fm.nextOverlay();
     l1.get([0,1,2,3,4]).frameNodes("",{margin:2})
     l1.get([5,6,7,8]).frameNodes("",{margin:2})
     l1.get([9]).frameNodes("",{margin:2}) 
     l2.get([0,1,2,3]).frameNodes("",{margin:2})
     l2.get([4,5,6,7,8]).frameNodes("",{margin:2})
     l2.get([9]).frameNodes("",{margin:2})
-  fm.goto("#g").popLinkStyle().pushLinkStyle({srcTangent:{x:0,y:20}, tgtTangent:{x:0,y:-20}})
-  
-  var pi=[4,5,6,7,8,0,1,2,3,9];
-  pi.forEach(function (j,i) {
-    fm.goto("#g").addLink(l1.get(i),l2.get(j));
-  })
   
  fm.nextOverlay()
   .append("writer").write`Also known as MCSP: NP-hard to compute`;
@@ -445,10 +447,11 @@ fm.nextOverlay()
  
 `
 
-  fm.frame("Maximizing k-mers")
+  fm.frame("Maximizing k-mers", {model:"catST"})
+    .subtitle("Color-coding + Dynamic Programming Algorithm")
+    
   
-   .append("writer").write`Color-coding + Dynamic Programming Algorithm`
-   .then("writer#p1").write`\pause{} 
+   .append("writer#p1").write`\pause{} 
 -|Compute missing $k$-mers from $G$  \pause{}\pause{}\pause{}
 \color:brown, size:10{An optimal solution uses $\ell$ of them, but we cannot enumerate all $ {n \choose \ell}$ subsets} \pause{}
 -|Color-code those $k$-mers with $\ell$ colors \pause{}
@@ -564,21 +567,20 @@ fm.nextOverlays(8)
   .goto("#optBag").hide()
   .goto("#p1").hide()
   
-fm.nextOverlay()
+//fm.nextOverlay()
   .goto("#p2") .write`
   For all \size:12{
-*|$i\leq $ number of contigs 
-*|$T' \subseteq T$
-*|$C$ subset of colors
-*|$s$ length-$(k-1)$ string}
 &
-\color:blue{$\mathbf{Q[i, T',C,s]} \Leftrightarrow \exists$ a filling }\size:12{
+\color:blue, showOn:[4]{$\mathbf{Q[i, T',C,s]} \Leftrightarrow \exists$ a filling }\size:12{//
+*|$i\leq $ number of contigs \pause{}
+*|$T' \subseteq T$ \pause{}
+*|$C$ subset of colors\pause{}
+*|$s$ length-$(k-1)$ string}\pause{}\pause{}&
 *|of the first $i$ contigs, that
 *|uses exactly the letters in $T'$,
 *|creates adjacencies with colors $C$
 *|ends with the suffix $s$}`
-   
-fm.nextOverlay()
+ 
   .goto("#s")
     .appendRect("",{fill:"yellow", stroke:"none"}, [0,8])
 fm.nextOverlay()
@@ -591,10 +593,11 @@ fm.nextOverlay()
   .goto("#nodeBag4").set({opacity:1})
 fm.nextOverlay()
   .goto("#left")
-  .append("writer").write`$s=$ da`
+  .append("writer").write`\color:blue{$s=$ da}`
 fm.nextOverlay()
   .goto("#left")
   .append("annotatedString")
+    .decoration("border")
     .print("bcabccda")
     .appendRect("",{fill:colora(1), stroke:"none", opacity:0.7, rx:5, ry:2},[2,4])
     .appendRect("",{fill:colora(4), stroke:"none", opacity:0.7, rx:5, ry:2},[5,7])
@@ -603,13 +606,13 @@ fm.nextOverlay()
   
  
 
-  fm.frame("Maximizing k-mers")
-   .append("writer").write`
-Some remarks/improvements:
-*|Take $s$ only as factors of reference genome, of length $<k$ 
+  fm.frame("Maximizing k-mers", {model:"catST"})
+    .subtitle("Remarks and improvements")
+    .append("writer").write`
+*|Take $s$ only as factors of reference genome, of length at most $k-1$ 
  >|$|\Sigma|^k \rightarrow nk$
 *|$T$ may contain strings rather than single letters
-*|We must insert at most $t$ elements from $T$, 
+*|Variant: We must insert at most $t$ elements from $T$, 
 with extra constraints ("pick at most one in such bag")
   |use color-coding on elements of $T$, with $t$ colors
  >|FPT for $\ell$ and $t<|T|$
