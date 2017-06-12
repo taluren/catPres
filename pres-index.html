@@ -1,0 +1,26 @@
+if (!fm) {
+  console.log("pres.js not loaded");
+  debugger
+}
+index = function() {
+  var index={};
+  var sections=[];
+
+
+	addToCodex("index","writer", {
+	   defaultStyle: {section:"1", subsection:" a"}
+		onRun: function(i) {
+			sections.forEach(function(s) {
+			  i.write(getComputedStyle(i,"section")+"|"+s.name)
+			  s.sub.forEach(function(s) {
+			    i.write(getComputedStyle(i,"subsection")+"|"+s.name)
+			  
+			  })
+			})
+		
+		
+		}
+	 
+	})  
+  return index;
+}()
