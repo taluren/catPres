@@ -41,7 +41,7 @@ addToCodex("laceLink", "path", {
 })
 
 addToCodex("autoFrame", "rect", {
-   defaultStyle:{margin:1},
+   defaultStyle:{margin:1,x:0,y:0},
    onDraw: function(i) {
           var left=Infinity, right=-Infinity, top=Infinity, bottom=-Infinity;
           var margin=i.style.margin;
@@ -570,7 +570,7 @@ addToCodex("graph", "g", {
                 return oldGet(x);
               }
               b.frameNodes= function(id, style) {
-                bgBox.append("autoFrame"+(id?"#"+id:""),style, b.items);
+                return bgBox.append("autoFrame"+(id?"#"+id:""),style, b.items);
               }
               
 			  

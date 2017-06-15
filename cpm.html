@@ -13,7 +13,7 @@
     <body>
   
 <script src="./d3.v4.js"></script>
-<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG" ></script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_SVG" async ></script>
 <script src="./pres.js"></script>
 <script src="./pres-misc.js"></script>
 <script src="./pres-camera.js"></script>
@@ -83,6 +83,7 @@ addToCodex("annotatedString", "g", {
                 .set(style)
         rect.appendRect=i.appendRect;
         rect.print=i.print;
+        rect.then=i.then;
         return rect;
      }
    }
@@ -426,6 +427,7 @@ fm.nextOverlay()
  \pause{}
 .|Possible parameters:
  -|\color:blue{$t$}: Number of missing characters
+ -|\color:blue{$m$}: Number of contigs
  -|\color:blue{$d$}: Maximum occurence of any character
  -|\color:blue{$\ell$}: New adjacencies or $k$-mers  
  -|\color:blue{$b$}: Breakpoints
@@ -574,8 +576,8 @@ fm.nextOverlays(8)
 \color:blue, showOn:[4]{$\mathbf{Q[i, T',C,s]} \Leftrightarrow \exists$ a filling }\size:12{//
 *|$i\leq $ number of contigs \pause{}
 *|$T' \subseteq T$ \pause{}
-*|$C$ subset of colors\pause{}
-*|$s$ length-$(k-1)$ string}\pause{}\pause{}&
+*|$C$: subset of colors\pause{}
+*|$s$: length-$(k-1)$ string}\pause{}\pause{}&
 *|of the first $i$ contigs, that
 *|uses exactly the letters in $T'$,
 *|creates adjacencies with colors $C$
@@ -624,10 +626,193 @@ with extra constraints ("pick at most one in such bag")
  fm.frame("Minimizing the breakpoint distance")
   
   
+.append("titleBox", {width:390})
+ .title("String Breakpoint")
+ .content`Given a permutation $\pi:[|S_1|]\rightarrow [|S_2|]$, with $S_1[i]=S_2[\pi_i]$ 
+ Breakpoint: index $i$ such that $\pi_{i+1}\neq \pi_i +1$
+$b=$ minimal number of breakpoints over all $\pi$
+ `
+ .then("graph#g",{height:null})
+    .pushLinkStyle({stroke:"none"})
+    .setNodeStyle({dragAxis:{x:1,y:0}})
+ var l1=fm.goto("#g").addLace("l1",{dx:22, fill:"white"},{d:"aabcaabcbd"});
+ var l2=fm.goto("#g").addLace("l2",{dx:22, y:60, fill:"white"},{d:"abcbaabcad"});
+ 
+ 
+fm.goto("#g").popLinkStyle().pushLinkStyle({srcTangent:{x:0,y:20}, tgtTangent:{x:0,y:-20}})
+
+var pi=[4,5,6,7,8,0,1,2,3,9];
+pi.forEach(function (j,i) {
+  fm.goto("#g").addLink(l1.get(i),l2.get(j));
+})
+l1.get([0,1,2,3,4]).frameNodes("",{margin:2})
+l1.get([5,6,7,8]).frameNodes("",{margin:2})
+l1.get([9]).frameNodes("",{margin:2}) 
+l2.get([0,1,2,3]).frameNodes("",{margin:2})
+l2.get([4,5,6,7,8]).frameNodes("",{margin:2})
+l2.get([9]).frameNodes("",{margin:2})
+
+fm.append("writer").write`
+-|Computing this distance is \bold{NP-hard} 
+  |even with $d=2$ or $|\Sigma|=2$\pause{}
+-|FPT for $b,d$ \pause{}
+-|FPT for $b$`  
 
 
+
+  fm.frame("Minimizing the breakpoint distance", {model:"catST"})
+    .subtitle("FPT algorithm for b, t and m")
+    .append("writer")
+     .write`
+.|Using parameters $t$ and $m$:     
+ -|Enumerate all possible fillings of $S$
+  -|map the missing letters to the gaps in $m^t$ different ways
+  -|enumerate the relative order in each gap in $t!$ ways
+.|Using parameter $b$:     
+ -|Compute the breakpoint distance to the reference genome
+.|Keep only best solution.
+`
+  fm.frame("Minimizing the breakpoint distance", {model:"catST"})
+    .subtitle("All algorithms")
+    .append("writer")
+     .write`
+.|Hard without parameter $b$ (hardness of breakpoint distance)     
+.|FPT for parameters $(b,m,t)$
+.|XP for parameter $b$ alone 
+ >|$\leq (n^b b!)$ strings at distance $b$ from $G$
+.|Open problems:
+FPT or W[1]-hardness for $(b,t)$, $(b,m)$ or simply $b$?
+.|What about parameter $d$? (max. occurrence of a letter)
+ >|FPT for parameters $(b,d,t)$
+  |Open for parameters $(b,d)$
+`
+
+
+    
+
+  fm.frame("Minimizing the breakpoint distance", {model:"catST"})
+    .subtitle("FPT algorithm for d, t and m")
+    
+ //var g="baabcdebgcdbaegdabcfceaffe";  
+ 
+ var s="bca bgcd beae bd bcb af";  
+ var opt="bcaFECbgcdAEFGbeaebdbcbDAaf";  
+ var pi=[4,5,6,7,8,9,16,17,10,11,12,13,14,15,0,1,2,3,23,24,21,22,25,26,18,19,20]
+ var g="";
+ pi.forEach(function(i) {g+=opt[i].toLowerCase()});
+ var missing=[]; 
+ var sp=s.split('');
+ for (var i=0;i<g.length; i++) {
+   var find=sp.indexOf(g[i])
+   console.log(find)
+   if (find==-1) 
+     missing.push(g[i]);
+   else sp[find] = "-";
+ }
+ missing=missing.sort().join(" ");
+ 
+ var overlayAlgo=5;
+ fm
+  .append("vector",{spread:false})
+   .append("writer").write("Reference:")
+   .then("annotatedString#g")
+      .print(g)
+      .appendRect("",{show:false, fill:"#C35817", stroke:"none"},[17,17]).on([overlayAlgo],{show:true})
+      .appendRect("",{show:false, fill:"orange", stroke:"none"},[16,16]).on([overlayAlgo+1],{show:true})
+      .appendRect("",{show:false, fill:"#C35817", stroke:"none"},[11,11]).on([overlayAlgo+2],{show:true})
+      .appendRect("",{show:false, fill:"orange", stroke:"none"},[12,12]).on([overlayAlgo+2],{show:true})
+   .then("writer").write("Scaffold:")
+   .then("annotatedString#s")
+     .print(s) 
+      .appendRect("",{show:false, fill:"orange", stroke:"none"},[2,2]).on([overlayAlgo+1],{show:true})
+      .appendRect("",{show:false, fill:"orange", stroke:"none"},[9,9]).on([overlayAlgo+2],{show:true})
+      .appendRect("",{show:false, fill:"green", stroke:"none"},[19,19]).on([overlayAlgo+3],{show:true})
+      .appendRect("",{show:false, fill:"green", stroke:"none"},[21,21]).on([overlayAlgo+3],{show:true})
+   .then("writer").write("To insert:")
+   .then("annotatedString#s2")
+    .print(missing)
+        
+
+ fm.append("graph#g",{height:null},{nodeType:"rectNode"})
+    .on([2],{opacity:0.5})
+    .pushLinkStyle({stroke:"none"})
+    .setNodeStyle({dragAxis:{x:1,y:0}, w:9, h:13, fill:"white"})
+    //opt. lace
+ var l2=fm.goto("#g").addLace("l2",{dx:12, y:-30},{d:opt.toLowerCase()});
+ opt.split('').forEach(function(c,i) {
+   if (c.match(/[A-Z]/))
+     l2.get(i).set({fill:"#aaf"})
+ });
+ fm.nextOverlay();
+  //ref lace
+ var l1=fm.goto("#g").addLace("l1",{dx:12, y:30},{d:g}).on([1],{show:false});
+ 
+fm.goto("#g").popLinkStyle().pushLinkStyle({srcTangent:{x:0,y:20}, tgtTangent:{x:0,y:-20}, stroke:"#555"})
+var from=[], to=[], last=-1;;
+pi.forEach(function (j,i) {
+  fm.goto("#g").addLink(l2.get(j),l1.get(i));
+  if (from.length>0 && j!=last+1) {
+   l1.get(from).frameNodes("",{margin:1, fill:"none"}).on([1],{show:false})
+   l2.get(to).frameNodes("",{margin:1, fill:"none"})
+   from=[];
+   to=[];
+  }
+  from.push(i);
+  to.push(j);
+  last=j;
+  if (i==pi.length-1) {
+   l1.get(from).frameNodes("",{margin:1, fill:"none"}).on([1],{show:false})
+   l2.get(to).frameNodes("",{margin:1, fill:"none"})
+  }
+})
+
+ fm.nextOverlay()
+   .append("horizontalVector")
+    .append("writer")
+    .write`\bold{Algorithm:} \pause{}
+-|Guess inserted strings\pause{}
+-|Guess left and right breakpoints
+\fontStyle:italic, size:10{(only one has both)}\pause{}
+-|Guess matching of end character\pause{}
+-|Guess neighboring contig`
+    .then("graph#sol",{},{nodeType:"rectNode"})
+    .pushLinkStyle({stroke:"none"})
+    .setNodeStyle({dragAxis:{x:1,y:0}, w:9, h:13, fill:"white"})
+ fm.nextOverlay()
+var lsol=["_fec_", "Xaefg_", "XdaX"]
+.map(function(ins, i) { 
+  var l=fm.goto("#sol").addLace("sol"+i,{dx:12, y:(i-1)*20},{d:ins});
+  ins.split('').forEach(function(c,j) {
+     if (c.match(/[a-z]/))
+      l.get(j).set({fill:"#aaf"})
+    else  
+      l.get(j).set({showOn:[1]})
+  })
+  return l;
+  })
+  fm.nextOverlay()
+  fm.nextOverlay()
+   lsol[0].get(1).set({"fill":"#C35817"});
+  fm.nextOverlay()
+   lsol[0].get(0).set({"fill":"orange"});
+  fm.nextOverlay()
+   lsol[1].get(4).set({"fill":"#C35817"});
+   lsol[1].get(5).set({"fill":"orange"});
+  fm.nextOverlay()
+   lsol[2].get(0).set({"fill":"green"});
+   lsol[2].get(3).set({"fill":"green"});
   
-
+  fm.frame("Overall")
+  
+  
+  fm.frame("",{model:"simple"})
+    .append("writer",{align:"c"}).write`\bold,color:"#00C"{\size:35{Thank you!}
+    
+    
+\size:18,opacity:0#questions{Any questions?}}`
+ fm.nextOverlay()
+  .goto("#questions").set({opacity:1, transition:{}})
+ fm.nextOverlay()
 fm.run();
 });
 </script>

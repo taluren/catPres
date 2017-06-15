@@ -218,6 +218,8 @@ addToCodex("writer","g",  {
 				  }
 				  if ("inside" in token) {
                       //a complex command: \(params)#(id){..contents..}
+                      if (!token.param) 
+                        stop(token)
                       if (token.param.pause) {
                          i.datum.pauseLevel++; 
                          i.root.minRemainingOverlays(i.datum.pauseLevel);

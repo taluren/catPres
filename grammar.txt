@@ -12,7 +12,7 @@ content = inside:contentUnit* {
       if (typeof unit=="string") {
         str+=unit;
       } else {
-        if (str!="") 
+      //  if (str!="") 
           out.push(str);
         out.push(unit);
         str="";
@@ -52,11 +52,12 @@ singleParamPair = x:(keyValue/someKeyword/keyNoValue) {var  y={}; y[x[0]]=x[1]; 
 keyValue = a:(paramChar+) _ ":" _ b:paramValue {return [a.join(''), b]}
 keyNoValue = a:(paramChar+) {return [a.join(''), true]}
 paramValue = 
-   dquote b:((paramChar/" ")+) dquote {return b.join('')}
+   dquote b:(quotedChar*) dquote {return b.join('')}
  / '[' a:(a:paramValue  b:("," b:paramValue {return b})* {return [a].concat(b)})? ']' {return a||[]} 
  / b:(([0-9])+) {return +b.join('')}
  / b:((paramChar)+) {return b.join('')}
 paramChar=[a-zA-Z0-9_\-]
+quotedChar=!'"' c:('\\"' / .) {return c}
 idChar=[a-zA-Z0-9_]
 dquote='"'
 //recognize some keywords automaticaly

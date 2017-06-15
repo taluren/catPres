@@ -202,7 +202,8 @@ var codex = {
 			i.useAttr("font-size","size");
 			i.useAttr("font-family","font");	
 			i.useAttr("font-weight","weight");	
-			i.useAttr("text-anchor","anchor");				
+			i.useAttr("text-anchor","anchor");	
+            i.useAttr("font-style","fontStyle");			
 			if (i.children.length==0) 
 				i.saveG.html(i.style.text);
 		},	
