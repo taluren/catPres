@@ -1,11 +1,5 @@
  /*
-  **Text areas**
-  
-  .print, .println, .ln
-
-  
-   align: left / center / right (along the "x" vertical line)
- 
+ .append("writer").write`...`
  */
  
  var debugMathParsing = false;
@@ -37,14 +31,26 @@ addToCodex("niceBox2","vector",  {
   
 })
 
+addToCodex("padding", "rect", {
+	 defaultStyle:{opacity:0,w:1,h:1}
+});
 addToCodex("titleBox","vector",  {
   defaultStyle: {width:300, titleBG:"#400060", contentBG:"#cbd"},
   containerBox:{typeY:"tight"},
   onBuild:function(i) {
     codex.vector.onBuild(i);
     if (!i.datum) i.datum={};  
-    var title = i.append("writer", {color:"#eed", size:16}).decoration("background", {fill:function() {return i.style.titleBG}})
-    var content = i.append("writer").decoration("background", {fill:function() {return i.style.contentBG}})
+    var title = i.append("vector", {color:"#eed", size:16}).decoration("background", {fill:function() {return i.style.titleBG}})
+	 
+	 title.append("padding", {h:4})
+	        .then("writer")
+			  .then("padding", {h:4})
+	 title=title.children[1];		  
+    var content = i.append("vector").decoration("background", {fill:function() {return i.style.contentBG}})
+	 content.append("padding", {h:4})
+	        .then("writer")
+			  .then("padding", {h:4})
+	content=content.children[1];		  
     i.children.forEach(function(n) {
       n.box.bg.use="container"      
     })
@@ -218,8 +224,9 @@ addToCodex("writer","g",  {
 				  }
 				  if ("inside" in token) {
                       //a complex command: \(params)#(id){..contents..}
-                      if (!token.param) 
+                      if (!("param" in token))
                         stop(token)
+							 if (!token.param) token.param={};
                       if (token.param.pause) {
                          i.datum.pauseLevel++; 
                          i.root.minRemainingOverlays(i.datum.pauseLevel);

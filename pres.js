@@ -1676,9 +1676,9 @@ frameManager = function(style, sozi)  {
     
     fm.run=function() {
        completeCurrentFrame(false);
-       console.log("=========================");       
-       console.log("===  Running !     ======");
-       console.log("=========================");
+       console.log("===============================");       
+       console.log("======     Running !     ======");
+       console.log("===============================");
 		if (sozi)
 			sozi.player.on("frameChange",function() {updateFrame(true)});	
 		if (fm.camera) {

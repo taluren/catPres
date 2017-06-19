@@ -32,6 +32,15 @@
 <script src="./pdfkit.js"></script>
 <script>
 window.addEventListener("load", function(event) {  
+function plan(i) {
+fm.frame("",{model:"simple"})
+ .append("writer", {size:15})
+   .write("\\color:"+(i==1?"black":"gray")+"{\n1|Introduction}") 
+	.write("\\color:"+(i==2?"black":"gray")+"{\n1|Algorithm maximizing common $k$-mer}") 
+	.write("\\color:"+(i==3?"black":"gray")+"{\n1|Algorithms minimizing breakpoints}") 
+	.write("\\color:"+(i==4?"black":"gray")+"{\n1|Conclusion}") 
+}
+
 fm=frameManager({screenBackground:"black", mathjax:false, math:"testPres-math.json"});
 genecolors={
   a: "rgba(167,122,105, 1)",
@@ -105,7 +114,7 @@ for New String Distances}
    IRIF Seminar – 2017-06-20}`
   
   
-  
+  plan(1)
   
   var original =  "abcdadbcdadcbabbc"
    
@@ -189,10 +198,9 @@ for New String Distances}
     .append("writer", {align:"c"})
       .write`Assembling noisy reads based on overlap 
       may always leave gaps: 
-      Can we do anything more in silico?`
-  fm.nextOverlay() 
-    .append("writer", {align:"c"})
-      .write`\bold{Idea:} use a known genome from a close species to fill-in the gaps`
+      Can we do anything more in silico?\pause{}
+		
+\bold{Idea:} use a known genome from a close species to fill-in the gaps`
   
   fm.frame("Modelisation")
     .append("writer")
@@ -215,10 +223,11 @@ of letters
   fm.frame("Measuring genome similarity")
    .append("writer").write`
 *|Comparing different species:
-   Consider \bold{large-scale rearrangements}: edit distances are useless
+  |Consider \bold{large-scale rearrangements} 
+	Edit distances are useless\pause{}
 *|Some distances \bold{forbid repeated letters}: 
-   They may yield efficient algorithms, with strong restriction on the data
-   [Muñoz et al., 2010] 
+  |Strong restriction on the data
+   Efficient algorithm for DCJ distance [Muñoz et al., 2010] \pause{}
 *|Trade-off between computation speed and biological relevance
    ` 
   fm.frame("Distances between genomes")
@@ -371,8 +380,7 @@ fm.nextOverlay()
  .title("String Breakpoint")
  .content`Given a permutation $\pi:[|S_1|]\rightarrow [|S_2|]$, with $S_1[i]=S_2[\pi_i]$ 
  Breakpoint: index $i$ such that $\pi_{i+1}\neq \pi_i +1$
- Breakpoint distance: minimal number of breakpoints over all $\pi$
- `
+ Breakpoint distance: minimal number of breakpoints over all $\pi$ `
  .then("graph#g",{height:null})
     .pushLinkStyle({stroke:"none"})
     .setNodeStyle({dragAxis:{x:1,y:0}})
@@ -401,9 +409,9 @@ fm.nextOverlay()
   
   fm.frame("Example")
    .append("writer").write`
-\bold{Scaffold:} &abcb  (?)  aa  (?)  b  (?)  d //
+\bold{Scaffold:} &$S=$ abcb  (?)  aa  (?)  b  (?)  d //
 \bold{Reference:} &$G=$ aabcaabcbd//
-\bold{Missing genes:} & a, c //
+\bold{Missing genes:} &$T=\{$ a, c $\}$ //
      `
        
      fm.nextOverlay().append("writer#w", {}, {cols:"lc"})
@@ -438,17 +446,23 @@ fm.nextOverlay()
 |\bold{Earlier results:}
 .| Length-1 contigs, common adjacencies:
  -| NP-hard [Jiang et al., '11]
- -| FPT for $\ell$ [Bulteau et al., '15]
+ -| FPT for $\ell$ [Bulteau et al., '15]\pause{}
 .| Any contigs, common adjacencies:
  -| NP-hard with 2 contigs [Jiang et al. '16]
- -| FPT for $\ell, d$ [Jiang et al. '16]
+ -| FPT for $\ell, d$ [Jiang et al. '16]\pause{}
 
-|\bold{Our results:}
+|\bold{Our results:}\pause{}
 .|Any contigs, common $k$-mers:
- -|FPT for $\ell, t$
+ -|FPT for $\ell, t$\pause{}
+.|Any contigs, breakpoints:
+ -|FPT for $b,m,t$
+ -|FPT for $b, d,t$
+ -|XP for $b$
+ 
  
 `
-
+plan(2)
+  
   fm.frame("Maximizing k-mers", {model:"catST"})
     .subtitle("Color-coding + Dynamic Programming Algorithm")
     
@@ -457,7 +471,7 @@ fm.nextOverlay()
 -|Compute missing $k$-mers from $G$  \pause{}\pause{}\pause{}
 \color:brown, size:10{An optimal solution uses $\ell$ of them, but we cannot enumerate all $ {n \choose \ell}$ subsets} \pause{}
 -|Color-code those $k$-mers with $\ell$ colors \pause{}
-\color:brown, size:10{One coloring among $f(\ell)$ separates the new $k$-mers}   
+\color:brown, size:10{One coloring among $nf(\ell)$ separates the new $k$-mers}   
  `
    .then("writer#p2")
 
@@ -508,13 +522,14 @@ fm.nextOverlay()
          //.appendRect("", {fill:"#f88", stroke:"none"},[8,6])
          .appendRect("", {fill:"#aaf", stroke:"none"},[11,11])
      
- fm.nextOverlay()
-   .goto("#hv").append("graph#ckm", {height:150, width:200, active:false},{nodeType:"rectNode", simulation:true})
+   .goto("#hv").append("graph#ckm", {height:150, width:200, active:false,opacity:0},{nodeType:"rectNode", simulation:true})
+	  .on([1],{opacity:1})
      .setNodeStyle({w:28, h:15})
     fm.goto("#ckm")
      .simulation().simulation
        .force("charge", null)
        .force("collide").radius(15)
+   fm.nextOverlay()
     
     //.simulation().set({active:false})
    function mainBagIndex(i) { return i%5}
@@ -527,6 +542,7 @@ fm.nextOverlay()
    function colorc(i) {
      return color5Bags[Math.floor(i/3)%5];
    }
+	
    
    //find common kmers g -- s and g--opt
    gkmers.forEach(function(m, i) {
@@ -572,16 +588,16 @@ fm.nextOverlays(8)
 //fm.nextOverlay()
   .goto("#p2") .write`
   For all \size:12{
-&
-\color:blue, showOn:[4]{$\mathbf{Q[i, T',C,s]} \Leftrightarrow \exists$ a filling }\size:12{//
+&\color:blue{}  &
+\color:"#00A", showOn:[4]{$Q[i, T',C,s] \Leftrightarrow \exists$ a filling }\size:12{//
 *|$i\leq $ number of contigs \pause{}
 *|$T' \subseteq T$ \pause{}
 *|$C$: subset of colors\pause{}
-*|$s$: length-$(k-1)$ string}\pause{}\pause{}&
+*|$s$: length-$(k-1)$ string}\pause{}\pause{}&&
 *|of the first $i$ contigs, that
 *|uses exactly the letters in $T'$,
 *|creates adjacencies with colors $C$
-*|ends with the suffix $s$}`
+*|ends with suffix $s$}`
  
   .goto("#s")
     .appendRect("",{fill:"yellow", stroke:"none"}, [0,8])
@@ -623,6 +639,8 @@ with extra constraints ("pick at most one in such bag")
     
    
    `
+	plan(3)
+  
  fm.frame("Minimizing the breakpoint distance")
   
   
@@ -630,8 +648,7 @@ with extra constraints ("pick at most one in such bag")
  .title("String Breakpoint")
  .content`Given a permutation $\pi:[|S_1|]\rightarrow [|S_2|]$, with $S_1[i]=S_2[\pi_i]$ 
  Breakpoint: index $i$ such that $\pi_{i+1}\neq \pi_i +1$
-$b=$ minimal number of breakpoints over all $\pi$
- `
+$b=$ minimal number of breakpoints over all $\pi$ `
  .then("graph#g",{height:null})
     .pushLinkStyle({stroke:"none"})
     .setNodeStyle({dragAxis:{x:1,y:0}})
@@ -664,12 +681,12 @@ fm.append("writer").write`
     .subtitle("FPT algorithm for b, t and m")
     .append("writer")
      .write`
-.|Using parameters $t$ and $m$:     
+.|Using parameters $t$ and $m$:     \pause{}
  -|Enumerate all possible fillings of $S$
   -|map the missing letters to the gaps in $m^t$ different ways
-  -|enumerate the relative order in each gap in $t!$ ways
-.|Using parameter $b$:     
- -|Compute the breakpoint distance to the reference genome
+  -|enumerate the relative order in each gap in $t!$ ways\pause{}
+.|Using parameter $b$:     \pause{}
+ -|Compute the breakpoint distance to the reference genome\pause{}
 .|Keep only best solution.
 `
   fm.frame("Minimizing the breakpoint distance", {model:"catST"})
@@ -801,17 +818,34 @@ var lsol=["_fec_", "Xaefg_", "XdaX"]
   fm.nextOverlay()
    lsol[2].get(0).set({"fill":"green"});
    lsol[2].get(3).set({"fill":"green"});
+	
+  plan(4)
   
   fm.frame("Overall")
-  
+.append("writer").write`
+.|Considering new string distances
+ -|Common $k$-mers
+ -|Number of breakpoints\pause{}
+.|FPT algorithms, relying on:
+ -|Few new $k$-mers
+ -|Small target distance to reference
+ -|Structural parameters (contigs, repetitions, ...) \pause{}
+.|Open problems:
+ -|Better parameter combinations?\pause{}
+ -|In practice...
+  -|Verify soundness of the distances
+  -|Optimizations towards implementation?\pause{}
+ -|Consider inter-contig size?  \pause{}
+ -|DAG or Graph instead of strings? 
+`
   
   fm.frame("",{model:"simple"})
-    .append("writer",{align:"c"}).write`\bold,color:"#00C"{\size:35{Thank you!}
+    .append("writer",{align:"c"}).write`\bold,color:"#00A"{\size:32{Thank you!}
     
     
-\size:18,opacity:0#questions{Any questions?}}`
+\size:18,opacity:0,color:yellow#questions{Any questions?}}`
  fm.nextOverlay()
-  .goto("#questions").set({opacity:1, transition:{}})
+  .goto("#questions").set({opacity:1, color:"#00A",transition:{duration:2000}})
  fm.nextOverlay()
 fm.run();
 });
