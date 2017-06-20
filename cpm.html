@@ -751,11 +751,16 @@ FPT or W[1]-hardness for $(b,t)$, $(b,m)$ or simply $b$?
         
 
  fm.append("graph#g",{height:null},{nodeType:"rectNode"})
-    .on([2],{opacity:0.5})
+   
     .pushLinkStyle({stroke:"none"})
     .setNodeStyle({dragAxis:{x:1,y:0}, w:9, h:13, fill:"white"})
     //opt. lace
- var l2=fm.goto("#g").addLace("l2",{dx:12, y:-30},{d:opt.toLowerCase()});
+ var l2=
+    fm.goto("#g")
+	   .addLace("l2",{dx:12, y:-30},{d:opt.toLowerCase()})
+		.on([2],{opacity:0.5})
+		//.getSubgraphLinks()
+ var l3=fm.goto("#g").addLace("l3",{dx:12, y:-5, show:false},{d:opt.toLowerCase()}).on([9],{show:true});
  opt.split('').forEach(function(c,i) {
    if (c.match(/[A-Z]/))
      l2.get(i).set({fill:"#aaf"})
@@ -770,7 +775,10 @@ pi.forEach(function (j,i) {
   fm.goto("#g").addLink(l2.get(j),l1.get(i));
   if (from.length>0 && j!=last+1) {
    l1.get(from).frameNodes("",{margin:1, fill:"none"}).on([1],{show:false})
-   l2.get(to).frameNodes("",{margin:1, fill:"none"})
+   l2.get(to).frameNodes("",{margin:1, fill:"none"}).on([1],{opacity:0.5})
+		
+	
+   l3.get(to).frameNodes("",{margin:1, fill:"none", show:false}).on([9],{show:true})
    from=[];
    to=[];
   }
@@ -779,7 +787,8 @@ pi.forEach(function (j,i) {
   last=j;
   if (i==pi.length-1) {
    l1.get(from).frameNodes("",{margin:1, fill:"none"}).on([1],{show:false})
-   l2.get(to).frameNodes("",{margin:1, fill:"none"})
+   l2.get(to).frameNodes("",{margin:1, fill:"none"}).on([1],{opacity:0.5})		
+   l3.get(to).frameNodes("",{margin:1, fill:"none", show:false}).on([9],{show:true})
   }
 })
 
